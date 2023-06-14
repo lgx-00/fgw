@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pxxy.mapper.ProPrcMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.pxxy.pojo.ProPrc">
+        <id column="pp_id" property="ppId" />
+        <result column="pro_id" property="proId" />
+        <result column="prc_id" property="prcId" />
+        <result column="pro_name" property="proName" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        pp_id, pro_id, prc_id, pro_name
+    </sql>
+
+</mapper>

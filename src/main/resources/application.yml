@@ -1,0 +1,10 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: fgw-backend
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/fgw?useSSL=false&serverTimezone=UTC
+    username: root
+    password: 111111

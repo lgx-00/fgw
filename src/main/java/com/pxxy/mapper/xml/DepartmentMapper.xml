@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pxxy.mapper.DepartmentMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.pxxy.pojo.Department">
+        <id column="dep_id" property="depId" />
+        <result column="dep_name" property="depName" />
+        <result column="dep_status" property="depStatus" />
+        <result column="dep_remark" property="depRemark" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        dep_id, dep_name, dep_status, dep_remark
+    </sql>
+
+</mapper>

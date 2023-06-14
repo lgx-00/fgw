@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pxxy.mapper.UserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.pxxy.pojo.User">
+        <id column="u_id" property="uId" />
+        <result column="u_name" property="uName" />
+        <result column="u_password" property="uPassword" />
+        <result column="dep_id" property="depId" />
+        <result column="cou_id" property="couId" />
+        <result column="u_login_time" property="uLoginTime" />
+        <result column="u_status" property="uStatus" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        u_id, u_name, u_password, dep_id, cou_id, u_login_time, u_status
+    </sql>
+
+</mapper>
