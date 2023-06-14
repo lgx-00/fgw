@@ -8,8 +8,10 @@ import com.pxxy.pojo.User;
 import com.pxxy.mapper.UserMapper;
 import com.pxxy.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import jakarta.servlet.http.HttpSession;
+import javax.servlet.http.HttpSession;
+import com.pxxy.utils.Md5Utils;
 import org.springframework.stereotype.Service;
+import java.util.Date;
 
 /**
  * <p>
@@ -34,14 +36,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         User user = query().eq("u_name", uName).one();
 
+        String password = Md5Utils.code(loginForm.getUPassword());
+
         if (user != null) {
-            if (loginForm.getUPassword().equals(user.getUPassword())){
+            if (password.equals(user.getUPassword())){
                 //保存用户信息到session中
                 session.setAttribute("user", BeanUtil.copyProperties(user, UserDTO.class));
+            }else {
+                return Result.fail("密码输入错误！");
             }
         }else {
             return Result.fail("用户不存在！");
         }
+
+        //登录成功，更新用户登录时间
+        user.setULoginTime(new Date());
 
         return Result.ok();
     }

@@ -4,7 +4,7 @@ import com.pxxy.dto.LoginFormDTO;
 import com.pxxy.dto.Result;
 import com.pxxy.pojo.User;
 import com.baomidou.mybatisplus.extension.service.IService;
-import jakarta.servlet.http.HttpSession;
+import javax.servlet.http.HttpSession;
 
 /**
  * <p>
