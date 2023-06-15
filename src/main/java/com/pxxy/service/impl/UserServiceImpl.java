@@ -54,4 +54,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         return Result.ok();
     }
+
+    @Override
+    public Result logout(HttpSession session) {
+        if (session != null){
+            //退出登录，如果session存在吗，则销毁
+            session.invalidate();
+            return Result.ok("销毁session成功！");
+        }
+        return Result.fail("销毁session失败！");
+    }
 }
