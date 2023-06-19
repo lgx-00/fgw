@@ -14,6 +14,7 @@ import com.pxxy.vo.AddUserVO;
 import com.pxxy.vo.GetAllUserVO;
 import com.pxxy.vo.RoleVO;
 import com.pxxy.vo.UpdateUserVO;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
@@ -52,7 +53,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     static Map<String, Integer> mistakeTimes = new ConcurrentHashMap<>();
 
     @Override
-    public com.pxxy.utils.ResultResponse login(LoginFormDTO loginForm, HttpSession session) {
+    public ResultResponse login(LoginFormDTO loginForm, HttpSession session) {
 
         //根据用户名查询用户
         String uName = loginForm.getUName();
@@ -119,7 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public com.pxxy.utils.ResultResponse logout(HttpSession session) {
+    public ResultResponse logout(HttpSession session) {
         if (session != null) {
             //退出登录，如果session存在吗，则销毁
             session.invalidate();
@@ -130,7 +131,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public com.pxxy.utils.ResultResponse addUser(AddUserVO addUserVO) {
+    public ResultResponse addUser(AddUserVO addUserVO) {
         User user = new User();
         //对象属性拷贝
         BeanUtil.copyProperties(addUserVO,user);
@@ -140,8 +141,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         try {
             save(user);
-        }catch (Exception e){
-            return ResultResponse.fail("用户名重复！");
+        }catch (DuplicateKeyException e) {
+            if (Objects.requireNonNull(e.getMessage()).contains("user.user_u_name__uindex")) {
+                return ResultResponse.fail("用户名重复！");
+            } else {
+                return ResultResponse.fail("操作失败，未知原因！");
+            }
         }
 
         List<RoleVO> roleList = addUserVO.getRoleList();
@@ -162,7 +167,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public com.pxxy.utils.ResultResponse getRoleByUserId(Integer userId) {
+    public ResultResponse getRoleByUserId(Integer userId) {
         List<UserRole> userRoleList = userRoleService.query().eq("u_id", userId).list();
         List<Role> roleList = userRoleList.stream().map(role -> {
             Role r = roleService.query().eq("r_id", role.getRId()).one();
@@ -173,7 +178,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public com.pxxy.utils.ResultResponse deleteUser(Integer userId) {
+    public ResultResponse deleteUser(Integer userId) {
         User user = query().eq("u_id", userId).one();
         user.setUStatus(USER_DELETED_STATUS);
         updateById(user);
@@ -182,12 +187,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public com.pxxy.utils.ResultResponse modifyUser(Integer userId, UpdateUserVO updateUserVO) {
+    public ResultResponse modifyUser(Integer userId, UpdateUserVO updateUserVO) {
         User user = query().eq("u_id", userId).one();
         user.setUName(updateUserVO.getUName())
-                .setUPassword(updateUserVO.getUPassword())
+                .setUPassword(Md5Utils.code(updateUserVO.getUPassword()))
                 .setDepId(updateUserVO.getDepId())
                 .setCouId(updateUserVO.getCouId());
+        //修改用户信息
+        updateById(user);
         LambdaQueryWrapper<UserRole> userRoleLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userRoleLambdaQueryWrapper.eq(UserRole::getUId,userId);
         //先删除
@@ -206,7 +213,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public com.pxxy.utils.ResultResponse getAllUser(Integer pageNum){
+    public ResultResponse getAllUser(Integer pageNum){
         // 根据类型分页查询
         Page<User> page = query().page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
 
@@ -246,7 +253,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public com.pxxy.utils.ResultResponse getVagueUser(int pageNum, String uName) {
+    public ResultResponse getVagueUser(int pageNum, String uName) {
         // 根据类型分页查询
         Page<User> page = query().like("u_name",uName).page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
 
