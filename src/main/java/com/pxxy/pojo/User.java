@@ -56,7 +56,7 @@ public class User implements Serializable {
     private Date uLoginTime;
 
     /**
-     * 用户状态 非空，状态有：正常、已禁用、已删除
+     * 用户状态 非空，状态有：正常0、已禁用4、已删除5
      */
     private Integer uStatus;
 

@@ -1,17 +1,27 @@
 package com.pxxy.service.impl;
-
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.dto.LoginFormDTO;
 import com.pxxy.dto.Result;
 import com.pxxy.dto.UserDTO;
-import com.pxxy.pojo.User;
 import com.pxxy.mapper.UserMapper;
-import com.pxxy.service.UserService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import javax.servlet.http.HttpSession;
+import com.pxxy.pojo.*;
+import com.pxxy.service.*;
 import com.pxxy.utils.Md5Utils;
+import com.pxxy.vo.AddUserVO;
+import com.pxxy.vo.GetAllUserVO;
+import com.pxxy.vo.RoleVO;
+import com.pxxy.vo.UpdateUserVO;
 import org.springframework.stereotype.Service;
-import java.util.Date;
+import org.springframework.transaction.annotation.Transactional;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import static com.pxxy.constant.SystemConstant.*;
 
 /**
  * <p>
@@ -24,44 +34,255 @@ import java.util.Date;
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
+    @Resource
+    private UserRoleService userRoleService;
+
+    @Resource
+    private RoleService roleService;
+
+    @Resource
+    private DepartmentService departmentService;
+
+    @Resource
+    private CountyService countyService;
+
+    //用来存储被禁用用户的禁用时间
+    static Map<String, Date> disableTimeMap = new HashMap<>();
+
+    static Map<String, Integer> mistakeTimes = new ConcurrentHashMap<>();
+
     @Override
     public Result login(LoginFormDTO loginForm, HttpSession session) {
 
         //根据用户名查询用户
         String uName = loginForm.getUName();
 
-        if (uName == null || uName.equals("")){
-            return Result.fail("用户名不能为空!");
-        }
-
         User user = query().eq("u_name", uName).one();
 
-        String password = Md5Utils.code(loginForm.getUPassword());
-
-        if (user != null) {
-            if (password.equals(user.getUPassword())){
-                //保存用户信息到session中
-                session.setAttribute("user", BeanUtil.copyProperties(user, UserDTO.class));
-            }else {
-                return Result.fail("密码输入错误！");
-            }
-        }else {
+        if (user == null){
             return Result.fail("用户不存在！");
         }
 
-        //登录成功，更新用户登录时间
-        user.setULoginTime(new Date());
+        //用户提交的密码给加密
+        String password = Md5Utils.code(loginForm.getUPassword());
 
-        return Result.ok();
+        //判断用户是否处于禁用时间中
+        Date date = disableTimeMap.get(USER_DISABLED_TIME_KEY + user.getUId());
+        if (date != null) {
+            //当前时间减去当时禁用时间
+            long time = new Date().getTime() - date.getTime();
+            if (time / 1000 / 60 >= USER_DEFUALT_DISABLE_TIME){
+                disableTimeMap.remove(USER_DISABLED_TIME_KEY + user.getUId());
+                user.setUStatus(USER_DEFUALT_STATUS);
+                updateById(user);
+            }else {
+                return Result.fail(String.format("当前用户已被禁用，请%d分钟后再试", USER_DEFUALT_DISABLE_TIME));
+            }
+        }
+
+        //先判断用户状态
+        switch (user.getUStatus()){
+            //是否被删除
+            case USER_DELETED_STATUS:
+                return Result.fail("用户已被删除!");
+            //是否被禁用
+            case USER_DISABLED_STATUS:
+                return Result.fail("用户已被禁用，请联系管理员解除!");
+            //状态正常
+            case USER_DEFUALT_STATUS:
+                if (!password.equals(user.getUPassword())) {
+                    //密码错误
+                    //错误次数+1
+                    //用户提交错误登录信息次数
+                    int aMistakeTimes = mistakeTimes.getOrDefault(USER_MISTAKE_TIMES_KEY + user.getUId(), USER_MISTAKE_DEFUALT_TIMES) + 1;
+                    mistakeTimes.put(USER_MISTAKE_TIMES_KEY + user.getUId(), aMistakeTimes) ;
+                    if (aMistakeTimes > USER_MISPASS_TIMES) {
+                        //将用户状态设置为禁用
+                        user.setUStatus(USER_DISABLED_STATUS);
+                        updateById(user);
+                        //将最后一次输入错误的时间存入Map
+                        disableTimeMap.put(USER_DISABLED_TIME_KEY + user.getUId(), new Date());
+                        //错误次数置零
+                        mistakeTimes.put(USER_MISTAKE_TIMES_KEY + user.getUId(), USER_MISTAKE_DEFUALT_TIMES);
+                    }
+                    return Result.fail("密码错误！");
+                }else {
+                    //登录成功，更新用户登录时间，并将用户信息存入session
+                    user.setULoginTime(new Date());
+                    updateById(user);
+                    session.setAttribute("user",new UserDTO(user.getUId(),user.getUName()));
+                    return Result.ok();
+                }
+            default:
+                return Result.fail("用户状态异常！");
+        }
     }
 
     @Override
     public Result logout(HttpSession session) {
-        if (session != null){
+        if (session != null) {
             //退出登录，如果session存在吗，则销毁
             session.invalidate();
             return Result.ok("销毁session成功！");
         }
         return Result.fail("销毁session失败！");
     }
+
+    @Override
+    @Transactional
+    public Result addUser(AddUserVO addUserVO) {
+        User user = new User();
+        //对象属性拷贝
+        BeanUtil.copyProperties(addUserVO,user);
+
+        //MD5加密密码
+        user.setUPassword(Md5Utils.code(user.getUPassword()));
+
+        try {
+            save(user);
+        }catch (Exception e){
+            return Result.fail("用户名重复！");
+        }
+
+        List<RoleVO> roleList = addUserVO.getRoleList();
+
+        List<UserRole> userRoleList = roleList.stream().map(role -> {
+            UserRole userRole = new UserRole();
+            userRole.setRId(role.getRId());
+            userRole.setUId(user.getUId());
+            return userRole;
+        }).collect(Collectors.toList());
+
+        if (!userRoleService.saveBatch(userRoleList)) {
+            return Result.fail("新增用户失败！");
+        }
+        return Result.ok();
+
+    }
+
+    @Override
+    @Transactional
+    public Result getRoleByUserId(Integer userId) {
+        List<UserRole> userRoleList = userRoleService.query().eq("u_id", userId).list();
+        List<Role> roleList = userRoleList.stream().map(role -> {
+            Role r = roleService.query().eq("r_id", role.getRId()).one();
+            return r;
+        }).collect(Collectors.toList());
+        List<Role> rList = roleList.stream().filter(role -> role.getRStatus() != ROLE_DEFUALT_STATUS).collect(Collectors.toList());
+        return Result.ok(rList);
+    }
+
+    @Override
+    public Result deleteUser(Integer userId) {
+        User user = query().eq("u_id", userId).one();
+        user.setUStatus(USER_DELETED_STATUS);
+        updateById(user);
+        return Result.ok();
+    }
+
+    @Override
+    @Transactional
+    public Result modifyUser(Integer userId, UpdateUserVO updateUserVO) {
+        User user = query().eq("u_id", userId).one();
+        user.setUName(updateUserVO.getUName())
+                .setUPassword(updateUserVO.getUPassword())
+                .setDepId(updateUserVO.getDepId())
+                .setCouId(updateUserVO.getCouId());
+        LambdaQueryWrapper<UserRole> userRoleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userRoleLambdaQueryWrapper.eq(UserRole::getUId,userId);
+        //先删除
+        userRoleService.remove(userRoleLambdaQueryWrapper);
+        //再加入
+        List<RoleVO> roleList = updateUserVO.getRoleList();
+        List<UserRole> userRoleList = roleList.stream().map(role -> {
+            UserRole userRole = new UserRole();
+            userRole.setUId(userId);
+            userRole.setRId(role.getRId());
+            return userRole;
+        }).collect(Collectors.toList());
+        userRoleService.saveBatch(userRoleList);
+        return Result.ok();
+    }
+
+    @Override
+    @Transactional
+    public Result getAllUser(Integer pageNum){
+        // 根据类型分页查询
+        Page<User> page = query().page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
+
+        //过滤掉超级管理员以及被删除的用户
+        List<User> userList = page.getRecords().stream().filter(user ->
+                !user.getUName().equals("123") && user.getUStatus() != USER_DELETED_STATUS)
+                .collect(Collectors.toList());
+
+        List<GetAllUserVO> getAllUserVOS = userList.stream().map(user -> {
+            GetAllUserVO getAllUserVO = new GetAllUserVO();
+            BeanUtil.copyProperties(user, getAllUserVO);
+            //根据科室id获取科室名
+            Department department = departmentService.query().eq("dep_id", user.getDepId()).one();
+            if (department.getDepStatus() != DEPARTMENT_DELETED_STATUS) {
+                getAllUserVO.setDepName(department.getDepName());
+            }
+            //根据辖区id获取辖区名
+            County county = countyService.query().eq("cou_id", user.getCouId()).one();
+            if (county.getCouStatus() != COUNTY_DELETED_STATUS) {
+                getAllUserVO.setCouName(county.getCouName());
+            }
+            //根据用户id查询用户角色
+            List<UserRole> userRoleList = userRoleService.query().eq("u_id", user.getUId()).list();
+            //查询角色名
+            List<String> roleNames = userRoleList.stream().map(userRole -> {
+                Role role = roleService.query().eq("r_id", userRole.getRId()).one();
+                return role.getRName();
+            }).collect(Collectors.toList());
+
+            getAllUserVO.setRoleList(roleNames);
+
+            return getAllUserVO;
+        }).collect(Collectors.toList());
+
+        // 返回数据
+        return Result.ok(getAllUserVOS);
+    }
+
+    @Override
+    public Result getVagueUser(int pageNum, String uName) {
+        // 根据类型分页查询
+        Page<User> page = query().like("u_name",uName).page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
+
+        //过滤掉超级管理员以及被删除的用户
+        List<User> userList = page.getRecords().stream().filter(user ->
+                !user.getUName().equals("123") && user.getUStatus() != USER_DELETED_STATUS)
+                .collect(Collectors.toList());
+
+        List<GetAllUserVO> getAllUserVOS = userList.stream().map(user -> {
+            GetAllUserVO getAllUserVO = new GetAllUserVO();
+            BeanUtil.copyProperties(user, getAllUserVO);
+            //根据科室id获取科室名
+            Department department = departmentService.query().eq("dep_id", user.getDepId()).one();
+            if (department.getDepStatus() != DEPARTMENT_DELETED_STATUS) {
+                getAllUserVO.setDepName(department.getDepName());
+            }
+            //根据辖区id获取辖区名
+            County county = countyService.query().eq("cou_id", user.getCouId()).one();
+            if (county.getCouStatus() != COUNTY_DELETED_STATUS) {
+                getAllUserVO.setCouName(county.getCouName());
+            }
+            //根据用户id查询用户角色
+            List<UserRole> userRoleList = userRoleService.query().eq("u_id", user.getUId()).list();
+            //查询角色名
+            List<String> roleNames = userRoleList.stream().map(userRole -> {
+                Role role = roleService.query().eq("r_id", userRole.getRId()).one();
+                return role.getRName();
+            }).collect(Collectors.toList());
+
+            getAllUserVO.setRoleList(roleNames);
+
+            return getAllUserVO;
+        }).collect(Collectors.toList());
+
+        // 返回数据
+        return Result.ok(getAllUserVOS);
+    }
+
 }
