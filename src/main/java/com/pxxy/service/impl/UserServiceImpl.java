@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.dto.LoginFormDTO;
-import com.pxxy.dto.Result;
+import com.pxxy.utils.ResultResponse;
 import com.pxxy.dto.UserDTO;
 import com.pxxy.mapper.UserMapper;
 import com.pxxy.pojo.*;
@@ -52,7 +52,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     static Map<String, Integer> mistakeTimes = new ConcurrentHashMap<>();
 
     @Override
-    public Result login(LoginFormDTO loginForm, HttpSession session) {
+    public com.pxxy.utils.ResultResponse login(LoginFormDTO loginForm, HttpSession session) {
 
         //根据用户名查询用户
         String uName = loginForm.getUName();
@@ -60,7 +60,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = query().eq("u_name", uName).one();
 
         if (user == null){
-            return Result.fail("用户不存在！");
+            return ResultResponse.fail("用户不存在！");
         }
 
         //用户提交的密码给加密
@@ -76,7 +76,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 user.setUStatus(USER_DEFUALT_STATUS);
                 updateById(user);
             }else {
-                return Result.fail(String.format("当前用户已被禁用，请%d分钟后再试", USER_DEFUALT_DISABLE_TIME));
+                return ResultResponse.fail(String.format("当前用户已被禁用，请%d分钟后再试", USER_DEFUALT_DISABLE_TIME));
             }
         }
 
@@ -84,10 +84,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         switch (user.getUStatus()){
             //是否被删除
             case USER_DELETED_STATUS:
-                return Result.fail("用户已被删除!");
+                return ResultResponse.fail("用户已被删除!");
             //是否被禁用
             case USER_DISABLED_STATUS:
-                return Result.fail("用户已被禁用，请联系管理员解除!");
+                return ResultResponse.fail("用户已被禁用，请联系管理员解除!");
             //状态正常
             case USER_DEFUALT_STATUS:
                 if (!password.equals(user.getUPassword())) {
@@ -105,32 +105,32 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         //错误次数置零
                         mistakeTimes.put(USER_MISTAKE_TIMES_KEY + user.getUId(), USER_MISTAKE_DEFUALT_TIMES);
                     }
-                    return Result.fail("密码错误！");
+                    return ResultResponse.fail("密码错误！");
                 }else {
                     //登录成功，更新用户登录时间，并将用户信息存入session
                     user.setULoginTime(new Date());
                     updateById(user);
                     session.setAttribute("user",new UserDTO(user.getUId(),user.getUName()));
-                    return Result.ok();
+                    return ResultResponse.ok();
                 }
             default:
-                return Result.fail("用户状态异常！");
+                return ResultResponse.fail("用户状态异常！");
         }
     }
 
     @Override
-    public Result logout(HttpSession session) {
+    public com.pxxy.utils.ResultResponse logout(HttpSession session) {
         if (session != null) {
             //退出登录，如果session存在吗，则销毁
             session.invalidate();
-            return Result.ok("销毁session成功！");
+            return ResultResponse.ok("销毁session成功！");
         }
-        return Result.fail("销毁session失败！");
+        return ResultResponse.fail("销毁session失败！");
     }
 
     @Override
     @Transactional
-    public Result addUser(AddUserVO addUserVO) {
+    public com.pxxy.utils.ResultResponse addUser(AddUserVO addUserVO) {
         User user = new User();
         //对象属性拷贝
         BeanUtil.copyProperties(addUserVO,user);
@@ -141,7 +141,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         try {
             save(user);
         }catch (Exception e){
-            return Result.fail("用户名重复！");
+            return ResultResponse.fail("用户名重复！");
         }
 
         List<RoleVO> roleList = addUserVO.getRoleList();
@@ -154,35 +154,35 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }).collect(Collectors.toList());
 
         if (!userRoleService.saveBatch(userRoleList)) {
-            return Result.fail("新增用户失败！");
+            return ResultResponse.fail("新增用户失败！");
         }
-        return Result.ok();
+        return ResultResponse.ok();
 
     }
 
     @Override
     @Transactional
-    public Result getRoleByUserId(Integer userId) {
+    public com.pxxy.utils.ResultResponse getRoleByUserId(Integer userId) {
         List<UserRole> userRoleList = userRoleService.query().eq("u_id", userId).list();
         List<Role> roleList = userRoleList.stream().map(role -> {
             Role r = roleService.query().eq("r_id", role.getRId()).one();
             return r;
         }).collect(Collectors.toList());
         List<Role> rList = roleList.stream().filter(role -> role.getRStatus() != ROLE_DEFUALT_STATUS).collect(Collectors.toList());
-        return Result.ok(rList);
+        return ResultResponse.ok(rList);
     }
 
     @Override
-    public Result deleteUser(Integer userId) {
+    public com.pxxy.utils.ResultResponse deleteUser(Integer userId) {
         User user = query().eq("u_id", userId).one();
         user.setUStatus(USER_DELETED_STATUS);
         updateById(user);
-        return Result.ok();
+        return ResultResponse.ok();
     }
 
     @Override
     @Transactional
-    public Result modifyUser(Integer userId, UpdateUserVO updateUserVO) {
+    public com.pxxy.utils.ResultResponse modifyUser(Integer userId, UpdateUserVO updateUserVO) {
         User user = query().eq("u_id", userId).one();
         user.setUName(updateUserVO.getUName())
                 .setUPassword(updateUserVO.getUPassword())
@@ -201,12 +201,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return userRole;
         }).collect(Collectors.toList());
         userRoleService.saveBatch(userRoleList);
-        return Result.ok();
+        return ResultResponse.ok();
     }
 
     @Override
     @Transactional
-    public Result getAllUser(Integer pageNum){
+    public com.pxxy.utils.ResultResponse getAllUser(Integer pageNum){
         // 根据类型分页查询
         Page<User> page = query().page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
 
@@ -242,11 +242,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }).collect(Collectors.toList());
 
         // 返回数据
-        return Result.ok(getAllUserVOS);
+        return ResultResponse.ok(getAllUserVOS);
     }
 
     @Override
-    public Result getVagueUser(int pageNum, String uName) {
+    public com.pxxy.utils.ResultResponse getVagueUser(int pageNum, String uName) {
         // 根据类型分页查询
         Page<User> page = query().like("u_name",uName).page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
 
@@ -282,7 +282,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }).collect(Collectors.toList());
 
         // 返回数据
-        return Result.ok(getAllUserVOS);
+        return ResultResponse.ok(getAllUserVOS);
     }
 
 }

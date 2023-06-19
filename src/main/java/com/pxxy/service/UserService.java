@@ -1,9 +1,9 @@
 package com.pxxy.service;
 
 import com.pxxy.dto.LoginFormDTO;
-import com.pxxy.dto.Result;
 import com.pxxy.pojo.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddUserVO;
 import com.pxxy.vo.UpdateUserVO;
 
@@ -19,19 +19,19 @@ import javax.servlet.http.HttpSession;
  */
 public interface UserService extends IService<User> {
 
-    Result login(LoginFormDTO loginForm, HttpSession session);
+    com.pxxy.utils.ResultResponse login(LoginFormDTO loginForm, HttpSession session);
 
-    Result logout(HttpSession session);
+    com.pxxy.utils.ResultResponse logout(HttpSession session);
 
-    Result addUser(AddUserVO addUserVO);
+    com.pxxy.utils.ResultResponse addUser(AddUserVO addUserVO);
 
-    Result getRoleByUserId(Integer userId);
+    com.pxxy.utils.ResultResponse getRoleByUserId(Integer userId);
 
-    Result deleteUser(Integer userId);
+    com.pxxy.utils.ResultResponse deleteUser(Integer userId);
 
-    Result modifyUser(Integer userId, UpdateUserVO updateUserVO);
+    com.pxxy.utils.ResultResponse modifyUser(Integer userId, UpdateUserVO updateUserVO);
 
-    Result getAllUser(Integer pageNum);
+    com.pxxy.utils.ResultResponse getAllUser(Integer pageNum);
 
-    Result getVagueUser(int pageNum,String uName);
+    ResultResponse getVagueUser(int pageNum, String uName);
 }
