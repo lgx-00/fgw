@@ -1,7 +1,5 @@
 package com.pxxy.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -18,15 +16,10 @@ import java.io.Serializable;
 @Accessors(chain = true)
 public class AddIndustryFiledVO implements Serializable {
 
-    private static final long serialVersionUID=1L;
-
-    @TableId(value = "inf_id", type = IdType.AUTO)
-    private Integer infId;
+    private static final long serialVersionUID = 1L;
 
     @NotNull(message = "不可为空")
     private String infName;
-
-    private Integer infStatus;
 
     private String infRemark;
 
