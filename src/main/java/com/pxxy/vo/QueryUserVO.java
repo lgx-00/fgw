@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Data
 @ApiModel(value = "返回给前端的用户信息")
-public class GetAllUserVO {
+public class QueryUserVO {
 
     @ApiModelProperty(value = "用户ID")
     private Integer uId;

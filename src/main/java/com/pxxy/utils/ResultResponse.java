@@ -1,8 +1,8 @@
 package com.pxxy.utils;
 
 
-import com.pxxy.Enum.ExceptionEnum;
-import com.pxxy.Enum.MessageEnum;
+import com.pxxy.enums.ExceptionEnum;
+import com.pxxy.enums.MessageEnum;
 import com.pxxy.constant.Constants;
 import com.pxxy.exception.FgwException;
 import lombok.Data;

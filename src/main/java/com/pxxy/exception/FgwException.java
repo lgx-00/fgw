@@ -2,10 +2,6 @@ package com.pxxy.exception;
 
 import lombok.Data;
 
-/**
- * @author gxf
- * @date 2023/4/15 21:51
- */
 @Data
 public class FgwException extends RuntimeException {
     /**

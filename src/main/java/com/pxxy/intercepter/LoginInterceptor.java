@@ -1,9 +1,11 @@
-package com.pxxy.utils;
+package com.pxxy.intercepter;
 
 import com.pxxy.dto.UserDTO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import com.pxxy.utils.UserHolder;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 

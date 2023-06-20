@@ -1,9 +1,4 @@
-package com.pxxy.Enum;
-
-/**
- * @author gxf
- * @date 2023/4/15 21:51
- */
+package com.pxxy.enums;
 public enum MessageEnum {
 
     //

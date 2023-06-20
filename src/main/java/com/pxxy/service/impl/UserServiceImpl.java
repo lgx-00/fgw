@@ -3,6 +3,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.pxxy.constant.SystemConstant;
 import com.pxxy.dto.LoginFormDTO;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.dto.UserDTO;
@@ -11,7 +12,7 @@ import com.pxxy.pojo.*;
 import com.pxxy.service.*;
 import com.pxxy.utils.Md5Utils;
 import com.pxxy.vo.AddUserVO;
-import com.pxxy.vo.GetAllUserVO;
+import com.pxxy.vo.QueryUserVO;
 import com.pxxy.vo.RoleVO;
 import com.pxxy.vo.UpdateUserVO;
 import org.springframework.dao.DuplicateKeyException;
@@ -72,30 +73,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (date != null) {
             //当前时间减去当时禁用时间
             long time = new Date().getTime() - date.getTime();
-            if (time / 1000 / 60 >= USER_DEFUALT_DISABLE_TIME){
+            if (time / 1000 / 60 >= USER_DEFAULT_DISABLE_TIME){
                 disableTimeMap.remove(USER_DISABLED_TIME_KEY + user.getUId());
-                user.setUStatus(USER_DEFUALT_STATUS);
+                user.setUStatus(DEFAULT_STATUS);
                 updateById(user);
             }else {
-                return ResultResponse.fail(String.format("当前用户已被禁用，请%d分钟后再试", USER_DEFUALT_DISABLE_TIME));
+                return ResultResponse.fail(String.format("当前用户已被禁用，请%d分钟后再试", USER_DEFAULT_DISABLE_TIME));
             }
         }
 
         //先判断用户状态
         switch (user.getUStatus()){
             //是否被删除
-            case USER_DELETED_STATUS:
+            case DELETED_STATUS:
                 return ResultResponse.fail("用户已被删除!");
             //是否被禁用
             case USER_DISABLED_STATUS:
                 return ResultResponse.fail("用户已被禁用，请联系管理员解除!");
             //状态正常
-            case USER_DEFUALT_STATUS:
+            case DEFAULT_STATUS:
                 if (!password.equals(user.getUPassword())) {
                     //密码错误
                     //错误次数+1
                     //用户提交错误登录信息次数
-                    int aMistakeTimes = mistakeTimes.getOrDefault(USER_MISTAKE_TIMES_KEY + user.getUId(), USER_MISTAKE_DEFUALT_TIMES) + 1;
+                    int aMistakeTimes = mistakeTimes.getOrDefault(USER_MISTAKE_TIMES_KEY + user.getUId(), USER_MISTAKE_DEFAULT_TIMES) + 1;
                     mistakeTimes.put(USER_MISTAKE_TIMES_KEY + user.getUId(), aMistakeTimes) ;
                     if (aMistakeTimes > USER_MISPASS_TIMES) {
                         //将用户状态设置为禁用
@@ -104,7 +105,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         //将最后一次输入错误的时间存入Map
                         disableTimeMap.put(USER_DISABLED_TIME_KEY + user.getUId(), new Date());
                         //错误次数置零
-                        mistakeTimes.put(USER_MISTAKE_TIMES_KEY + user.getUId(), USER_MISTAKE_DEFUALT_TIMES);
+                        mistakeTimes.put(USER_MISTAKE_TIMES_KEY + user.getUId(), USER_MISTAKE_DEFAULT_TIMES);
                     }
                     return ResultResponse.fail("密码错误！");
                 }else {
@@ -173,14 +174,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             Role r = roleService.query().eq("r_id", role.getRId()).one();
             return r;
         }).collect(Collectors.toList());
-        List<Role> rList = roleList.stream().filter(role -> role.getRStatus() != ROLE_DEFUALT_STATUS).collect(Collectors.toList());
+        List<Role> rList = roleList.stream().filter(role -> role.getRStatus() != SystemConstant.DEFAULT_STATUS).collect(Collectors.toList());
         return ResultResponse.ok(rList);
     }
 
     @Override
     public ResultResponse deleteUser(Integer userId) {
         User user = query().eq("u_id", userId).one();
-        user.setUStatus(USER_DELETED_STATUS);
+        user.setUStatus(DELETED_STATUS);
         updateById(user);
         return ResultResponse.ok();
     }
@@ -219,21 +220,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         //过滤掉超级管理员以及被删除的用户
         List<User> userList = page.getRecords().stream().filter(user ->
-                !user.getUName().equals("123") && user.getUStatus() != USER_DELETED_STATUS)
+                !user.getUName().equals("123") && user.getUStatus() != DELETED_STATUS)
                 .collect(Collectors.toList());
 
-        List<GetAllUserVO> getAllUserVOS = userList.stream().map(user -> {
-            GetAllUserVO getAllUserVO = new GetAllUserVO();
-            BeanUtil.copyProperties(user, getAllUserVO);
+        List<QueryUserVO> queryUserVOS = userList.stream().map(user -> {
+            QueryUserVO queryUserVO = new QueryUserVO();
+            BeanUtil.copyProperties(user, queryUserVO);
             //根据科室id获取科室名
             Department department = departmentService.query().eq("dep_id", user.getDepId()).one();
-            if (department.getDepStatus() != DEPARTMENT_DELETED_STATUS) {
-                getAllUserVO.setDepName(department.getDepName());
+            if (department.getDepStatus() != SystemConstant.DELETED_STATUS) {
+                queryUserVO.setDepName(department.getDepName());
             }
             //根据辖区id获取辖区名
             County county = countyService.query().eq("cou_id", user.getCouId()).one();
-            if (county.getCouStatus() != COUNTY_DELETED_STATUS) {
-                getAllUserVO.setCouName(county.getCouName());
+            if (county.getCouStatus() != SystemConstant.DELETED_STATUS) {
+                queryUserVO.setCouName(county.getCouName());
             }
             //根据用户id查询用户角色
             List<UserRole> userRoleList = userRoleService.query().eq("u_id", user.getUId()).list();
@@ -243,13 +244,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 return role.getRName();
             }).collect(Collectors.toList());
 
-            getAllUserVO.setRoleList(roleNames);
+            queryUserVO.setRoleList(roleNames);
 
-            return getAllUserVO;
+            return queryUserVO;
         }).collect(Collectors.toList());
 
         // 返回数据
-        return ResultResponse.ok(getAllUserVOS);
+        return ResultResponse.ok(queryUserVOS);
     }
 
     @Override
@@ -259,21 +260,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         //过滤掉超级管理员以及被删除的用户
         List<User> userList = page.getRecords().stream().filter(user ->
-                !user.getUName().equals("123") && user.getUStatus() != USER_DELETED_STATUS)
+                !user.getUName().equals("123") && user.getUStatus() != DELETED_STATUS)
                 .collect(Collectors.toList());
 
-        List<GetAllUserVO> getAllUserVOS = userList.stream().map(user -> {
-            GetAllUserVO getAllUserVO = new GetAllUserVO();
-            BeanUtil.copyProperties(user, getAllUserVO);
+        List<QueryUserVO> queryUserVOS = userList.stream().map(user -> {
+            QueryUserVO queryUserVO = new QueryUserVO();
+            BeanUtil.copyProperties(user, queryUserVO);
             //根据科室id获取科室名
             Department department = departmentService.query().eq("dep_id", user.getDepId()).one();
-            if (department.getDepStatus() != DEPARTMENT_DELETED_STATUS) {
-                getAllUserVO.setDepName(department.getDepName());
+            if (department.getDepStatus() != SystemConstant.DELETED_STATUS) {
+                queryUserVO.setDepName(department.getDepName());
             }
             //根据辖区id获取辖区名
             County county = countyService.query().eq("cou_id", user.getCouId()).one();
-            if (county.getCouStatus() != COUNTY_DELETED_STATUS) {
-                getAllUserVO.setCouName(county.getCouName());
+            if (county.getCouStatus() != SystemConstant.DELETED_STATUS) {
+                queryUserVO.setCouName(county.getCouName());
             }
             //根据用户id查询用户角色
             List<UserRole> userRoleList = userRoleService.query().eq("u_id", user.getUId()).list();
@@ -283,13 +284,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 return role.getRName();
             }).collect(Collectors.toList());
 
-            getAllUserVO.setRoleList(roleNames);
+            queryUserVO.setRoleList(roleNames);
 
-            return getAllUserVO;
+            return queryUserVO;
         }).collect(Collectors.toList());
 
         // 返回数据
-        return ResultResponse.ok(getAllUserVOS);
+        return ResultResponse.ok(queryUserVOS);
     }
 
 }
