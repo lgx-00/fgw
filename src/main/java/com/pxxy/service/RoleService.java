@@ -4,6 +4,7 @@ import com.pxxy.pojo.Role;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddRoleVO;
+import com.pxxy.vo.UpdateRoleVO;
 
 /**
  * <p>
@@ -20,4 +21,8 @@ public interface RoleService extends IService<Role> {
     ResultResponse getVagueRole(Integer pageNum, String rName);
 
     ResultResponse addRole(AddRoleVO roleVO);
+
+    ResultResponse deleteRole(Integer roleId);
+
+    ResultResponse updateRole(UpdateRoleVO roleVO);
 }

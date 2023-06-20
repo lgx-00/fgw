@@ -4,6 +4,7 @@ package com.pxxy.controller;
 import com.pxxy.service.RoleService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddRoleVO;
+import com.pxxy.vo.UpdateRoleVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
@@ -39,8 +40,23 @@ public class RoleController {
 
     @PostMapping("/add")
     @ApiOperation("新增角色")
-    public ResultResponse test(@RequestBody AddRoleVO roleVO) {
-        return roleService.addRole(roleVO);
+    public ResultResponse addRole(@RequestBody AddRoleVO addRoleVO) {
+        return roleService.addRole(addRoleVO);
     }
+
+    @PostMapping("/delete/{roleId}")
+    @ApiOperation("删除角色")
+    public ResultResponse deleteRole(@PathVariable Integer roleId) {
+        return roleService.deleteRole(roleId);
+    }
+
+
+    @PostMapping("/update")
+    @ApiOperation("修改角色")
+    public ResultResponse updateRole(@RequestBody UpdateRoleVO updateRoleVO) {
+        return roleService.updateRole(updateRoleVO);
+    }
+
+
 }
 
