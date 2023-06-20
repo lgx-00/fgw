@@ -122,6 +122,19 @@
             <artifactId>pagehelper-spring-boot-starter</artifactId>
             <version>1.4.0</version>
         </dependency>
+
+        <!--aop依赖1：aspectjrt -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+        </dependency>
+
+        <!--aop依赖2： aspectjweaver -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
