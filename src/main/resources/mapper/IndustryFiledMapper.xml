@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.pxxy.mapper.IndustryFiledMapper">
+<mapper namespace="com.pxxy.mapper.IndustryFieldMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.IndustryFiled">
+    <resultMap id="BaseResultMap" type="com.pxxy.pojo.IndustryField">
         <id column="inf_id" property="infId" />
         <result column="inf_name" property="infName" />
         <result column="inf_status" property="infStatus" />

@@ -21,10 +21,13 @@ public class UpdateUserVO {
     @ApiModelProperty(value = "密码")
     private String uPassword;
 
-    @ApiModelProperty(value = "科室id")
+    @ApiModelProperty(value = "用户 ID")
+    private Integer uId;
+
+    @ApiModelProperty(value = "科室 ID")
     private Integer depId;
 
-    @ApiModelProperty(value = "辖区id")
+    @ApiModelProperty(value = "辖区 ID")
     private Integer couId;
 
     @ApiModelProperty(value = "勾选的角色，可多选")

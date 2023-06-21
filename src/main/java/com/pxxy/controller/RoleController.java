@@ -26,32 +26,31 @@ public class RoleController {
     @Resource
     private RoleService roleService;
 
-    @GetMapping("/getAll")
+    @GetMapping("/all")
     @ApiOperation("分页查询所有角色")
     public ResultResponse getAllRole(@RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum){
         return roleService.getAllRole(pageNum);
     }
 
-    @GetMapping("/getVague")
+    @GetMapping("/vague")
     @ApiOperation("模糊查询角色名")
     public ResultResponse getVagueRole(@RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum, @RequestParam String rName){
         return roleService.getVagueRole(pageNum,rName);
     }
 
-    @PostMapping("/add")
+    @PostMapping
     @ApiOperation("新增角色")
     public ResultResponse addRole(@RequestBody AddRoleVO addRoleVO) {
         return roleService.addRole(addRoleVO);
     }
 
-    @PostMapping("/delete/{roleId}")
+    @DeleteMapping
     @ApiOperation("删除角色")
-    public ResultResponse deleteRole(@PathVariable Integer roleId) {
+    public ResultResponse deleteRole(@RequestParam Integer roleId) {
         return roleService.deleteRole(roleId);
     }
 
-
-    @PostMapping("/update")
+    @PutMapping
     @ApiOperation("修改角色")
     public ResultResponse updateRole(@RequestBody UpdateRoleVO updateRoleVO) {
         return roleService.updateRole(updateRoleVO);

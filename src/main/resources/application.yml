@@ -10,4 +10,4 @@ spring:
     password: 111111
 logging:
   level:
-    com.pxxy: debug
+    com.pxxy: info

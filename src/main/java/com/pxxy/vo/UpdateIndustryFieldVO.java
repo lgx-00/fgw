@@ -15,9 +15,12 @@ import java.io.Serializable;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class UpdateIndustryFiledVO implements Serializable {
+public class UpdateIndustryFieldVO implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    @NotNull(message = "不可为空")
+    private Integer infId;
 
     @NotNull(message = "不可为空")
     private String infName;

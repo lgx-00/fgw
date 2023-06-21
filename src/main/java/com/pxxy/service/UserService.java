@@ -25,11 +25,9 @@ public interface UserService extends IService<User> {
 
     ResultResponse addUser(AddUserVO addUserVO);
 
-    ResultResponse getRoleByUserId(Integer userId);
-
     ResultResponse deleteUser(Integer userId);
 
-    ResultResponse modifyUser(Integer userId, UpdateUserVO updateUserVO);
+    ResultResponse modifyUser(UpdateUserVO updateUserVO);
 
     ResultResponse getAllUser(Integer pageNum);
 
