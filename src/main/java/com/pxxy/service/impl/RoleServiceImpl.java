@@ -7,9 +7,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.mapper.RoleMapper;
 import com.pxxy.pojo.Role;
 import com.pxxy.pojo.RolePermission;
+import com.pxxy.pojo.UserRole;
 import com.pxxy.service.PermissionService;
 import com.pxxy.service.RolePermissionService;
 import com.pxxy.service.RoleService;
+import com.pxxy.service.UserRoleService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddRoleVO;
 import com.pxxy.vo.QueryRoleVO;
@@ -39,6 +41,9 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
 
     @Resource
     private RolePermissionService rolePermissionService;
+
+    @Resource
+    private UserRoleService userRoleService;
 
     @Override
     @Transactional
@@ -103,8 +108,17 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
         role.setRStatus(DELETED_STATUS);
         updateById(role);
         LambdaQueryWrapper<RolePermission> rolePermissionLambdaQueryWrapper = new LambdaQueryWrapper<>();
+
+        LambdaQueryWrapper<UserRole> userRoleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+
         rolePermissionLambdaQueryWrapper.eq(RolePermission::getRId,roleId);
+
+        userRoleLambdaQueryWrapper.eq(UserRole::getRId,roleId);
+
         rolePermissionService.remove(rolePermissionLambdaQueryWrapper);
+
+        userRoleService.remove(userRoleLambdaQueryWrapper);
+
         return ResultResponse.ok();
     }
 

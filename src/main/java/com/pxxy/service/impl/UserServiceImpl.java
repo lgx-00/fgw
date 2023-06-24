@@ -122,6 +122,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     }
                     return ResultResponse.fail("用户名或密码错误！");
                 }else {
+                    //先判断用户是否拥有角色
+                    List<UserRole> userRoles = userRoleService.query().eq("u_id",user.getUId()).list();
+
+                    if (userRoles == null || userRoles.size() == 0){
+                        return ResultResponse.fail("用户角色已被删除，请联系管理员！");
+                    }
+
                     // 登录成功，更新用户登录时间，并将用户信息存入session
                     user.setULoginTime(new Date());
                     updateById(user);
@@ -132,6 +139,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
                     // 角色id集合
                     List<Integer> roleIds = userRoleList.stream().map(UserRole::getRId).collect(Collectors.toList());
+
 
                     for (Integer roleId : roleIds) {
                         List<RolePermission> rolePermissionList = rolePermissionService.query().eq("r_id", roleId).list();

@@ -1,25 +1,19 @@
 package com.pxxy.exception;
-import cn.hutool.core.util.StrUtil;
-import com.pxxy.enums.ExceptionEnum;
-import com.pxxy.enums.MessageEnum;
 import com.pxxy.utils.ResultResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,16 +28,6 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-
-    /**
-     *处理其他异常
-     *
-     */
-    @ExceptionHandler(value = Exception.class)
-    public ResultResponse otherExceptionHandler(Exception e) {
-        log.error(e.getMessage(), e);
-        return ResultResponse.otherException(ExceptionEnum.INTERNAL_SERVER_ERROR);
-    }
 
     /**
      *参数校验
@@ -63,36 +47,6 @@ public class GlobalExceptionHandler {
     public ResultResponse error(HttpMessageNotReadableException e){
         log.warn("参数错误(json)"+e);
         return ResultResponse.fail("参数错误(json)");
-    }
-    /**
-     * @description 空参异常处理
-     * @date 2023/4/15 21:51
-     * @params [ex, request]
-     * @return com.life.utils.ResultResponse<java.lang.Void>
-     */
-    @ExceptionHandler(BindException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResultResponse bindException(BindException ex, HttpServletRequest request) {
-        log.warn("BindException:", ex);
-        try {
-            // 拿到@NotNull,@NotBlank和 @NotEmpty等注解上的message值
-            String msg = Objects.requireNonNull(ex.getBindingResult().getFieldError()).getDefaultMessage();
-            if (StrUtil.isNotEmpty(msg)) {
-                // 自定义状态返回
-                return ResultResponse.fail(MessageEnum.PARAMETER_ERROR.getCode(), msg);
-            }
-        } catch (Exception ignored) {
-            log.warn("参数校验空参数"+ex.getMessage());
-        }
-        // 参数类型不匹配检验
-        StringBuilder msg = new StringBuilder();
-        List<FieldError> fieldErrors = ex.getFieldErrors();
-        fieldErrors.forEach((oe) ->
-                msg.append("参数:[").append(oe.getObjectName())
-                        .append(".").append(oe.getField())
-                        .append("]的传入值:[").append(oe.getRejectedValue()).append("]与预期的字段类型不匹配.")
-        );
-        return ResultResponse.fail(MessageEnum.AUTH_FORMAT_ERR.getCode(), msg.toString());
     }
     /**
      * spring 封装的参数验证异常， 在controller中没有写BindingResult(实际开发不常用)参数时，会进入
