@@ -96,13 +96,6 @@
             <version>3.8.1</version>
         </dependency>
 
-        <!-- fastjson -->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.60</version>
-        </dependency>
-
         <!--hutool工具类 -->
         <dependency>
             <groupId>cn.hutool</groupId>

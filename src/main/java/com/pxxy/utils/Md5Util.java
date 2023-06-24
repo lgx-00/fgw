@@ -3,7 +3,7 @@ package com.pxxy.utils;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class Md5Utils {
+public class Md5Util {
     public static String code(String str) {
         if (str == null) return null;
         try {

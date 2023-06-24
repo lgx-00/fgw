@@ -7,6 +7,7 @@ import com.pxxy.vo.AddRoleVO;
 import com.pxxy.vo.UpdateRoleVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -20,6 +21,7 @@ import javax.annotation.Resource;
  * @since 2023-06-14
  */
 @RestController
+@Validated
 @RequestMapping("/role")
 @Api(tags = "角色")
 public class RoleController {
@@ -40,7 +42,7 @@ public class RoleController {
 
     @PostMapping
     @ApiOperation("新增角色")
-    public ResultResponse addRole(@RequestBody AddRoleVO addRoleVO) {
+    public ResultResponse addRole(@RequestBody @Validated AddRoleVO addRoleVO) {
         return roleService.addRole(addRoleVO);
     }
 
@@ -52,7 +54,7 @@ public class RoleController {
 
     @PutMapping
     @ApiOperation("修改角色")
-    public ResultResponse updateRole(@RequestBody UpdateRoleVO updateRoleVO) {
+    public ResultResponse updateRole(@RequestBody @Validated UpdateRoleVO updateRoleVO) {
         return roleService.updateRole(updateRoleVO);
     }
 

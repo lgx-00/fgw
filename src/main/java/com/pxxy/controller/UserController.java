@@ -1,4 +1,5 @@
 package com.pxxy.controller;
+
 import com.pxxy.service.UserService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
@@ -6,6 +7,7 @@ import com.pxxy.vo.AddUserVO;
 import com.pxxy.vo.UpdateUserVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -18,6 +20,7 @@ import javax.annotation.Resource;
  * @author hs
  * @since 2023-06-13
  */
+@Validated
 @RestController
 @Api(tags = "用户")
 @RequestMapping("/user")
@@ -34,7 +37,7 @@ public class UserController {
 
     @PostMapping
     @ApiOperation("新增用户")
-    public ResultResponse addUser(@RequestBody AddUserVO addUserVO) {
+    public ResultResponse addUser(@RequestBody @Validated AddUserVO addUserVO) {
         //实现新增功能
         return userService.addUser(addUserVO);
     }
@@ -46,7 +49,7 @@ public class UserController {
 
     @PutMapping
     @ApiOperation("修改用户")
-    public ResultResponse modifyUser(@RequestBody UpdateUserVO updateUserVO) {
+    public ResultResponse modifyUser(@RequestBody @Validated UpdateUserVO updateUserVO) {
         return userService.modifyUser(updateUserVO);
     }
 

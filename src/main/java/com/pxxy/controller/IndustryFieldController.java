@@ -7,6 +7,7 @@ import com.pxxy.vo.AddIndustryFieldVO;
 import com.pxxy.vo.UpdateIndustryFieldVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -20,6 +21,7 @@ import javax.annotation.Resource;
  * @since 2023-06-14
  */
 @RestController
+@Validated
 @Api(tags = "行业")
 @RequestMapping("/industry")
 public class IndustryFieldController {
@@ -29,14 +31,14 @@ public class IndustryFieldController {
 
     @PostMapping
     @ApiOperation("新增行业")
-    public ResultResponse addIndustryField(@RequestBody AddIndustryFieldVO addIndustryFieldVO) {
+    public ResultResponse addIndustryField(@RequestBody @Validated AddIndustryFieldVO addIndustryFieldVO) {
 
         return IndustryFieldService.addIndustryField(addIndustryFieldVO);
     }
 
     @PutMapping
     @ApiOperation("修改行业")
-    public ResultResponse updateIndustryField(@RequestBody UpdateIndustryFieldVO updateIndustryFieldVO) {
+    public ResultResponse updateIndustryField(@RequestBody @Validated UpdateIndustryFieldVO updateIndustryFieldVO) {
         return IndustryFieldService.updateIndustryField(updateIndustryFieldVO);
     }
 

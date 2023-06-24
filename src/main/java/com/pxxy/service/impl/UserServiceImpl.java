@@ -11,7 +11,7 @@ import com.pxxy.dto.UserDTO;
 import com.pxxy.mapper.UserMapper;
 import com.pxxy.pojo.*;
 import com.pxxy.service.*;
-import com.pxxy.utils.Md5Utils;
+import com.pxxy.utils.Md5Util;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddUserVO;
 import com.pxxy.vo.QueryUserVO;
@@ -79,7 +79,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         // 用户提交的密码给加密
-        String password = Md5Utils.code(loginForm.getUPassword());
+        String password = Md5Util.code(loginForm.getUPassword());
 
         // 判断用户是否处于禁用时间中
         Date date = disableTimeMap.get(USER_DISABLED_TIME_KEY + user.getUId());
@@ -171,7 +171,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         BeanUtil.copyProperties(addUserVO,user);
 
         // MD5加密密码
-        user.setUPassword(Md5Utils.code(user.getUPassword()));
+        user.setUPassword(Md5Util.code(user.getUPassword()));
 
         try {
             save(user);
@@ -225,7 +225,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Integer uid = updateUserVO.getUId();
         User user = query().eq("u_id", uid).one();
         user.setUName(updateUserVO.getUName())
-                .setUPassword(Md5Utils.code(updateUserVO.getUPassword()))
+                .setUPassword(Md5Util.code(updateUserVO.getUPassword()))
                 .setDepId(updateUserVO.getDepId())
                 .setCouId(updateUserVO.getCouId());
         // 修改用户信息

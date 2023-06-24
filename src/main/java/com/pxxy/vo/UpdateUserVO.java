@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,9 +16,12 @@ import java.util.List;
 @Data
 @ApiModel(value = "修改用户请求参数")
 public class UpdateUserVO {
+
+    @NotBlank(message = "修改用户名不能为空！")
     @ApiModelProperty(value = "用户名")
     private String uName;
 
+    @NotBlank(message = "修改密码不能为空！")
     @ApiModelProperty(value = "密码")
     private String uPassword;
 
