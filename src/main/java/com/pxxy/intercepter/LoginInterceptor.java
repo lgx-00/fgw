@@ -1,12 +1,12 @@
 package com.pxxy.intercepter;
 
 import com.pxxy.dto.UserDTO;
+import com.pxxy.utils.UserHolder;
+import org.springframework.web.servlet.HandlerInterceptor;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import com.pxxy.utils.UserHolder;
-import org.springframework.web.servlet.HandlerInterceptor;
 
 
 /**
@@ -33,10 +33,5 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         //放行
         return true;
-    }
-
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        UserHolder.removeUser();
     }
 }

@@ -1,6 +1,6 @@
 package com.pxxy.mapper;
 
-import com.pxxy.pojo.IndustryFiled;
+import com.pxxy.pojo.IndustryField;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author hs
  * @since 2023-06-14
  */
-public interface IndustryFiledMapper extends BaseMapper<IndustryFiled> {
+public interface IndustryFieldMapper extends BaseMapper<IndustryField> {
 
 }

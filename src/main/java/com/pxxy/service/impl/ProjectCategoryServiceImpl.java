@@ -1,70 +1,74 @@
 package com.pxxy.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import cn.hutool.core.bean.BeanUtil;
 import com.pxxy.pojo.ProjectCategory;
 import com.pxxy.mapper.ProjectCategoryMapper;
 import com.pxxy.service.ProjectCategoryService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.ProjectCategoryVO;
+import com.pxxy.vo.AddProjectCategoryVO;
+import com.pxxy.vo.QueryProjectCategoryVO;
+import com.pxxy.vo.UpdateProjectCategoryVO;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static com.pxxy.constant.SystemConstant.*;
+import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
 
 /**
  * <p>
  *  服务实现类
  * </p>
  *
- * @author xrw
+ * @author hs
  * @since 2023-06-14
  */
 @Service
 public class ProjectCategoryServiceImpl extends ServiceImpl<ProjectCategoryMapper, ProjectCategory> implements ProjectCategoryService {
 
-    @Resource
-    private ProjectCategoryMapper projectCategoryMapper;
-
     @Override
-    public ResultResponse addProjectCategory(ProjectCategoryVO projectCategoryVO) {
-        ProjectCategory projectCategory = new ProjectCategory()
-                .setPrcName(projectCategoryVO.getPrcName())
-                .setPrcPeriod(projectCategoryVO.getPrcPeriod());
-        projectCategoryMapper.insert(projectCategory);
-        return ResultResponse.ok(projectCategory);
+    public ResultResponse addProjectCategory(AddProjectCategoryVO addProjectCategoryVO) {
+        ProjectCategory projectCategory = new ProjectCategory();
+        BeanUtil.copyProperties(addProjectCategoryVO,projectCategory);
+        save(projectCategory);
+        return ResultResponse.ok();
     }
 
     @Override
-    public ResultResponse updateProjectCategory(Integer prcId, ProjectCategoryVO projectCategoryVO) {
-        ProjectCategory projectCategory = query().eq("prc_id", prcId).ne("prc_status", DELETED_STATUS).one();
+    public ResultResponse updateProjectCategory(UpdateProjectCategoryVO updateProjectCategoryVO) {
+        ProjectCategory projectCategory = query().eq("prc_id", updateProjectCategoryVO.getPrcId()).ne("prc_status", DELETED_STATUS).one();
         if (projectCategory == null){
-            return ResultResponse.fail("非法操作！");
+            return ResultResponse.fail("非法操作");
         }
-        projectCategory.setPrcName(projectCategoryVO.getPrcName()).setPrcPeriod(projectCategoryVO.getPrcPeriod());
+
+        projectCategory.setPrcName(updateProjectCategoryVO.getPrcName())
+                .setPrcPeriod(updateProjectCategoryVO.getPrcPeriod());
+
         updateById(projectCategory);
-        return ResultResponse.ok(projectCategory);
+        return ResultResponse.ok();
     }
 
     @Override
-    public ResultResponse selectProjectCategory() {
-        QueryWrapper<ProjectCategory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ne("prc_status", DELETED_STATUS);
-        List<ProjectCategory> projectCategoryList = projectCategoryMapper.selectList(queryWrapper);
-        return ResultResponse.ok(projectCategoryList);
+    public ResultResponse getAllProjectCategory() {
+        List<QueryProjectCategoryVO> queryProjectCategoryVOS = query().ne("prc_status", DELETED_STATUS).list().stream().map(projectCategory -> {
+            QueryProjectCategoryVO queryProjectCategoryVO = new QueryProjectCategoryVO();
+            BeanUtil.copyProperties(projectCategory, queryProjectCategoryVO);
+            return queryProjectCategoryVO;
+        }).collect(Collectors.toList());
+        return ResultResponse.ok(queryProjectCategoryVOS);
     }
 
     @Override
     public ResultResponse deleteProjectCategory(Integer prcId) {
         ProjectCategory projectCategory = query().eq("prc_id", prcId).ne("prc_status", DELETED_STATUS).one();
         if (projectCategory == null){
-            return ResultResponse.fail("非法操作！");
+            return ResultResponse.fail("非法操作");
         }
+
         projectCategory.setPrcStatus(DELETED_STATUS);
         updateById(projectCategory);
+
         return ResultResponse.ok();
     }
 }

@@ -3,49 +3,54 @@ package com.pxxy.controller;
 
 import com.pxxy.service.ProjectCategoryService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.ProjectCategoryVO;
+import com.pxxy.vo.AddProjectCategoryVO;
+import com.pxxy.vo.UpdateProjectCategoryVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
 
 /**
  * <p>
  *  前端控制器
  * </p>
  *
- * @author xrw
+ * @author hs
  * @since 2023-06-14
  */
+@Validated
+@Api(tags = "类型")
 @RestController
-@RequestMapping("/project-category")
-@Api(tags = "项目类型管理")
+@RequestMapping("/category")
 public class ProjectCategoryController {
-
-    @Autowired
+    
+    @Resource
     private ProjectCategoryService projectCategoryService;
-
-    @PostMapping("/add")
+    
+    
+    @PostMapping
     @ApiOperation("新增项目类型")
-    public ResultResponse addProjectCategory(@RequestBody ProjectCategoryVO projectCategoryVO){
-        return projectCategoryService.addProjectCategory(projectCategoryVO);
+    public ResultResponse addProjectCategory(@RequestBody @Validated AddProjectCategoryVO addProjectCategoryVO) {
+        return projectCategoryService.addProjectCategory(addProjectCategoryVO);
     }
 
-    @PostMapping("/update/{prcId}")
-    @ApiOperation("修改项目类型")
-    public ResultResponse updateProjectCategory(@PathVariable Integer prcId, @RequestBody ProjectCategoryVO projectCategoryVO){
-        return projectCategoryService.updateProjectCategory(prcId,projectCategoryVO);
+    @PutMapping
+    @ApiOperation("修改类型")
+    public ResultResponse updateProjectCategory(@RequestBody @Validated UpdateProjectCategoryVO updateProjectCategoryVO) {
+        return projectCategoryService.updateProjectCategory(updateProjectCategoryVO);
     }
 
-    @GetMapping("/selectAll")
+    @GetMapping
     @ApiOperation("查询所有项目类型")
-    public ResultResponse selectProjectCategory(){
-        return projectCategoryService.selectProjectCategory();
+    public ResultResponse getAllProjectCategory(){
+        return projectCategoryService.getAllProjectCategory();
     }
 
-    @PostMapping("/delete/{prcId}")
+    @DeleteMapping
     @ApiOperation("删除项目类型")
-    public ResultResponse deleteProjectCategory(@PathVariable Integer prcId){
+    public ResultResponse deleteProjectCategory(@RequestParam Integer prcId) {
         return projectCategoryService.deleteProjectCategory(prcId);
     }
 

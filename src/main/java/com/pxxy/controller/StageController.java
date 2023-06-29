@@ -3,49 +3,53 @@ package com.pxxy.controller;
 
 import com.pxxy.service.StageService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.StageVO;
+import com.pxxy.vo.AddStageVO;
+import com.pxxy.vo.UpdateStageVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
 
 /**
  * <p>
  *  前端控制器
  * </p>
  *
- * @author xrw
+ * @author hs
  * @since 2023-06-14
  */
+@Validated
+@Api(tags = "阶段")
 @RestController
 @RequestMapping("/stage")
-@Api(tags = "工程进展阶段管理")
 public class StageController {
-
-    @Autowired
+    
+    @Resource
     private StageService stageService;
 
-    @PostMapping("/add")
-    @ApiOperation("新增工程进展阶段")
-    public ResultResponse addStage(@RequestBody StageVO stageVO ){
-        return stageService.addStage(stageVO);
+    @PostMapping
+    @ApiOperation("新增阶段")
+    public ResultResponse addStage(@RequestBody @Validated AddStageVO addStageVO) {
+        return stageService.addStage(addStageVO);
     }
 
-    @PostMapping("/update/{stageId}")
-    @ApiOperation("修改工程进展阶段")
-    public ResultResponse updateStage(@PathVariable Integer stageId, @RequestBody StageVO stageVO ){
-        return stageService.updateStage(stageId,stageVO);
+    @PutMapping
+    @ApiOperation("修改阶段")
+    public ResultResponse updateStage(@RequestBody @Validated UpdateStageVO updateStageVO) {
+        return stageService.updateStage(updateStageVO);
     }
 
-    @GetMapping("/selectAll")
-    @ApiOperation("查询所有工程进展阶段")
-    public ResultResponse selectStage(){
-        return stageService.selectStage();
+    @GetMapping
+    @ApiOperation("查询所有阶段")
+    public ResultResponse getAllStage(){
+        return stageService.getAllStage();
     }
 
-    @PostMapping("/delete/{stageId}")
-    @ApiOperation("删除工程进展阶段")
-    public ResultResponse deleteStage(@PathVariable Integer stageId){
+    @DeleteMapping
+    @ApiOperation("删除阶段")
+    public ResultResponse deleteStage(@RequestParam Integer stageId) {
         return stageService.deleteStage(stageId);
     }
 

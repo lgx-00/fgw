@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -14,11 +14,11 @@ import java.io.Serializable;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class AddIndustryFiledVO implements Serializable {
+public class AddIndustryFieldVO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @NotNull(message = "不可为空")
+    @NotBlank(message = "行业领域名称不能为空！")
     private String infName;
 
     private String infRemark;

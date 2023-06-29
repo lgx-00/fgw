@@ -1,10 +1,10 @@
 package com.pxxy.service;
 
-import com.pxxy.pojo.IndustryFiled;
+import com.pxxy.pojo.IndustryField;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddIndustryFiledVO;
-import com.pxxy.vo.UpdateIndustryFiledVO;
+import com.pxxy.vo.AddIndustryFieldVO;
+import com.pxxy.vo.UpdateIndustryFieldVO;
 
 /**
  * <p>
@@ -14,25 +14,25 @@ import com.pxxy.vo.UpdateIndustryFiledVO;
  * @author: xrw
  * @date:  12:32
  */
-public interface IndustryFiledService extends IService<IndustryFiled> {
+public interface IndustryFieldService extends IService<IndustryField> {
 
     /**
      * @description: 创建行业领域
      * @author: xrw
      * @date:  10:52
-     * @param: [AddIndustryFiledVO]
+     * @param: [AddIndustryFieldVO]
      * @return: com.pxxy.utils.ResultResponse
      **/
-    ResultResponse addIndustryFiled(AddIndustryFiledVO addIndustryFiledVO);
+    ResultResponse addIndustryField(AddIndustryFieldVO addIndustryFieldVO);
 
     /**
      * @description: 修改行业
      * @author: xrw
      * @date:  10:58
-     * @param: [UpdateIndustryFiledVO]
+     * @param: [UpdateIndustryFieldVO]
      * @return: com.pxxy.utils.ResultResponse
      **/
-    ResultResponse updateIndustryFiled(Integer infId,UpdateIndustryFiledVO updateIndustryFiledVO);
+    ResultResponse updateIndustryField(UpdateIndustryFieldVO updateIndustryFieldVO);
 
     /**
      * @description: 查询所有行业
@@ -41,7 +41,7 @@ public interface IndustryFiledService extends IService<IndustryFiled> {
      * @param: []
      * @return: com.pxxy.utils.ResultResponse
      **/
-    ResultResponse selectIndustryFiled();
+    ResultResponse selectIndustryField();
 
     /**
      * @description: 删除行业领域
@@ -50,7 +50,7 @@ public interface IndustryFiledService extends IService<IndustryFiled> {
      * @param: []
      * @return: com.pxxy.utils.ResultResponse
      **/
-    ResultResponse deleteIndustryFiled(Integer infId);
+    ResultResponse deleteIndustryField(Integer infId);
 
 
 }

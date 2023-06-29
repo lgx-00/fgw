@@ -4,8 +4,10 @@ package com.pxxy.controller;
 import com.pxxy.service.RoleService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddRoleVO;
+import com.pxxy.vo.UpdateRoleVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -19,28 +21,43 @@ import javax.annotation.Resource;
  * @since 2023-06-14
  */
 @RestController
+@Validated
 @RequestMapping("/role")
 @Api(tags = "角色")
 public class RoleController {
     @Resource
     private RoleService roleService;
 
-    @GetMapping("/getAll")
+    @GetMapping("/all")
     @ApiOperation("分页查询所有角色")
     public ResultResponse getAllRole(@RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum){
         return roleService.getAllRole(pageNum);
     }
 
-    @GetMapping("/getVague")
+    @GetMapping("/vague")
     @ApiOperation("模糊查询角色名")
     public ResultResponse getVagueRole(@RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum, @RequestParam String rName){
         return roleService.getVagueRole(pageNum,rName);
     }
 
-    @PostMapping("/add")
+    @PostMapping
     @ApiOperation("新增角色")
-    public ResultResponse test(@RequestBody AddRoleVO roleVO) {
-        return roleService.addRole(roleVO);
+    public ResultResponse addRole(@RequestBody @Validated AddRoleVO addRoleVO) {
+        return roleService.addRole(addRoleVO);
     }
+
+    @DeleteMapping
+    @ApiOperation("删除角色")
+    public ResultResponse deleteRole(@RequestParam Integer roleId) {
+        return roleService.deleteRole(roleId);
+    }
+
+    @PutMapping
+    @ApiOperation("修改角色")
+    public ResultResponse updateRole(@RequestBody @Validated UpdateRoleVO updateRoleVO) {
+        return roleService.updateRole(updateRoleVO);
+    }
+
+
 }
 
