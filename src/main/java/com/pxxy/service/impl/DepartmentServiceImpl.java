@@ -20,8 +20,6 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
-
 /**
  * <p>
  *  服务实现类
@@ -62,7 +60,7 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
     @Transactional
     public ResultResponse updateDepartment(UpdateDepartmentVO updateDepartmentVO) {
         Integer depId = updateDepartmentVO.getDepId();
-        Department department = query().eq("dep_id", depId).ne("dep_status",DELETED_STATUS).one();
+        Department department = query().eq("dep_id", depId).one();
         if (department == null){
             return ResultResponse.fail("非法操作");
         }
@@ -87,15 +85,14 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
     }
 
     @Override
-    @Transactional
     public ResultResponse getAllDepartment() {
-        List<Department> departmentList = query().ne("dep_status",DELETED_STATUS).list();
+        List<Department> departmentList = query().list();
         List<QueryDepartmentVO> queryDepartmentVOS = departmentList.stream().map(department -> {
             QueryDepartmentVO queryDepartmentVO = new QueryDepartmentVO();
             BeanUtil.copyProperties(department,queryDepartmentVO);
             List<DepPrc> depPrcList = depPrcService.query().eq("dep_id", department.getDepId()).list();
             List<String> projectCategoryName = depPrcList.stream().map(depPrc -> {
-                return projectCategoryService.query().eq("prc_id", depPrc.getPrcId()).ne("prc_status",DELETED_STATUS).one().getPrcName();
+                return projectCategoryService.query().eq("prc_id", depPrc.getPrcId()).one().getPrcName();
             }).collect(Collectors.toList());
             queryDepartmentVO.setProjectCategoryName(projectCategoryName);
             return queryDepartmentVO;
@@ -105,18 +102,12 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
     }
 
     @Override
-    @Transactional
     public ResultResponse deleteDepartment(Integer depId) {
-        Department department = query().eq("dep_id", depId).ne("dep_status",DELETED_STATUS).one();
+        Department department = query().eq("dep_id", depId).one();
         if (department == null){
             return ResultResponse.fail("非法操作");
         }
-        department.setDepStatus(DELETED_STATUS);
-        updateById(department);
-
-        LambdaQueryWrapper<DepPrc> depPrcLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        depPrcLambdaQueryWrapper.eq(DepPrc::getDepId,depId);
-        depPrcService.remove(depPrcLambdaQueryWrapper);
+        removeById(depId);
         return ResultResponse.ok();
     }
 }

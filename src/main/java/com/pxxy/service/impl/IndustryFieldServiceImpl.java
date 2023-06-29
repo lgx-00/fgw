@@ -1,6 +1,5 @@
 package com.pxxy.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.mapper.IndustryFieldMapper;
 import com.pxxy.pojo.IndustryField;
@@ -40,8 +39,7 @@ public class IndustryFieldServiceImpl extends ServiceImpl<IndustryFieldMapper, I
 
     @Override
     public ResultResponse updateIndustryField(UpdateIndustryFieldVO updateIndustryFieldVO) {
-        IndustryField industryField = query().eq("inf_id", updateIndustryFieldVO.getInfId())
-                .ne("inf_status", DELETED_STATUS).one();
+        IndustryField industryField = query().eq("inf_id", updateIndustryFieldVO.getInfId()).one();
         if (industryField == null) {
             return ResultResponse.fail("非法操作");
         }
@@ -52,18 +50,15 @@ public class IndustryFieldServiceImpl extends ServiceImpl<IndustryFieldMapper, I
 
     @Override
     public ResultResponse selectIndustryField() {
-        QueryWrapper<IndustryField> queryWrapper = new QueryWrapper<IndustryField>();
-        queryWrapper.ne("inf_status", DELETED_STATUS);
-        List<IndustryField> industryFields = IndustryFieldMapper.selectList(queryWrapper);
+        List<IndustryField> industryFields = IndustryFieldMapper.selectList(null);
         return ResultResponse.ok(industryFields);
     }
 
     @Override
     public ResultResponse deleteIndustryField(Integer infId) {
-        IndustryField industryField = query().eq("inf_id", infId).ne("inf_status", DELETED_STATUS).one();
+        IndustryField industryField = query().eq("inf_id", infId).one();
         if (industryField != null) {
-            industryField.setInfStatus(DELETED_STATUS);
-            updateById(industryField);
+            removeById(infId);
             return ResultResponse.ok();
         }
         return ResultResponse.fail("非法操作");

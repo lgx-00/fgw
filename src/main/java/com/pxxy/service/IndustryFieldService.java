@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddIndustryFieldVO;
 import com.pxxy.vo.UpdateIndustryFieldVO;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * <p>
@@ -14,6 +15,7 @@ import com.pxxy.vo.UpdateIndustryFieldVO;
  * @author: xrw
  * @date:  12:32
  */
+@Validated
 public interface IndustryFieldService extends IService<IndustryField> {
 
     /**
@@ -23,7 +25,7 @@ public interface IndustryFieldService extends IService<IndustryField> {
      * @param: [AddIndustryFieldVO]
      * @return: com.pxxy.utils.ResultResponse
      **/
-    ResultResponse addIndustryField(AddIndustryFieldVO addIndustryFieldVO);
+    ResultResponse addIndustryField(@Validated AddIndustryFieldVO addIndustryFieldVO);
 
     /**
      * @description: 修改行业
@@ -32,7 +34,7 @@ public interface IndustryFieldService extends IService<IndustryField> {
      * @param: [UpdateIndustryFieldVO]
      * @return: com.pxxy.utils.ResultResponse
      **/
-    ResultResponse updateIndustryField(UpdateIndustryFieldVO updateIndustryFieldVO);
+    ResultResponse updateIndustryField(@Validated UpdateIndustryFieldVO updateIndustryFieldVO);
 
     /**
      * @description: 查询所有行业

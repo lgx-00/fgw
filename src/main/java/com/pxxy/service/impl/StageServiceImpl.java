@@ -35,7 +35,7 @@ public class StageServiceImpl extends ServiceImpl<StageMapper, Stage> implements
 
     @Override
     public ResultResponse updateStage(UpdateStageVO updateStageVO) {
-        Stage stage = query().eq("stage_id", updateStageVO.getStageId()).ne("stage_status", DELETED_STATUS).one();
+        Stage stage = query().eq("stage_id", updateStageVO.getStageId()).one();
         if (stage == null) {
             return ResultResponse.fail("非法操作");
         }
@@ -46,7 +46,7 @@ public class StageServiceImpl extends ServiceImpl<StageMapper, Stage> implements
 
     @Override
     public ResultResponse getAllStage() {
-        List<QueryStageVO> queryStageVOS = query().ne("stage_status", DELETED_STATUS).list().stream().map(stage -> {
+        List<QueryStageVO> queryStageVOS = query().list().stream().map(stage -> {
             QueryStageVO queryStageVO = new QueryStageVO();
             BeanUtil.copyProperties(stage, queryStageVO);
             return queryStageVO;
@@ -56,14 +56,11 @@ public class StageServiceImpl extends ServiceImpl<StageMapper, Stage> implements
 
     @Override
     public ResultResponse deleteStage(Integer stageId) {
-        Stage stage = query().eq("stage_id", stageId).ne("stage_status", DELETED_STATUS).one();
+        Stage stage = query().eq("stage_id", stageId).one();
         if (stage == null) {
             return ResultResponse.fail("非法操作");
         }
-
-        stage.setStageStatus(DELETED_STATUS);
-        updateById(stage);
-
+        removeById(stageId);
         return ResultResponse.ok();
     }
 }

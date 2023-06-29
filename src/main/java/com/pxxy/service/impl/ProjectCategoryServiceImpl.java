@@ -1,10 +1,10 @@
 package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.pxxy.pojo.ProjectCategory;
-import com.pxxy.mapper.ProjectCategoryMapper;
-import com.pxxy.service.ProjectCategoryService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.pxxy.mapper.ProjectCategoryMapper;
+import com.pxxy.pojo.ProjectCategory;
+import com.pxxy.service.ProjectCategoryService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddProjectCategoryVO;
 import com.pxxy.vo.QueryProjectCategoryVO;
@@ -37,7 +37,7 @@ public class ProjectCategoryServiceImpl extends ServiceImpl<ProjectCategoryMappe
 
     @Override
     public ResultResponse updateProjectCategory(UpdateProjectCategoryVO updateProjectCategoryVO) {
-        ProjectCategory projectCategory = query().eq("prc_id", updateProjectCategoryVO.getPrcId()).ne("prc_status", DELETED_STATUS).one();
+        ProjectCategory projectCategory = query().eq("prc_id", updateProjectCategoryVO.getPrcId()).one();
         if (projectCategory == null){
             return ResultResponse.fail("非法操作");
         }
@@ -51,7 +51,7 @@ public class ProjectCategoryServiceImpl extends ServiceImpl<ProjectCategoryMappe
 
     @Override
     public ResultResponse getAllProjectCategory() {
-        List<QueryProjectCategoryVO> queryProjectCategoryVOS = query().ne("prc_status", DELETED_STATUS).list().stream().map(projectCategory -> {
+        List<QueryProjectCategoryVO> queryProjectCategoryVOS = query().list().stream().map(projectCategory -> {
             QueryProjectCategoryVO queryProjectCategoryVO = new QueryProjectCategoryVO();
             BeanUtil.copyProperties(projectCategory, queryProjectCategoryVO);
             return queryProjectCategoryVO;
@@ -61,14 +61,11 @@ public class ProjectCategoryServiceImpl extends ServiceImpl<ProjectCategoryMappe
 
     @Override
     public ResultResponse deleteProjectCategory(Integer prcId) {
-        ProjectCategory projectCategory = query().eq("prc_id", prcId).ne("prc_status", DELETED_STATUS).one();
+        ProjectCategory projectCategory = query().eq("prc_id", prcId).one();
         if (projectCategory == null){
             return ResultResponse.fail("非法操作");
         }
-
-        projectCategory.setPrcStatus(DELETED_STATUS);
-        updateById(projectCategory);
-
+        removeById(prcId);
         return ResultResponse.ok();
     }
 }
