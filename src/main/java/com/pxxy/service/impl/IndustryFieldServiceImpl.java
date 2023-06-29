@@ -1,5 +1,6 @@
 package com.pxxy.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.mapper.IndustryFieldMapper;
 import com.pxxy.pojo.IndustryField;
@@ -64,3 +65,4 @@ public class IndustryFieldServiceImpl extends ServiceImpl<IndustryFieldMapper, I
         return ResultResponse.fail("非法操作");
     }
 }
+
