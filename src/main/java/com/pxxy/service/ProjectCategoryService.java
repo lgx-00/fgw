@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddProjectCategoryVO;
 import com.pxxy.vo.UpdateProjectCategoryVO;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * <p>
@@ -14,11 +15,12 @@ import com.pxxy.vo.UpdateProjectCategoryVO;
  * @author hs
  * @since 2023-06-14
  */
+@Validated
 public interface ProjectCategoryService extends IService<ProjectCategory> {
 
-    ResultResponse addProjectCategory(AddProjectCategoryVO addProjectCategoryVO);
+    ResultResponse addProjectCategory(@Validated AddProjectCategoryVO addProjectCategoryVO);
 
-    ResultResponse updateProjectCategory(UpdateProjectCategoryVO updateProjectCategoryVO);
+    ResultResponse updateProjectCategory(@Validated UpdateProjectCategoryVO updateProjectCategoryVO);
 
     ResultResponse getAllProjectCategory();
 

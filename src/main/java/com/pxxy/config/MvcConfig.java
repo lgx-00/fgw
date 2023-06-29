@@ -32,4 +32,14 @@ public class MvcConfig implements WebMvcConfigurer {
         //权限拦截器
         registry.addInterceptor(new PermissionInterceptor()).excludePathPatterns(EXCLUDE_PATH).order(1);
     }
+
+//    @Bean
+//    public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
+//        return builder -> {
+//            JavaTimeModule timeModule = new JavaTimeModule();
+//            timeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+//            timeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+//            builder.modules(timeModule);
+//        };
+//    }
 }

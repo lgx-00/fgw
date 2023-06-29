@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.mapper.RoleMapper;
 import com.pxxy.pojo.Role;
 import com.pxxy.pojo.RolePermission;
-import com.pxxy.pojo.UserRole;
 import com.pxxy.service.PermissionService;
 import com.pxxy.service.RolePermissionService;
 import com.pxxy.service.RoleService;
@@ -23,7 +22,7 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.pxxy.constant.SystemConstant.*;
+import static com.pxxy.constant.SystemConstant.DEFAULT_PAGE_SIZE;
 
 /**
  * <p>
@@ -46,11 +45,10 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     private UserRoleService userRoleService;
 
     @Override
-    @Transactional
     public ResultResponse getAllRole(Integer pageNum) {
         // 根据类型分页查询
         Page<Role> page = query().page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
-        List<Role> roleList = page.getRecords().stream().filter(role -> role.getRStatus() != DELETED_STATUS).collect(Collectors.toList());
+        List<Role> roleList = page.getRecords();
         List<QueryRoleVO> queryRoleVOS = roleList.stream().map(role -> {
             QueryRoleVO queryRoleVO = new QueryRoleVO();
             BeanUtil.copyProperties(role, queryRoleVO);
@@ -65,11 +63,10 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     }
 
     @Override
-    @Transactional
     public ResultResponse getVagueRole(Integer pageNum, String rName) {
         // 根据类型分页查询
         Page<Role> page = query().like("r_name",rName).page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
-        List<Role> roleList = page.getRecords().stream().filter(role -> role.getRStatus() != DELETED_STATUS).collect(Collectors.toList());
+        List<Role> roleList = page.getRecords();
         List<QueryRoleVO> queryRoleVOS = roleList.stream().map(role -> {
             QueryRoleVO queryRoleVO = new QueryRoleVO();
             BeanUtil.copyProperties(role, queryRoleVO);
@@ -79,7 +76,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
             queryRoleVO.setPermission(permisssion);
             return queryRoleVO;
         }).collect(Collectors.toList());
-        return ResultResponse.ok(queryRoleVOS);
+        return ResultResponse.ok(queryRoleVOS, (int) page.getTotal());
     }
 
     @Override
@@ -99,33 +96,19 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     }
 
     @Override
-    @Transactional
     public ResultResponse deleteRole(Integer roleId) {
-        Role role = query().eq("r_id", roleId).ne("r_status", DELETED_STATUS).one();
+        Role role = query().eq("r_id", roleId).one();
         if (role == null){
             return ResultResponse.fail("非法操作");
         }
-        role.setRStatus(DELETED_STATUS);
-        updateById(role);
-        LambdaQueryWrapper<RolePermission> rolePermissionLambdaQueryWrapper = new LambdaQueryWrapper<>();
-
-        LambdaQueryWrapper<UserRole> userRoleLambdaQueryWrapper = new LambdaQueryWrapper<>();
-
-        rolePermissionLambdaQueryWrapper.eq(RolePermission::getRId,roleId);
-
-        userRoleLambdaQueryWrapper.eq(UserRole::getRId,roleId);
-
-        rolePermissionService.remove(rolePermissionLambdaQueryWrapper);
-
-        userRoleService.remove(userRoleLambdaQueryWrapper);
-
+        removeById(roleId);
         return ResultResponse.ok();
     }
 
     @Override
     @Transactional
     public ResultResponse updateRole(UpdateRoleVO updateRoleVO) {
-        Role role = query().eq("r_id", updateRoleVO.getRId()).ne("r_status", DELETED_STATUS).one();
+        Role role = query().eq("r_id", updateRoleVO.getRId()).one();
         if (role == null){
             return ResultResponse.fail("非法操作");
         }

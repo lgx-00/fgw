@@ -19,8 +19,6 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
-
 /**
  * <p>
  *  服务实现类
@@ -53,12 +51,12 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
     @Override
     @Transactional
     public ResultResponse updateCounty(UpdateCountyVO updateCountyVO) {
+
         Integer couId = updateCountyVO.getCouId();
-        if (query().eq("cou_id",couId).ne("cou_status",DELETED_STATUS).one() == null) {
+        County county = query().eq("cou_id",couId).one();
+        if (county == null) {
             return ResultResponse.fail("非法操作");
         }
-
-        County county = query().eq("cou_id",couId).ne("cou_status",DELETED_STATUS).one();
 
         county.setCouName(updateCountyVO.getCouName());
         updateById(county);
@@ -80,13 +78,12 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
 
     @Override
     public ResultResponse getAllCounty() {
-        List<County> countyList = query().ne("cou_status", DELETED_STATUS).list();
+        List<County> countyList = query().list();
         List<QueryCountyVO> queryCountyVOS = countyList.stream().map(county -> {
             QueryCountyVO queryCountyVO = new QueryCountyVO();
             BeanUtil.copyProperties(county, queryCountyVO);
             List<String> townNames = townService.query()
                     .eq("cou_id", county.getCouId())
-                    .ne("town_status", DELETED_STATUS)
                     .list()
                     .stream()
                     .map(town -> town.getTownName())
@@ -98,19 +95,12 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
     }
 
     @Override
-    @Transactional
     public ResultResponse deleteCounty(Integer couId) {
-        County county = query().eq("cou_id", couId).ne("cou_status", DELETED_STATUS).one();
+        County county = query().eq("cou_id", couId).one();
         if (county == null){
             return ResultResponse.fail("非法操作");
         }
-        county.setCouStatus(DELETED_STATUS);
-        updateById(county);
-
-        LambdaQueryWrapper<Town> townLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        townLambdaQueryWrapper.eq(Town::getCouId,couId);
-        townService.remove(townLambdaQueryWrapper);
-
+        removeById(couId);
         return ResultResponse.ok();
     }
 }

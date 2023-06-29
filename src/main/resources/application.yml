@@ -8,6 +8,11 @@ spring:
     url: jdbc:mysql://localhost:3306/fgw?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: 111111
+  mvc:
+    date-format: yyyy-MM-dd
+  jackson:
+    date-format: yyyy-MM-dd
+    time-zone: GMT+8
 logging:
   level:
     com.pxxy: info
