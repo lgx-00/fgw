@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.pxxy.constant.SystemConstant;
 import com.pxxy.dto.LoginFormDTO;
 import com.pxxy.dto.PermissionDTO;
 import com.pxxy.dto.UserDTO;
@@ -278,8 +277,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             // 查询角色名
             List<String> roleNames = userRoleList.stream().map(userRole -> {
                 Role role = roleService.query().eq("r_id", userRole.getRId()).one();
+                if (role == null){
+                    return null;
+                }
                 return role.getRName();
-            }).filter(roleName -> roleName != null).collect(Collectors.toList());
+            }).filter(Objects::nonNull).collect(Collectors.toList());
 
             queryUserVO.setRoleList(roleNames);
 
@@ -287,7 +289,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }).collect(Collectors.toList());
 
         //  返回数据
-        return ResultResponse.ok(queryUserVOS);
+        return ResultResponse.ok(queryUserVOS, (int) page.getTotal());
     }
 
     @Override
@@ -295,7 +297,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //  根据类型分页查询
         Page<User> page = query().like("u_name", uName).ne("u_status",DELETED_STATUS).page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
 
-        // 过滤掉超级管理员以及被删除的用户
         List<User> userList = page.getRecords();
 
         List<QueryUserVO> queryUserVOS = userList.stream().map(user -> {
@@ -303,12 +304,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             BeanUtil.copyProperties(user, queryUserVO);
             // 根据科室id获取科室名
             Department department = departmentService.query().eq("dep_id", user.getDepId()).one();
-            if (department.getDepStatus() != SystemConstant.DELETED_STATUS) {
+            if (department != null) {
                 queryUserVO.setDepName(department.getDepName());
             }
             // 根据辖区id获取辖区名
             County county = countyService.query().eq("cou_id", user.getCouId()).one();
-            if (county.getCouStatus() != SystemConstant.DELETED_STATUS) {
+            if (county != null) {
                 queryUserVO.setCouName(county.getCouName());
             }
             // 根据用户id查询用户角色
@@ -316,8 +317,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             // 查询角色名
             List<String> roleNames = userRoleList.stream().map(userRole -> {
                 Role role = roleService.query().eq("r_id", userRole.getRId()).one();
+                if (role == null){
+                    return null;
+                }
                 return role.getRName();
-            }).collect(Collectors.toList());
+            }).filter(Objects::nonNull).collect(Collectors.toList());
 
             queryUserVO.setRoleList(roleNames);
 
@@ -325,7 +329,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }).collect(Collectors.toList());
 
         // 返回数据
-        return ResultResponse.ok(queryUserVOS);
+        return ResultResponse.ok(queryUserVOS, (int) page.getTotal());
     }
 
 }

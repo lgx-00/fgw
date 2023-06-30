@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.mapper.RoleMapper;
+import com.pxxy.pojo.Permission;
 import com.pxxy.pojo.Role;
 import com.pxxy.pojo.RolePermission;
 import com.pxxy.service.PermissionService;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.pxxy.constant.SystemConstant.DEFAULT_PAGE_SIZE;
@@ -54,12 +56,16 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
             BeanUtil.copyProperties(role, queryRoleVO);
             List<RolePermission> rolePermissionList = rolePermissionService.query().eq("r_id", role.getRId()).list();
             List<String> permission = rolePermissionList.stream().map(rolePermission -> {
-                return permissionService.query().eq("p_id", rolePermission.getPId()).one().getPName();
-            }).collect(Collectors.toList());
+                Permission p = permissionService.query().eq("p_id", rolePermission.getPId()).one();
+                if (p != null){
+                    return p.getPName();
+                }
+                return null;
+            }).filter(Objects::nonNull).collect(Collectors.toList());
             queryRoleVO.setPermission(permission);
             return queryRoleVO;
         }).collect(Collectors.toList());
-        return ResultResponse.ok(queryRoleVOS);
+        return ResultResponse.ok(queryRoleVOS, (int) page.getTotal());
     }
 
     @Override
@@ -71,11 +77,17 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
             QueryRoleVO queryRoleVO = new QueryRoleVO();
             BeanUtil.copyProperties(role, queryRoleVO);
             List<RolePermission> rolePermissionList = rolePermissionService.query().eq("r_id", role.getRId()).list();
-            List<String> permisssion = rolePermissionList.stream().map(rolePermission ->
-                    permissionService.query().eq("p_id", rolePermission.getPId()).one().getPName()).collect(Collectors.toList());
+            List<String> permisssion = rolePermissionList.stream().map(rolePermission -> {
+                Permission permission = permissionService.query().eq("p_id", rolePermission.getPId()).one();
+                if (permission != null){
+                    return permission.getPName();
+                }
+                return null;
+            }).collect(Collectors.toList());
+
             queryRoleVO.setPermission(permisssion);
             return queryRoleVO;
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
         return ResultResponse.ok(queryRoleVOS, (int) page.getTotal());
     }
 

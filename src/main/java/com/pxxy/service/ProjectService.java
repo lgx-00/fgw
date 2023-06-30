@@ -6,6 +6,7 @@ import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddProjectVO;
 import com.pxxy.vo.UpdateProjectVO;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 
@@ -29,4 +30,8 @@ public interface ProjectService extends IService<Project> {
     ResultResponse updateProject(@Validated UpdateProjectVO updateProjectVO);
 
     ResultResponse deleteProject(Integer proId);
+
+    ResultResponse reportProject(Integer proId, Integer depId);
+
+    ResultResponse importExcel(MultipartFile file);
 }
