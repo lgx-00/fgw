@@ -29,4 +29,6 @@ public interface ProjectService extends IService<Project> {
     ResultResponse updateProject(@Validated UpdateProjectVO updateProjectVO);
 
     ResultResponse deleteProject(Integer proId);
+
+    ResultResponse reportProject(Integer proId, Integer depId);
 }

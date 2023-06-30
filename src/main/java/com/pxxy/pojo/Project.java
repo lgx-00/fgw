@@ -2,7 +2,6 @@ package com.pxxy.pojo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -196,7 +195,6 @@ public class Project implements Serializable {
     /**
      * 当前状态 非空，状态有：0正常、4待调度、5已删除
      */
-    @TableLogic(value = "0",delval = "5")
     private Integer proStatus;
 
     /**

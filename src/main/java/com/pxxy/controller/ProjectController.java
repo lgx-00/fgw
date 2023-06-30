@@ -72,5 +72,11 @@ public class ProjectController {
         return projectService.deleteProject(proId);
     }
 
+    @PutMapping
+    @ApiOperation(value = "上报项目")
+    public ResultResponse reportProject(Integer proId,Integer depId) {
+        return projectService.reportProject(proId,depId);
+    }
+
 }
 

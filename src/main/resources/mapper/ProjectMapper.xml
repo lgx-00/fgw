@@ -44,9 +44,89 @@
         <result column="pro_remark" property="proRemark" />
     </resultMap>
 
-    <!-- 通用查询结果列 -->
+    <!--通用查询结果列 -->
     <sql id="Base_Column_List">
         pro_id, pro_date, dep_id, cou_id, town_id, prc_id, inf_id, pro_code, pro_in_code, pro_name, pro_content, pro_location, pro_start, pro_complete, pro_plan, pro_plan_year, pro_legal_person, pro_dis_start, pro_dis_complete, pro_is_new, pro_is_provincial, pro_next_update, pro_dis_date_range, pro_type, pro_arrange, pro_guarantee, pro_dis_total, pro_dis_year, pro_dis_total_percent, pro_dis_year_percent, pro_dis_progress, pro_add_time, u_id, pro_last_dis, pro_status, pro_check_dep, pro_mark, pro_remark
     </sql>
+
+    <!--union all是不去重 union 是去重-->
+    <select id="getAllProjectByUser" resultType="com.pxxy.pojo.Project">
+        SELECT * FROM
+        (
+
+            <if test="depId != null">
+                SELECT * FROM PROJECT
+                WHERE dep_id = #{depId}
+            </if>
+
+            <if test="couId != null">
+                <if test="depId != null">
+                    union
+                </if>
+                SELECT * FROM PROJECT
+                WHERE cou_id = #{couId}
+            </if>
+
+            <if test="uId != null">
+                <if test="couId != null or depId != null">
+                    union
+                </if>
+                SELECT * FROM PROJECT
+                WHERE u_id = #{uId}
+            </if>
+
+
+        ) AS pro WHERE pro_status != 5
+    </select>
+
+    <!--union all是不去重 union 是去重-->
+    <select id="getVagueProjectByUser" resultType="com.pxxy.pojo.Project">
+        SELECT * FROM
+        (
+
+        <if test="depId != null">
+            SELECT * FROM PROJECT
+            WHERE dep_id = #{depId}
+        </if>
+
+        <if test="couId != null">
+            <if test="depId != null">
+                union
+            </if>
+            SELECT * FROM PROJECT
+            WHERE cou_id = #{couId}
+        </if>
+
+        <if test="uId != null">
+            <if test="couId != null or depId != null">
+                union
+            </if>
+            SELECT * FROM PROJECT
+            WHERE u_id = #{uId}
+        </if>
+
+
+        ) AS pro WHERE 1=1
+            <if test="proStatus == null">
+                and pro_status != 5
+            </if>
+            <if test="proName != null">
+                and pro_name like "%"#{proName}"%"
+            </if>
+            <if test="townId != null">
+                and town_id = #{townId}
+            </if>
+            <if test="prcId != null">
+                and prc_id = #{prcId}
+            </if>
+            <if test="infId != null">
+                and inf_id = #{infId}
+            </if>
+            <if test="proStatus != null">
+                and pro_status = #{proStatus}
+            </if>
+    </select>
+
+
 
 </mapper>
