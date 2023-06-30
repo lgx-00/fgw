@@ -1,6 +1,7 @@
 package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.dto.UserDTO;
@@ -11,11 +12,14 @@ import com.pxxy.service.*;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
 import com.pxxy.vo.AddProjectVO;
+import com.pxxy.vo.ProjectExcelVO;
 import com.pxxy.vo.QueryProjectVO;
 import com.pxxy.vo.UpdateProjectVO;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -301,6 +305,32 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Override
     public ResultResponse reportProject(Integer proId, Integer depId) {
-        return null;
+        Project project = query().eq("pro_id", proId).one();
+        //未上报状态
+        ProjectStatusEnum report = ProjectStatusEnum.FAILURE_TO_REPORT;
+        //待审核状态
+        ProjectStatusEnum pendingReview = ProjectStatusEnum.PENDING_REVIEW;
+
+        if (project.getProStatus() != report.getStatus()){
+            //说明项目已上报
+            return ResultResponse.fail("已上报项目不允许再上报！");
+        }
+        project.setDepId(depId);
+        project.setProStatus(pendingReview.getStatus());
+        updateById(project);
+        return ResultResponse.ok();
+    }
+
+    @Override
+    public ResultResponse importExcel(MultipartFile file) {
+        try {
+            List<ProjectExcelVO> projectExcelVOList = EasyExcel.read(file.getInputStream())
+                    .head(ProjectExcelVO.class)
+                    .sheet()
+                    .doReadSync();
+            return ResultResponse.ok(projectExcelVOList);
+        } catch (IOException e) {
+            return ResultResponse.fail("导入失败！");
+        }
     }
 }

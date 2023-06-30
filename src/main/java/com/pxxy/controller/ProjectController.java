@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -72,10 +73,16 @@ public class ProjectController {
         return projectService.deleteProject(proId);
     }
 
-    @PutMapping
+    @PutMapping("/report")
     @ApiOperation(value = "上报项目")
     public ResultResponse reportProject(Integer proId,Integer depId) {
         return projectService.reportProject(proId,depId);
+    }
+
+    @PostMapping("/importExcel")
+    @ApiOperation(value = "导入Excel")
+    public ResultResponse importExcel(@RequestPart(value = "file") MultipartFile file) {
+        return projectService.importExcel(file);
     }
 
 }
