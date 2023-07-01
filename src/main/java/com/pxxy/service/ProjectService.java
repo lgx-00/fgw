@@ -34,4 +34,6 @@ public interface ProjectService extends IService<Project> {
     ResultResponse reportProject(Integer proId, Integer depId);
 
     ResultResponse importExcel(MultipartFile file);
+
+    ResultResponse getExamineProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage);
 }

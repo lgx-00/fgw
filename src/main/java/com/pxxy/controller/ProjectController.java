@@ -54,6 +54,20 @@ public class ProjectController {
         return projectService.getVagueProject(pageNum, proName, beginTime, endTime, couId, townId, prcId, infId, proStatus, projectStage);
     }
 
+    @GetMapping(value = "/examine")
+    @ApiOperation(value = "分页查询用户要审核的项目")
+    public ResultResponse getExamineProject(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+                                          String proName,
+                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
+                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
+                                          Integer couId,
+                                          Integer townId,
+                                          Integer prcId,
+                                          Integer infId,
+                                          Integer projectStage) {
+        return projectService.getExamineProject(pageNum, proName, beginTime, endTime, couId, townId, prcId, infId, projectStage);
+    }
+
     @PostMapping
     @ApiOperation(value = "新增项目")
     public ResultResponse addProject(@RequestBody @Validated AddProjectVO addProjectVO) {

@@ -1,4 +1,5 @@
 import com.pxxy.FGWApplication;
+import com.pxxy.enums.ProjectStatusEnum;
 import com.pxxy.mapper.ProjectMapper;
 import com.pxxy.pojo.Project;
 import org.junit.Test;
@@ -28,5 +29,16 @@ public class TestMapper {
         List<Project> projectList = projectMapper.getVagueProjectByUser(2, null, 113, "萍乡", null, null, null, null);
         System.out.println(projectList);
         System.out.println(projectList.size());
+    }
+    @Test
+    public void test01(){
+        ProjectStatusEnum[] values = ProjectStatusEnum.values();
+        for (ProjectStatusEnum projectStatusEnum:values) {
+            System.out.println(projectStatusEnum.getStatus());
+            System.out.println(projectStatusEnum.getStatusContent());
+        }
+
+        ProjectStatusEnum projectStatusEnum = ProjectStatusEnum.valueOf("NORMAL");
+        System.out.println(projectStatusEnum.getStatusContent());
     }
 }

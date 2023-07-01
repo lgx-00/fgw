@@ -127,6 +127,25 @@
             </if>
     </select>
 
-
+    <select id="getExamineProjectByUser" resultType="com.pxxy.pojo.Project">
+        SELECT * FROM
+        project WHERE 1=1
+        <if test="depId != null">
+            and dep_id = #{depId}
+        </if>
+        <if test="proName != null">
+            and pro_name like "%"#{proName}"%"
+        </if>
+        <if test="townId != null">
+            and town_id = #{townId}
+        </if>
+        <if test="prcId != null">
+            and prc_id = #{prcId}
+        </if>
+        <if test="infId != null">
+            and inf_id = #{infId}
+        </if>
+            and pro_status = 2
+    </select>
 
 </mapper>

@@ -16,4 +16,5 @@ import java.util.List;
 public interface ProjectMapper extends BaseMapper<Project> {
     List<Project> getAllProjectByUser(Integer depId,Integer couId,Integer uId);
     List<Project> getVagueProjectByUser(Integer depId,Integer couId,Integer uId,String proName,Integer townId,Integer prcId,Integer infId,Integer proStatus);
+    List<Project> getExamineProjectByUser(Integer depId,String proName,Integer townId,Integer prcId,Integer infId);
 }
