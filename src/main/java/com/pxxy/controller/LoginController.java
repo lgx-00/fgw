@@ -39,7 +39,7 @@ public class LoginController {
         return userService.logout(session);
     }
 
-    @RequestMapping("/test")
+    @GetMapping("/test")
     public String test(){
         return "fetch";
     }

@@ -56,7 +56,7 @@
         (
 
         <if test="depId != null">
-            SELECT * FROM PROJECT
+            SELECT * FROM project
             WHERE dep_id = #{depId}
         </if>
 
@@ -64,7 +64,7 @@
             <if test="depId != null">
                 union
             </if>
-            SELECT * FROM PROJECT
+            SELECT * FROM project
             WHERE cou_id = #{couId}
         </if>
 
@@ -72,7 +72,7 @@
             <if test="couId != null or depId != null">
                 union
             </if>
-            SELECT * FROM PROJECT
+            SELECT * FROM project
             WHERE u_id = #{uId}
         </if>
 
@@ -86,7 +86,7 @@
         (
 
         <if test="depId != null">
-            SELECT * FROM PROJECT
+            SELECT * FROM project
             WHERE dep_id = #{depId}
         </if>
 
@@ -94,7 +94,7 @@
             <if test="depId != null">
                 union
             </if>
-            SELECT * FROM PROJECT
+            SELECT * FROM project
             WHERE cou_id = #{couId}
         </if>
 
@@ -102,7 +102,7 @@
             <if test="couId != null or depId != null">
                 union
             </if>
-            SELECT * FROM PROJECT
+            SELECT * FROM project
             WHERE u_id = #{uId}
         </if>
 
@@ -177,7 +177,7 @@
         (
 
         <if test="depId != null">
-            SELECT * FROM PROJECT
+            SELECT * FROM project
             WHERE dep_id = #{depId}
         </if>
 
@@ -185,7 +185,7 @@
             <if test="depId != null">
                 union
             </if>
-            SELECT * FROM PROJECT
+            SELECT * FROM project
             WHERE cou_id = #{couId}
         </if>
 
@@ -193,7 +193,7 @@
             <if test="couId != null or depId != null">
                 union
             </if>
-            SELECT * FROM PROJECT
+            SELECT * FROM project
             WHERE u_id = #{uId}
         </if>
 

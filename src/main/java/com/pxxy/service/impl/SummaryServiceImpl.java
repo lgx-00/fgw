@@ -1,14 +1,15 @@
 package com.pxxy.service.impl;
 
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.support.ExcelTypeEnum;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.pxxy.dto.UserDTO;
 import com.pxxy.enums.ProjectStatusEnum;
 import com.pxxy.mapper.ProjectMapper;
 import com.pxxy.mapper.TownMapper;
-import com.pxxy.pojo.*;
-import com.pxxy.service.*;
+import com.pxxy.pojo.Project;
+import com.pxxy.pojo.User;
+import com.pxxy.service.SummaryService;
+import com.pxxy.service.UserService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
 import com.pxxy.vo.SummaryVO;
@@ -19,7 +20,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -152,16 +155,17 @@ public class SummaryServiceImpl implements SummaryService {
     @Override
     public ResultResponse exportSummaryExcel(HttpServletResponse response, List<SummaryVO> summaryVOList) {
         try {
-            this.setExcelResponseProp(response, "统计汇总");
-            EasyExcel.write(response.getOutputStream())
-                    .head(SummaryVO.class)
-                    .excelType(ExcelTypeEnum.XLSX)
-                    .sheet("统计汇总")
-                    .doWrite(summaryVOList);
+            // 设置文本类型
+            response.setContentType("application/vnd.ms-excel");
+            // 设置字符编码
+            response.setCharacterEncoding("utf-8");
+            // 设置响应头
+            response.setHeader("Content-disposition", "attachment;filename=demo.xlsx");
+            EasyExcel.write(response.getOutputStream(), SummaryVO.class).sheet("导出统计信息").doWrite(summaryVOList);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return ResultResponse.fail("导出失败！");
         }
-        return ResultResponse.ok();
+        return null;
     }
 
     //用于计算百分比

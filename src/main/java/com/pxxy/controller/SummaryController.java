@@ -22,7 +22,6 @@ import java.util.List;
 @RestController
 @Api(tags = "统计汇总")
 @RequestMapping("/summary")
-@CrossOrigin(origins = "*")
 public class SummaryController {
 
     @Resource
@@ -39,7 +38,6 @@ public class SummaryController {
     }
 
     @PostMapping(value = "/exportExcel")
-    @CrossOrigin
     @ApiOperation(value = "导出excel")
     public ResultResponse exportSummaryExcel(HttpServletResponse response,@RequestBody List<SummaryVO> summaryVOList) {
         return summaryService.exportSummaryExcel(response, summaryVOList);

@@ -56,8 +56,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
         if (!perm) {
             resp.setCharacterEncoding("UTF-8");
             resp.setStatus(PERMISSION_NOT_ENOUGH);
-            resp.getWriter().write(JSONUtil.toJsonStr(
-                    ResultResponse.fail(PERMISSION_NOT_ENOUGH, method.msg)));
+            resp.getWriter().write(JSONUtil.toJsonStr(ResultResponse.fail(PERMISSION_NOT_ENOUGH, method.msg)));
             log.info("离开权限拦截器，请求被拦截。");
         } else {
             log.info("离开权限拦截器，请求顺利通过。");
