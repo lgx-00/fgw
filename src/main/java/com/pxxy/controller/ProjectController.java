@@ -57,15 +57,29 @@ public class ProjectController {
     @GetMapping(value = "/examine")
     @ApiOperation(value = "分页查询用户要审核的项目")
     public ResultResponse getExamineProject(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
-                                          String proName,
-                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
-                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
-                                          Integer couId,
-                                          Integer townId,
-                                          Integer prcId,
-                                          Integer infId,
-                                          Integer projectStage) {
+                                            String proName,
+                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
+                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
+                                            Integer couId,
+                                            Integer townId,
+                                            Integer prcId,
+                                            Integer infId,
+                                            Integer projectStage) {
         return projectService.getExamineProject(pageNum, proName, beginTime, endTime, couId, townId, prcId, infId, projectStage);
+    }
+
+    @GetMapping(value = "/dispatch")
+    @ApiOperation(value = "分页查询用户要调度的项目")
+    public ResultResponse getDispatchProject(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+                                             String proName,
+                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
+                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
+                                             Integer couId,
+                                             Integer townId,
+                                             Integer prcId,
+                                             Integer infId,
+                                             Integer projectStage) {
+        return projectService.getDispatchProject(pageNum, proName, beginTime, endTime, couId, townId, prcId, infId, projectStage);
     }
 
     @PostMapping
@@ -83,14 +97,14 @@ public class ProjectController {
 
     @DeleteMapping
     @ApiOperation(value = "删除项目")
-    public ResultResponse deleteProject(@RequestParam Integer proId){
+    public ResultResponse deleteProject(@RequestParam Integer proId) {
         return projectService.deleteProject(proId);
     }
 
     @PutMapping("/report")
     @ApiOperation(value = "上报项目")
-    public ResultResponse reportProject(Integer proId,Integer depId) {
-        return projectService.reportProject(proId,depId);
+    public ResultResponse reportProject(Integer proId, Integer depId) {
+        return projectService.reportProject(proId, depId);
     }
 
     @PostMapping("/importExcel")

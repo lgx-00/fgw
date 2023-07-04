@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button id="login">登录</button>
+    <button id="download">点击下载</button> 
+</body>
+<script>
+   var btn = document.getElementById("download");
+   var b = document.getElementById("login");
+   btn.onclick = function(){
+       fetch('http://192.168.137.1:8081/summary/exportExcel',{ //请求的服务器地址
+           body: JSON.stringify([
+                {
+                "townName": "峡山口街道",
+                "projectNum": 2,
+                "projectWorkNum": 0,
+                "ratio": "0.00%",
+                "proAllPlan": 50000,
+                "proPlanYear": 6000,
+                "proPlanMonths": null,
+                "proCompletionPercent": null
+                },
+                {
+                "townName": "腊市镇",
+                "projectNum": 1,
+                "projectWorkNum": 0,
+                "ratio": "0.00%",
+                "proAllPlan": 10000,
+                "proPlanYear": 2000,
+                "proPlanMonths": null,
+                "proCompletionPercent": null
+                },
+                {
+                "townName": "湘东区",
+                "projectNum": 3,
+                "projectWorkNum": 0,
+                "ratio": "0.00%",
+                "proAllPlan": 60000,
+                "proPlanYear": 8000,
+                "proPlanMonths": null,
+                "proCompletionPercent": null
+                }
+            ]),       
+            //请求的数据
+            // body:{name:"mumu",age:20}, //第二种请求数据的方法json
+           method:"POST", //请求方法
+           headers:{  //请求头信息
+               //'Content-Type':'application/x-www-form-urlencoded' //用url编码形式处理数据
+               'Content-Type':'application/json', //第二种请求头编写方式json
+
+           },
+       })
+   }    
+
+
+
+
+   b.onclick = function(){
+       fetch('http://192.168.137.1:8081/log/in',{ //请求的服务器地址
+           body: JSON.stringify(
+                {
+                    "uname": "123",
+	                "upassword": "123"
+                }
+            ),       
+            //请求的数据
+            // body:{name:"mumu",age:20}, //第二种请求数据的方法json
+           method:"POST", //请求方法
+           headers:{  //请求头信息
+               //'Content-Type':'application/x-www-form-urlencoded' //用url编码形式处理数据
+               'Content-Type':'application/json', //第二种请求头编写方式json
+
+           },
+       })
+   }  
+</script>
+
+
+</html>

@@ -12,7 +12,7 @@ import java.util.Date;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author hs
@@ -36,4 +36,13 @@ public interface ProjectService extends IService<Project> {
     ResultResponse importExcel(MultipartFile file);
 
     ResultResponse getExamineProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage);
+
+    /**
+     * @Description: 调度库
+     * @Author: xrw
+     * @Date: 2023/7/1 17:04
+     * @Param: [pageNum, proName, beginTime, endTime, couId, townId, prcId, infId, projectStage]
+     * @return: com.pxxy.utils.ResultResponse
+     **/
+    ResultResponse getDispatchProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage);
 }
