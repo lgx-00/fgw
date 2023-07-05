@@ -1,6 +1,7 @@
 package com.pxxy.intercepter;
 
 import cn.hutool.json.JSONUtil;
+import com.pxxy.dto.PermissionDTO;
 import com.pxxy.dto.UserDTO;
 import com.pxxy.enums.RequestMethodEnum;
 import com.pxxy.utils.ResultResponse;
@@ -42,13 +43,13 @@ public class PermissionInterceptor implements HandlerInterceptor {
         RequestMethodEnum method = RequestMethodEnum.valueOf(req.getMethod());
 
 
-        Map<String, Integer> permission = user.getPermission();
+        Map<String, PermissionDTO> permission = user.getPermission();
         Set<String> keys = permission.keySet();
         boolean perm = false;
 
         for (String key : keys) {
             if (url.startsWith(key)) {
-                perm = (permission.get(key) >> method.digit & 1) > 0;
+                perm = (permission.get(key).getRpDetail() >> method.digit & 1) > 0;
                 break;
             }
         }

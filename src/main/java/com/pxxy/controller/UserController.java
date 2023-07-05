@@ -23,7 +23,7 @@ import javax.annotation.Resource;
 @Validated
 @RestController
 @Api(tags = "用户")
-@RequestMapping("/user")
+@RequestMapping("/sys/user")
 public class UserController {
     @Resource
     private UserService userService;

@@ -23,7 +23,7 @@ import javax.annotation.Resource;
 @RestController
 @Validated
 @Api(tags = "行业")
-@RequestMapping("/industry")
+@RequestMapping("/basedata/industry")
 public class IndustryFieldController {
 
     @Resource

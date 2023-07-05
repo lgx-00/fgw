@@ -26,7 +26,7 @@ import java.util.Date;
 @Validated
 @RestController
 @Api(tags = "项目")
-@RequestMapping("/project")
+@RequestMapping("/project/storage")
 public class ProjectController {
 
     @Resource

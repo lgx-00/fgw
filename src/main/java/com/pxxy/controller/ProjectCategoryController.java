@@ -23,7 +23,7 @@ import javax.annotation.Resource;
 @Validated
 @Api(tags = "类型")
 @RestController
-@RequestMapping("/category")
+@RequestMapping("/basedata/category")
 public class ProjectCategoryController {
     
     @Resource

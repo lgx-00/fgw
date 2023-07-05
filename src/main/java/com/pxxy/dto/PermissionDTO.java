@@ -15,9 +15,24 @@ public class PermissionDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Integer rpDetail;
+    private Integer rpDetail = 0;
 
     private String pPath;
+
+    // 一级标题
+    private String title;
+    // 二级标题
+    private String name;
+
+    public PermissionDTO(String pPath, String pName) {
+        this.pPath = pPath;
+        if (pName != null && pName.contains("/")) {
+            String[] strings = pName.split("/");
+            title = strings[0];
+            name = strings[1];
+        }
+    }
+    public PermissionDTO() {}
 
     @Override
     public boolean equals(Object o) {
@@ -31,4 +46,5 @@ public class PermissionDTO implements Serializable {
     public int hashCode() {
         return Objects.hash(rpDetail, pPath);
     }
+
 }

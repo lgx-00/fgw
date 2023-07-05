@@ -23,7 +23,7 @@ import javax.annotation.Resource;
 @Validated
 @RestController
 @Api(tags = "乡镇")
-@RequestMapping("/county")
+@RequestMapping("/basedata/county")
 public class CountyController {
     
     @Resource

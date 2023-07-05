@@ -20,7 +20,7 @@ import java.util.List;
  */
 @Validated
 @RestController
-@Api(tags = "统计汇总")
+@Api(tags = "统计")
 @RequestMapping("/summary")
 public class SummaryController {
 

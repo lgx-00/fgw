@@ -11,6 +11,7 @@ import com.pxxy.mapper.UserMapper;
 import com.pxxy.pojo.*;
 import com.pxxy.service.*;
 import com.pxxy.utils.Md5Util;
+import com.pxxy.utils.RandomTokenUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddUserVO;
 import com.pxxy.vo.QueryUserVO;
@@ -132,27 +133,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     updateById(user);
 
                     // *查询用户权限
-                    Map<String, Integer> permission = new HashMap<>();
+                    Map<String, PermissionDTO> permission = new HashMap<>();
                     List<UserRole> userRoleList = userRoleService.query().eq("u_id", user.getUId()).list();
 
                     // 角色id集合
                     List<Integer> roleIds = userRoleList.stream().map(UserRole::getRId).collect(Collectors.toList());
 
-
                     for (Integer roleId : roleIds) {
                         List<RolePermission> rolePermissionList = rolePermissionService.query().eq("r_id", roleId).list();
                         for (RolePermission rolePermission : rolePermissionList) {
-                            PermissionDTO permissionDTO = new PermissionDTO();
-                            BeanUtil.copyProperties(rolePermission, permissionDTO);
-                            permissionDTO.setPPath(permissionService.query().eq("p_id", rolePermission.getPId()).one().getPPath());
+                            Permission p = permissionService.query().eq("p_id", rolePermission.getPId()).one();
+                            PermissionDTO permissionDTO = permission.getOrDefault(p.getPPath(), new PermissionDTO(p.getPPath(), p.getPName()));
+                            permissionDTO.setRpDetail(permissionDTO.getRpDetail() | rolePermission.getRpDetail());
 
-                            int perm = permission.getOrDefault(permissionDTO.getPPath(), 0);
-                            permission.put(permissionDTO.getPPath(), perm | permissionDTO.getRpDetail());
+                            permission.put(p.getPPath(), permissionDTO);
                         }
                     }
 
-                    session.setAttribute("user", new UserDTO(user.getUId(), user.getUName(), permission));
-                    return ResultResponse.ok();
+                    UserDTO dto = new UserDTO(user.getUId(), user.getUName(), permission);
+                    session.setAttribute("user", dto);
+                    String xToken = RandomTokenUtil.generate(session.getMaxInactiveInterval());
+                    return ResultResponse.ok(xToken);
                 }
             default:
                 return ResultResponse.fail("用户状态异常！");

@@ -2,6 +2,7 @@ import com.pxxy.FGWApplication;
 import com.pxxy.enums.ProjectStatusEnum;
 import com.pxxy.mapper.ProjectMapper;
 import com.pxxy.pojo.Project;
+import com.pxxy.utils.RandomTokenUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,5 +41,19 @@ public class TestMapper {
 
         ProjectStatusEnum projectStatusEnum = ProjectStatusEnum.valueOf("NORMAL");
         System.out.println(projectStatusEnum.getStatusContent());
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        for (int i = 0; i < 3; i++) {
+            String s = RandomTokenUtil.generate(1);
+            System.out.println(s);
+            Thread.sleep(500);
+            System.out.println(RandomTokenUtil.verifyAndRefresh(s, 1));
+            Thread.sleep(500);
+            System.out.println(RandomTokenUtil.verifyAndRefresh(s, 1));
+            Thread.sleep(1500);
+            System.out.println(RandomTokenUtil.verifyAndRefresh(s, 1));
+        }
     }
 }

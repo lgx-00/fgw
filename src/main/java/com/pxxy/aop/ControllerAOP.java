@@ -21,7 +21,6 @@ import java.util.Arrays;
 @Aspect
 @Component
 public class ControllerAOP {
-
     // 环绕通知
     @Around("execution(* com.pxxy.controller.*.*(..))")
     public Object doLog(ProceedingJoinPoint joinPoint) throws Throwable {

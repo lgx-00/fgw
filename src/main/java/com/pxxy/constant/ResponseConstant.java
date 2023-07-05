@@ -8,6 +8,7 @@ public class ResponseConstant {
 
     public final static int OK_CODE = 200;
     public final static int FAIL_CODE = 400;
+    public final static int INVALID_TOKEN = 401;
     public final static int PERMISSION_NOT_ENOUGH = 402;
     public final static int FAIL_MESSAGE_NOT_FOUND = 404;
     public final static String OK_MSG = "请求成功";

@@ -1,12 +1,13 @@
 package com.pxxy.pojo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.Version;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+
+import java.io.Serializable;
 
 /**
  * <p>
@@ -38,6 +39,21 @@ public class Permission implements Serializable {
      * 菜单名
      */
     private String pName;
+    // 一级标题
+    @TableField(exist = false)
+    private String title;
+    // 二级标题
+    @TableField(exist = false)
+    private String name;
+
+    public void setPName(String pName) {
+        this.pName = pName;
+        if (pName != null && pName.contains("，")) {
+            String[] strings = pName.split("，");
+            title = strings[0];
+            name = strings[1];
+        }
+    }
 
 
 }

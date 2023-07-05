@@ -2,6 +2,7 @@ package com.pxxy.controller;
 
 import com.pxxy.dto.LoginFormDTO;
 import com.pxxy.service.UserService;
+import com.pxxy.utils.RandomTokenUtil;
 import com.pxxy.utils.ResultResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -34,11 +36,13 @@ public class LoginController {
     @ApiOperation("退出登录")
     @PostMapping("/out")
     @ResponseBody
-    public ResultResponse logout(HttpSession session) {
+    public ResultResponse logout(HttpServletRequest req, HttpSession session) {
         //实现登出功能
+        RandomTokenUtil.invalid(req.getHeader("X-Token"));
         return userService.logout(session);
     }
 
+    @ApiOperation("测试导出")
     @GetMapping("/test")
     public String test(){
         return "fetch";

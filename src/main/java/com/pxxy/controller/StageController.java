@@ -23,7 +23,7 @@ import javax.annotation.Resource;
 @Validated
 @Api(tags = "阶段")
 @RestController
-@RequestMapping("/stage")
+@RequestMapping("/basedata/stage")
 public class StageController {
     
     @Resource

@@ -23,7 +23,7 @@ import javax.annotation.Resource;
 @Validated
 @RestController
 @Api(tags = "科室")
-@RequestMapping("/department")
+@RequestMapping("/basedata/department")
 public class DepartmentController {
     @Resource
     private DepartmentService departmentService;

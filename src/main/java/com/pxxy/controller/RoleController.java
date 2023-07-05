@@ -22,7 +22,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @Validated
-@RequestMapping("/role")
+@RequestMapping("/sys/role")
 @Api(tags = "角色")
 public class RoleController {
     @Resource
