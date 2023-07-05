@@ -18,8 +18,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +44,7 @@ public class SummaryServiceImpl implements SummaryService {
     private ProjectMapper projectMapper;
 
     @Override
-    public ResultResponse getSummary(Integer summaryType, Date beginTime, Date endTime, Integer prcId, Integer infId) {
+    public ResultResponse getSummary(Date beginTime, Date endTime, Integer prcId, Integer infId) {
         //先拿到用户信息
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
@@ -60,38 +58,10 @@ public class SummaryServiceImpl implements SummaryService {
                     .le(endTime != null, "pro_date", endTime);
             List<Project> projects = projectMapper.selectList(wrapper);
             Integer total = projectMapper.selectCount(wrapper);
-            if (projects == null || total == null) {
+            if (projects.size() == 0) {
                 return ResultResponse.fail("无符合查询的数据！");
             }
-            //对同一乡镇的项目进行分组
-            Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getTownId));
-
-            List<SummaryVO> summaryVOList = listMap.keySet().stream().map(key -> {
-                SummaryVO summaryVO = new SummaryVO();
-                summaryVO.setTownName(townMapper.selectById(key).getTownName());
-                List<Project> projectsList = listMap.get(key);  //组内对象集合
-                summaryVO.setProjectNum(projectsList.size()); // 项目个数
-                AtomicInteger count = new AtomicInteger(0); // 初始化计数器为0
-                projectsList.forEach(project -> {
-                    Date date = new Date();
-                    Date proStart = project.getProDisStart();//实际开工日期
-                    Date proComplete = project.getProDisComplete(); //实际竣工日期（留空表示未竣工）
-                    if (proStart != null && proComplete == null && date.after(proStart)) {
-                        count.incrementAndGet();  // 满足条件时(开工中项目)，计数器加一
-                    }
-                });
-                summaryVO.setProjectWorkNum(count.get());
-
-                String ratio = String.format("%.2f%%", calculatePercentage(count.get(), projectsList.size()));
-                summaryVO.setRatio(ratio);
-
-                int proAllPlan = projectsList.stream().mapToInt(Project::getProPlan).sum();
-                summaryVO.setProAllPlan(proAllPlan);
-
-                int proPlanYear = projectsList.stream().mapToInt(Project::getProPlanYear).sum();
-                summaryVO.setProPlanYear(proPlanYear);
-                return summaryVO;
-            }).collect(Collectors.toList());
+            List<SummaryVO> summaryVOList = groupSummary(projects);
 
             //全区
             SummaryVO summaryVO = new SummaryVO();
@@ -116,13 +86,35 @@ public class SummaryServiceImpl implements SummaryService {
         List<Project> projectList = projectMapper.getProjectByUser(depId, couId, uId);
         // 记录总条数
         Integer total = projectList.size();
-        if (projectList == null || total == null) {
+        if (projectList.size() == 0) {
             return ResultResponse.fail("无符合查询的数据！");
         }
-        //对同一乡镇的项目进行分组
-        Map<Integer, List<Project>> listMap = projectList.stream().collect(Collectors.groupingBy(Project::getTownId));
+        List<SummaryVO> summaryVOList = groupSummary(projectList);
 
-        List<SummaryVO> summaryVOList = listMap.keySet().stream().map(key -> {
+        return ResultResponse.ok(summaryVOList);
+    }
+
+    @Override
+    public ResultResponse exportSummaryExcel(HttpServletResponse response, List<SummaryVO> summaryVOList) {
+        try {
+            // 设置文本类型
+            response.setContentType("application/vnd.ms-excel");
+            // 设置字符编码
+            response.setCharacterEncoding("utf-8");
+            // 设置响应头
+            response.setHeader("Content-disposition", "attachment;filename=demo.xlsx");
+            EasyExcel.write(response.getOutputStream(), SummaryVO.class).sheet("导出统计信息").doWrite(summaryVOList);
+        } catch (IOException e) {
+            return ResultResponse.fail("导出失败！");
+        }
+        return null;
+    }
+
+    private List<SummaryVO> groupSummary(List<Project> projects) {
+        //对同一乡镇的项目进行分组
+        Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getTownId));
+
+        return listMap.keySet().stream().map(key -> {
             SummaryVO summaryVO = new SummaryVO();
             summaryVO.setTownName(townMapper.selectById(key).getTownName());
             List<Project> projectsList = listMap.get(key);  //组内对象集合
@@ -148,24 +140,6 @@ public class SummaryServiceImpl implements SummaryService {
             summaryVO.setProPlanYear(proPlanYear);
             return summaryVO;
         }).collect(Collectors.toList());
-
-        return ResultResponse.ok(summaryVOList);
-    }
-
-    @Override
-    public ResultResponse exportSummaryExcel(HttpServletResponse response, List<SummaryVO> summaryVOList) {
-        try {
-            // 设置文本类型
-            response.setContentType("application/vnd.ms-excel");
-            // 设置字符编码
-            response.setCharacterEncoding("utf-8");
-            // 设置响应头
-            response.setHeader("Content-disposition", "attachment;filename=demo.xlsx");
-            EasyExcel.write(response.getOutputStream(), SummaryVO.class).sheet("导出统计信息").doWrite(summaryVOList);
-        } catch (IOException e) {
-            return ResultResponse.fail("导出失败！");
-        }
-        return null;
     }
 
     //用于计算百分比
@@ -173,17 +147,7 @@ public class SummaryServiceImpl implements SummaryService {
         if (denominator == 0) {
             throw new IllegalArgumentException("分母不能为零");
         }
-
         return (numerator / denominator) * 100;
     }
-
-
-    private void setExcelResponseProp(HttpServletResponse response, String rawFileName) throws UnsupportedEncodingException {
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setCharacterEncoding("utf-8");
-        String fileName = URLEncoder.encode(rawFileName, "UTF-8").replaceAll("\\+", "%20");
-        response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
-    }
-
 
 }
