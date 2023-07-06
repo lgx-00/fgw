@@ -30,6 +30,7 @@ public class User implements Serializable {
     @TableId(value = "u_id", type = IdType.AUTO)
     private Integer uId;
 
+
     /**
      * 用户名 非空
      */

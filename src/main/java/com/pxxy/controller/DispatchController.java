@@ -3,12 +3,14 @@ package com.pxxy.controller;
 
 import com.pxxy.service.DispatchService;
 import com.pxxy.utils.ResultResponse;
+import com.pxxy.vo.QueryDispatchVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * <p>
@@ -30,8 +32,8 @@ public class DispatchController {
 
     @GetMapping("/all/{proId}")
     @ApiOperation("根据项目id分页查询所有调度")
-    public ResultResponse getAllDispatch(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,@PathVariable Integer proId) {
-        return null;//dispatchService.getAllDispatch(pageNum,proId);
+    public ResultResponse<List<QueryDispatchVO>> getAllDispatch(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum, @PathVariable Integer proId) {
+        return dispatchService.getAllDispatch(pageNum, proId);
     }
 }
 

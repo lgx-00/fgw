@@ -2,8 +2,8 @@ package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.pagehelper.PageInfo;
 import com.pxxy.mapper.RoleMapper;
 import com.pxxy.pojo.Permission;
 import com.pxxy.pojo.Role;
@@ -11,7 +11,7 @@ import com.pxxy.pojo.RolePermission;
 import com.pxxy.service.PermissionService;
 import com.pxxy.service.RolePermissionService;
 import com.pxxy.service.RoleService;
-import com.pxxy.service.UserRoleService;
+import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddRoleVO;
 import com.pxxy.vo.QueryRoleVO;
@@ -21,9 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.pxxy.constant.ResponseMessage.ADD_FAILED;
 import static com.pxxy.constant.SystemConstant.DEFAULT_PAGE_SIZE;
 
 /**
@@ -43,72 +45,68 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     @Resource
     private RolePermissionService rolePermissionService;
 
-    @Resource
-    private UserRoleService userRoleService;
+    private final Function<Role, QueryRoleVO> mapRoleToVO = role -> {
+        QueryRoleVO queryRoleVO = new QueryRoleVO();
+        BeanUtil.copyProperties(role, queryRoleVO);
+        List<RolePermission> rolePermissionList = rolePermissionService.query().eq("r_id", role.getRId()).list();
+        List<String> permisssion = rolePermissionList.stream().map(rolePermission -> {
+            Permission permission = permissionService.query().eq("p_id", rolePermission.getPId()).one();
+            if (permission != null) {
+                return permission.getPName();
+            }
+            return null;
+        }).collect(Collectors.toList());
+        queryRoleVO.setPermission(permisssion);
+        return queryRoleVO;
+    };
 
     @Override
-    public ResultResponse getAllRole(Integer pageNum) {
-        // 根据类型分页查询
-        Page<Role> page = query().page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
-        List<Role> roleList = page.getRecords();
-        List<QueryRoleVO> queryRoleVOS = roleList.stream().map(role -> {
-            QueryRoleVO queryRoleVO = new QueryRoleVO();
-            BeanUtil.copyProperties(role, queryRoleVO);
-            List<RolePermission> rolePermissionList = rolePermissionService.query().eq("r_id", role.getRId()).list();
-            List<String> permission = rolePermissionList.stream().map(rolePermission -> {
-                Permission p = permissionService.query().eq("p_id", rolePermission.getPId()).one();
-                if (p != null){
-                    return p.getPName();
-                }
-                return null;
-            }).filter(Objects::nonNull).collect(Collectors.toList());
-            queryRoleVO.setPermission(permission);
-            return queryRoleVO;
-        }).collect(Collectors.toList());
-        return ResultResponse.ok(queryRoleVOS, (int) page.getTotal());
+    public ResultResponse<PageInfo<QueryRoleVO>> getAllRole(Integer pageNum) {
+        //  根据类型分页查询
+        PageInfo<QueryRoleVO> pageInfo = PageUtil.selectPage(pageNum,
+                DEFAULT_PAGE_SIZE, this::query, mapRoleToVO);
+        return ResultResponse.ok(pageInfo);
     }
 
     @Override
-    public ResultResponse getVagueRole(Integer pageNum, String rName) {
+    public ResultResponse<PageInfo<QueryRoleVO>> getVagueRole(Integer pageNum, String rName) {
         // 根据类型分页查询
-        Page<Role> page = query().like("r_name",rName).page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
-        List<Role> roleList = page.getRecords();
-        List<QueryRoleVO> queryRoleVOS = roleList.stream().map(role -> {
-            QueryRoleVO queryRoleVO = new QueryRoleVO();
-            BeanUtil.copyProperties(role, queryRoleVO);
-            List<RolePermission> rolePermissionList = rolePermissionService.query().eq("r_id", role.getRId()).list();
-            List<String> permisssion = rolePermissionList.stream().map(rolePermission -> {
-                Permission permission = permissionService.query().eq("p_id", rolePermission.getPId()).one();
-                if (permission != null){
-                    return permission.getPName();
-                }
-                return null;
-            }).collect(Collectors.toList());
-
-            queryRoleVO.setPermission(permisssion);
-            return queryRoleVO;
-        }).filter(Objects::nonNull).collect(Collectors.toList());
-        return ResultResponse.ok(queryRoleVOS, (int) page.getTotal());
+        PageInfo<QueryRoleVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE,
+                () -> query().like("r_name", rName).list(), mapRoleToVO);
+        return ResultResponse.ok(pageInfo);
     }
 
     @Override
     @Transactional
-    public ResultResponse addRole(AddRoleVO addRoleVO) {
+    public ResultResponse<?> addRole(AddRoleVO addRoleVO) {
         Role role = new Role();
         role.setRName(addRoleVO.getRName());
         save(role);
-        addRoleVO.getPermissionMapper().forEach((key, value) -> {
-            RolePermission rolePermission = new RolePermission();
-            rolePermission.setRId(role.getRId());
-            rolePermission.setPId(key);
-            rolePermission.setRpDetail(value);
-            rolePermissionService.save(rolePermission);
-        });
+        return formatPermission(role, addRoleVO.getPermissionMapper());
+    }
+
+    private ResultResponse<?> formatPermission(Role role, Map<Integer, Integer> permissionMapper) {
+        try {
+            permissionMapper.forEach((key, value) -> {
+                RolePermission rolePermission = new RolePermission();
+                rolePermission.setRId(role.getRId());
+                rolePermission.setPId(key);
+                rolePermission.setRpDetail(value);
+                if (!rolePermissionService.save(rolePermission)) {
+                    throw new RuntimeException("failed");
+                }
+            });
+        } catch (Exception e) {
+            if ("failed".equals(e.getMessage())) {
+                return ResultResponse.fail(ADD_FAILED);
+            }
+            throw e;
+        }
         return ResultResponse.ok();
     }
 
     @Override
-    public ResultResponse deleteRole(Integer roleId) {
+    public ResultResponse<?> deleteRole(Integer roleId) {
         Role role = query().eq("r_id", roleId).one();
         if (role == null){
             return ResultResponse.fail("非法操作");
@@ -119,7 +117,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
 
     @Override
     @Transactional
-    public ResultResponse updateRole(UpdateRoleVO updateRoleVO) {
+    public ResultResponse<?> updateRole(UpdateRoleVO updateRoleVO) {
         Role role = query().eq("r_id", updateRoleVO.getRId()).one();
         if (role == null){
             return ResultResponse.fail("非法操作");
@@ -130,14 +128,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
         LambdaQueryWrapper<RolePermission> rolePermissionLambdaQueryWrapper = new LambdaQueryWrapper<>();
         rolePermissionLambdaQueryWrapper.eq(RolePermission::getRId,role.getRId());
         rolePermissionService.remove(rolePermissionLambdaQueryWrapper);
-        updateRoleVO.getPermissionMapper().forEach((key, value) -> {
-            RolePermission rolePermission = new RolePermission();
-            rolePermission.setRId(role.getRId());
-            rolePermission.setPId(key);
-            rolePermission.setRpDetail(value);
-            rolePermissionService.save(rolePermission);
-        });
-        return ResultResponse.ok();
+        return formatPermission(role, updateRoleVO.getPermissionMapper());
     }
 
 

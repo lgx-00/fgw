@@ -5,7 +5,7 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 
 @Data
-@ApiModel(value = "用户登录请求参数")
+@ApiModel(value = "用户登录请求模型")
 public class LoginFormDTO {
     @NotNull
     @ApiModelProperty(value = "用户名")

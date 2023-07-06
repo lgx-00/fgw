@@ -1,6 +1,7 @@
 package com.pxxy.controller;
 
 
+import com.pxxy.pojo.IndustryField;
 import com.pxxy.service.IndustryFieldService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddIndustryFieldVO;
@@ -11,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * <p>
@@ -31,26 +33,25 @@ public class IndustryFieldController {
 
     @PostMapping
     @ApiOperation("新增行业")
-    public ResultResponse addIndustryField(@RequestBody @Validated AddIndustryFieldVO addIndustryFieldVO) {
-
+    public ResultResponse<?> addIndustryField(@RequestBody @Validated AddIndustryFieldVO addIndustryFieldVO) {
         return IndustryFieldService.addIndustryField(addIndustryFieldVO);
     }
 
     @PutMapping
     @ApiOperation("修改行业")
-    public ResultResponse updateIndustryField(@RequestBody @Validated UpdateIndustryFieldVO updateIndustryFieldVO) {
+    public ResultResponse<?> updateIndustryField(@RequestBody @Validated UpdateIndustryFieldVO updateIndustryFieldVO) {
         return IndustryFieldService.updateIndustryField(updateIndustryFieldVO);
     }
 
     @GetMapping
     @ApiOperation("查询所有行业")
-    public ResultResponse selectIndustryField(){
+    public ResultResponse<List<IndustryField>> selectIndustryField(){
         return IndustryFieldService.selectIndustryField();
     }
 
     @DeleteMapping
     @ApiOperation("删除行业")
-    public ResultResponse deleteIndustryField(@RequestParam Integer infId) {
+    public ResultResponse<?> deleteIndustryField(@RequestParam Integer infId) {
         return IndustryFieldService.deleteIndustryField(infId);
     }
 

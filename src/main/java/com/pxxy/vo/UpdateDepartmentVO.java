@@ -14,7 +14,7 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "修改科室请求参数")
+@ApiModel(value = "修改科室请求模型")
 public class UpdateDepartmentVO {
 
     @ApiModelProperty(value = "科室ID")

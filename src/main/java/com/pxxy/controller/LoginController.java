@@ -28,7 +28,7 @@ public class LoginController {
     @ApiOperation("用户登录")
     @PostMapping("/in")
     @ResponseBody
-    public ResultResponse login(@RequestBody LoginFormDTO loginForm, HttpSession session) {
+    public ResultResponse<String> login(@RequestBody LoginFormDTO loginForm, HttpSession session) {
         //实现登录功能
         return userService.login(loginForm, session);
     }
@@ -36,7 +36,7 @@ public class LoginController {
     @ApiOperation("退出登录")
     @PostMapping("/out")
     @ResponseBody
-    public ResultResponse logout(HttpServletRequest req, HttpSession session) {
+    public ResultResponse<String> logout(HttpServletRequest req, HttpSession session) {
         //实现登出功能
         RandomTokenUtil.invalid(req.getHeader("X-Token"));
         return userService.logout(session);

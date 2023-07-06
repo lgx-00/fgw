@@ -20,7 +20,7 @@ import java.util.Arrays;
 @Slf4j
 @Aspect
 @Component
-public class ControllerAOP {
+public class ControllerLoggerAOP {
     // 环绕通知
     @Around("execution(* com.pxxy.controller.*.*(..))")
     public Object doLog(ProceedingJoinPoint joinPoint) throws Throwable {

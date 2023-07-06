@@ -12,7 +12,7 @@ import javax.validation.constraints.NotBlank;
  * @Description:
  */
 @Data
-@ApiModel(value = "修改项目类型请求参数")
+@ApiModel(value = "修改项目类型请求模型")
 public class UpdateProjectCategoryVO {
 
     @ApiModelProperty(value = "项目类型ID")

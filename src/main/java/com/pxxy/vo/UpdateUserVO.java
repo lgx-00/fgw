@@ -14,7 +14,7 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "修改用户请求参数")
+@ApiModel(value = "修改用户请求模型")
 public class UpdateUserVO {
 
     @NotBlank(message = "修改用户名不能为空！")

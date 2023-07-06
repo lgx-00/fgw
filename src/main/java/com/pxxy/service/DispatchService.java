@@ -1,7 +1,11 @@
 package com.pxxy.service;
 
-import com.pxxy.pojo.Dispatch;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.pxxy.pojo.Dispatch;
+import com.pxxy.utils.ResultResponse;
+import com.pxxy.vo.QueryDispatchVO;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +17,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface DispatchService extends IService<Dispatch> {
 
+    ResultResponse<List<QueryDispatchVO>> getAllDispatch(Integer pageNum, Integer proId);
 }

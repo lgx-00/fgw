@@ -1,9 +1,11 @@
 package com.pxxy.controller;
 
 
+import com.github.pagehelper.PageInfo;
 import com.pxxy.service.ProjectService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddProjectVO;
+import com.pxxy.vo.QueryProjectVO;
 import com.pxxy.vo.UpdateProjectVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -34,82 +36,88 @@ public class ProjectController {
 
     @GetMapping("/all")
     @ApiOperation("分页查询所有项目")
-    public ResultResponse getAllProject(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getAllProject(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
         return projectService.getAllProject(pageNum);
     }
 
 
     @GetMapping(value = "/vague")
     @ApiOperation(value = "分页模糊查询项目")
-    public ResultResponse getVagueProject(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
-                                          String proName,
-                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
-                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
-                                          Integer couId,
-                                          Integer townId,
-                                          Integer prcId,
-                                          Integer infId,
-                                          Integer proStatus,
-                                          Integer projectStage) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getVagueProject(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            String proName,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
+            Integer couId,
+            Integer townId,
+            Integer prcId,
+            Integer infId,
+            Integer proStatus,
+            Integer projectStage
+    ) {
         return projectService.getVagueProject(pageNum, proName, beginTime, endTime, couId, townId, prcId, infId, proStatus, projectStage);
     }
 
     @GetMapping(value = "/examine")
     @ApiOperation(value = "分页查询用户要审核的项目")
-    public ResultResponse getExamineProject(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
-                                            String proName,
-                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
-                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
-                                            Integer couId,
-                                            Integer townId,
-                                            Integer prcId,
-                                            Integer infId,
-                                            Integer projectStage) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getExamineProject(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            String proName,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
+            Integer couId,
+            Integer townId,
+            Integer prcId,
+            Integer infId,
+            Integer projectStage
+    ) {
         return projectService.getExamineProject(pageNum, proName, beginTime, endTime, couId, townId, prcId, infId, projectStage);
     }
 
     @GetMapping(value = "/dispatch")
     @ApiOperation(value = "分页查询用户要调度的项目")
-    public ResultResponse getDispatchProject(@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
-                                             String proName,
-                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
-                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
-                                             Integer couId,
-                                             Integer townId,
-                                             Integer prcId,
-                                             Integer infId,
-                                             Integer projectStage) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getDispatchProject(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            String proName,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
+            Integer couId,
+            Integer townId,
+            Integer prcId,
+            Integer infId,
+            Integer projectStage
+    ) {
         return projectService.getDispatchProject(pageNum, proName, beginTime, endTime, couId, townId, prcId, infId, projectStage);
     }
 
     @PostMapping
     @ApiOperation(value = "新增项目")
-    public ResultResponse addProject(@RequestBody @Validated AddProjectVO addProjectVO) {
+    public ResultResponse<?> addProject(@RequestBody @Validated AddProjectVO addProjectVO) {
         return projectService.addProject(addProjectVO);
     }
 
     @PutMapping
     @ApiOperation(value = "修改项目")
-    public ResultResponse updateProject(@RequestBody @Validated UpdateProjectVO updateProjectVO) {
+    public ResultResponse<?> updateProject(@RequestBody @Validated UpdateProjectVO updateProjectVO) {
         return projectService.updateProject(updateProjectVO);
     }
 
 
     @DeleteMapping
     @ApiOperation(value = "删除项目")
-    public ResultResponse deleteProject(@RequestParam Integer proId) {
+    public ResultResponse<?> deleteProject(@RequestParam Integer proId) {
         return projectService.deleteProject(proId);
     }
 
     @PutMapping("/report")
     @ApiOperation(value = "上报项目")
-    public ResultResponse reportProject(Integer proId, Integer depId) {
+    public ResultResponse<?> reportProject(Integer proId, Integer depId) {
         return projectService.reportProject(proId, depId);
     }
 
     @PostMapping("/importExcel")
     @ApiOperation(value = "导入Excel")
-    public ResultResponse importExcel(@RequestPart(value = "file") MultipartFile file) {
+    public ResultResponse<?> importExcel(@RequestPart(value = "file") MultipartFile file) {
         return projectService.importExcel(file);
     }
 

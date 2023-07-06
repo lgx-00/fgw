@@ -3,14 +3,15 @@ package com.pxxy.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.exception.ExcelCommonException;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.pagehelper.PageInfo;
 import com.pxxy.dto.UserDTO;
-import com.pxxy.enums.IsOrNotEnum;
+import com.pxxy.enums.YesOrNoEnum;
 import com.pxxy.enums.ProjectStatusEnum;
 import com.pxxy.mapper.ProjectMapper;
 import com.pxxy.pojo.*;
 import com.pxxy.service.*;
+import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
 import com.pxxy.vo.AddProjectVO;
@@ -23,9 +24,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.pxxy.constant.SystemConstant.DEFAULT_PAGE_SIZE;
@@ -63,151 +63,85 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     @Resource
     private ProjectMapper projectMapper;
 
+    private final Function<Project, QueryProjectVO> mapProjectToVO = project -> {
+        QueryProjectVO queryProjectVO = new QueryProjectVO();
+        BeanUtil.copyProperties(project, queryProjectVO);
+        Department department = departmentService.query().eq("dep_id", project.getDepId()).one();
+        County county = countyService.query().eq("cou_id", project.getCouId()).one();
+        Town town = townService.query().eq("town_id", project.getTownId()).one();
+        ProjectCategory projectCategory = projectCategoryService.query().eq("prc_id", project.getPrcId()).one();
+        IndustryField industryField = industryFieldService.query().eq("inf_id", project.getInfId()).one();
+        if (department != null) {
+            queryProjectVO.setDepartmentName(department.getDepName());
+        }
+        if (county != null) {
+            queryProjectVO.setArea(town != null
+                    ? county.getCouName() + "-" + town.getTownName()
+                    : county.getCouName());
+        }
+        if (projectCategory != null) {
+            queryProjectVO.setPrcName(projectCategory.getPrcName());
+        }
+
+        if (industryField != null) {
+            queryProjectVO.setInfName(industryField.getInfName());
+        }
+        Integer proStatus = project.getProStatus();
+        ProjectStatusEnum[] values = ProjectStatusEnum.values();
+        for (ProjectStatusEnum projectStatusEnum : values) {
+            if (proStatus == projectStatusEnum.val) {
+                queryProjectVO.setProStatusContent(projectStatusEnum.name);
+            }
+        }
+        return queryProjectVO;
+    };
+
     @Override
-    public ResultResponse getAllProject(Integer pageNum) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getAllProject(Integer pageNum) {
         //先拿到用户信息
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
         //管理员特殊通道
         if (uId == 1) {
-            Page<Project> page = query().page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
-            List<QueryProjectVO> queryProjectVOS = page.getRecords().stream().map(project -> {
-                QueryProjectVO queryProjectVO = new QueryProjectVO();
-                BeanUtil.copyProperties(project, queryProjectVO);
-                Department department = departmentService.query().eq("dep_id", project.getDepId()).one();
-                County county = countyService.query().eq("cou_id", project.getCouId()).one();
-                Town town = townService.query().eq("town_id", project.getTownId()).one();
-                ProjectCategory projectCategory = projectCategoryService.query().eq("prc_id", project.getPrcId()).one();
-                IndustryField industryField = industryFieldService.query().eq("inf_id", project.getInfId()).one();
-                if (department != null) {
-                    queryProjectVO.setDepartmentName(department.getDepName());
-                }
-                if (county != null) {
-                    queryProjectVO.setArea(county.getCouName());
-                }
-                if (town != null) {
-                    queryProjectVO.setArea(county.getCouName() + "-" + town.getTownName());
-                }
-                if (projectCategory != null) {
-                    queryProjectVO.setPrcName(projectCategory.getPrcName());
-                }
-                if (industryField != null) {
-                    queryProjectVO.setInfName(industryField.getInfName());
-                }
-                Integer proStatus = project.getProStatus();
-                ProjectStatusEnum[] values = ProjectStatusEnum.values();
-                for (ProjectStatusEnum projectStatusEnum : values) {
-                    if (proStatus == projectStatusEnum.getStatus()) {
-                        queryProjectVO.setProStatusContent(projectStatusEnum.getStatusContent());
-                    }
-                }
-                return queryProjectVO;
-            }).collect(Collectors.toList());
-            return ResultResponse.ok(queryProjectVOS, (int) page.getTotal());
+            return ResultResponse.ok(PageUtil.selectPage(pageNum,
+                    DEFAULT_PAGE_SIZE, () -> this.query().list(), mapProjectToVO));
         }
 
         // 非管理员通道
         User u = userService.query().eq("u_id", uId).one();
         Integer depId = u.getDepId();
         Integer couId = u.getCouId();
-        List<Project> projectList = projectMapper.getAllProjectByUser(depId, couId, uId);
-        // 记录总条数
-        Integer total = projectList.size();
-        // 用流去做分页查询
-        List<Project> projects = projectList.stream().skip((pageNum - 1) * 10L).limit(DEFAULT_PAGE_SIZE).collect(Collectors.toList());
-        List<QueryProjectVO> queryProjectVOS = projects.stream().map(project -> {
-            QueryProjectVO queryProjectVO = new QueryProjectVO();
-            BeanUtil.copyProperties(project, queryProjectVO);
-            Department department = departmentService.query().eq("dep_id", project.getDepId()).one();
-            County county = countyService.query().eq("cou_id", project.getCouId()).one();
-            Town town = townService.query().eq("town_id", project.getTownId()).one();
-            ProjectCategory projectCategory = projectCategoryService.query().eq("prc_id", project.getPrcId()).one();
-            IndustryField industryField = industryFieldService.query().eq("inf_id", project.getInfId()).one();
-            if (department != null) {
-                queryProjectVO.setDepartmentName(department.getDepName());
-            }
-            if (county != null || town != null) {
-                assert county != null;
-                queryProjectVO.setArea(county.getCouName() + "-" + town.getTownName());
-            }
-            if (projectCategory != null) {
-                queryProjectVO.setPrcName(projectCategory.getPrcName());
-            }
 
-            if (industryField != null) {
-                queryProjectVO.setInfName(industryField.getInfName());
-            }
-            Integer proStatus = project.getProStatus();
-            ProjectStatusEnum[] values = ProjectStatusEnum.values();
-            for (ProjectStatusEnum projectStatusEnum : values) {
-                if (proStatus == projectStatusEnum.getStatus()) {
-                    queryProjectVO.setProStatusContent(projectStatusEnum.getStatusContent());
-                }
-            }
-            return queryProjectVO;
-        }).collect(Collectors.toList());
-        return ResultResponse.ok(queryProjectVOS, total);
+        PageInfo<QueryProjectVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE,
+                () -> projectMapper.getAllProjectByUser(depId, couId, uId), mapProjectToVO);
+        return ResultResponse.ok(pageInfo);
     }
 
     @Override
-    public ResultResponse getVagueProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer proStatus, Integer projectStage) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getVagueProject(
+            Integer pageNum, String proName, Date beginTime, Date endTime,
+            Integer couId, Integer townId, Integer prcId, Integer infId,
+            Integer proStatus, Integer projectStage
+    ) {
         //先拿到用户信息
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
         // 管理员特殊通道
         if (uId == 1) {
-            Page<Project> page = query()
-                    .like(proName != null, "pro_name", proName)
-                    .eq(couId != null, "cou_id", couId)
-                    .eq(townId != null, "town_id", townId)
-                    .eq(prcId != null, "prc_id", prcId)
-                    .eq(infId != null, "inf_id", infId)
-                    .eq(proStatus != null, "pro_status", proStatus)
-                    .page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
-            List<QueryProjectVO> queryProjectVOS = page.getRecords().stream().filter(project -> {
-                if (beginTime != null) {
-                    return project.getProDate().after(beginTime);
-                }
-                return true;
-            }).filter(project -> {
-                if (endTime != null) {
-                    return project.getProDate().before(endTime);
-                }
-                return true;
-            }).map(project -> {
-                QueryProjectVO queryProjectVO = new QueryProjectVO();
-                BeanUtil.copyProperties(project, queryProjectVO);
-                Department department = departmentService.query().eq("dep_id", project.getDepId()).one();
-                County county = countyService.query().eq("cou_id", project.getCouId()).one();
-                Town town = townService.query().eq("town_id", project.getTownId()).one();
-                ProjectCategory projectCategory = projectCategoryService.query().eq("prc_id", project.getPrcId()).one();
-                IndustryField industryField = industryFieldService.query().eq("inf_id", project.getInfId()).one();
-                if (department != null) {
-                    queryProjectVO.setDepartmentName(department.getDepName());
-                }
-                if (county != null || town != null) {
-                    assert county != null;
-                    queryProjectVO.setArea(county.getCouName() + "-" + town.getTownName());
-                }
-                if (projectCategory != null) {
-                    queryProjectVO.setPrcName(projectCategory.getPrcName());
-                }
-                if (industryField != null) {
-                    queryProjectVO.setInfName(industryField.getInfName());
-                }
-                Integer ps = project.getProStatus();
-                ProjectStatusEnum[] values = ProjectStatusEnum.values();
-                for (ProjectStatusEnum projectStatusEnum : values) {
-                    if (ps == projectStatusEnum.getStatus()) {
-                        queryProjectVO.setProStatusContent(projectStatusEnum.getStatusContent());
-                    }
-                }
-                return queryProjectVO;
-            }).collect(Collectors.toList());
-            //当前时间
-            Date date = new Date();
-            List<QueryProjectVO> projectVOS = this.calProjectStage(queryProjectVOS, projectStage, date);
-            return ResultResponse.ok(projectVOS, (int) page.getTotal());
+            PageInfo<QueryProjectVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE, () -> query()
+                            .like(Objects.nonNull(proName), "pro_name", proName)
+                            .eq(Objects.nonNull(couId), "cou_id", couId)
+                            .eq(Objects.nonNull(townId), "town_id", townId)
+                            .eq(Objects.nonNull(prcId), "prc_id", prcId)
+                            .eq(Objects.nonNull(infId), "inf_id", infId)
+                            .eq(Objects.nonNull(proStatus), "pro_status", proStatus)
+                    // TODO select with stage
+                            .between(Objects.nonNull(beginTime) && Objects.nonNull(endTime), "pro_date",
+                                    Optional.ofNullable(beginTime).orElse(new Date(0)),
+                                    Optional.ofNullable(endTime).orElse(new Date(Long.MAX_VALUE))),
+                    mapProjectToVO);
+
+            return ResultResponse.ok(pageInfo);
         }
 
         // 非管理员通道
@@ -219,14 +153,14 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         //当前时间
         Date date = new Date();
 
+        // FIXME
         List<QueryProjectVO> projectVOS = this.calProjectStage(queryProjectVOS, projectStage, date);
-        int total = projectVOS.size();
         List<QueryProjectVO> projectVOList = projectVOS.stream().skip((pageNum - 1) * 10L).limit(DEFAULT_PAGE_SIZE).collect(Collectors.toList());
-        return ResultResponse.ok(projectVOList, total);
+        return ResultResponse.ok(PageInfo.of(projectVOList));
     }
 
     @Override
-    public ResultResponse addProject(AddProjectVO addProjectVO) {
+    public ResultResponse<?> addProject(AddProjectVO addProjectVO) {
         Project project = new Project();
         BeanUtil.copyProperties(addProjectVO, project);
         UserDTO user = UserHolder.getUser();
@@ -236,7 +170,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Override
-    public ResultResponse updateProject(UpdateProjectVO updateProjectVO) {
+    public ResultResponse<?> updateProject(UpdateProjectVO updateProjectVO) {
         Project project = query().eq("pro_id", updateProjectVO.getProId()).one();
         if (project == null) {
             return ResultResponse.fail("非法操作！");
@@ -247,7 +181,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Override
-    public ResultResponse deleteProject(Integer proId) {
+    public ResultResponse<?> deleteProject(Integer proId) {
         Project project = query().eq("pro_id", proId).ne("pro_status", DELETED_STATUS).one();
         if (project == null) {
             return ResultResponse.fail("项目已被删除，请勿重复操作！");
@@ -257,26 +191,26 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Override
-    public ResultResponse reportProject(Integer proId, Integer depId) {
+    public ResultResponse<?> reportProject(Integer proId, Integer depId) {
         Project project = query().eq("pro_id", proId).one();
         //未上报状态
         ProjectStatusEnum report = ProjectStatusEnum.FAILURE_TO_REPORT;
         //待审核状态
         ProjectStatusEnum pendingReview = ProjectStatusEnum.PENDING_REVIEW;
 
-        if (project.getProStatus() != report.getStatus()) {
+        if (project.getProStatus() != report.val) {
             //说明项目已上报
             return ResultResponse.fail("已上报项目不允许再上报！");
         }
         project.setDepId(depId);
-        project.setProStatus(pendingReview.getStatus());
+        project.setProStatus(pendingReview.val);
         updateById(project);
         return ResultResponse.ok();
     }
 
     @Override
     @Transactional
-    public ResultResponse importExcel(MultipartFile file) {
+    public ResultResponse<?> importExcel(MultipartFile file) {
         // 错误信息集合
         List<String> errorMsgList = new ArrayList<>();
 
@@ -348,7 +282,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 String townName = projectExcelVO.getTownName();
                 Town town = townService.query().eq("town_name", townName).one();
                 if (town != null) {
-                    if (town.getCouId() == county.getCouId()) {
+                    if (town.getCouId().equals(county.getCouId())) {
                         project.setTownId(town.getTownId());
                     } else {
                         errorMsgList.add("【辖区】" + county.getCouName() + "不存在" + "【乡镇】" + townName + "；");
@@ -378,12 +312,12 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 }
 
                 // 是否 0 1 转换
-                IsOrNotEnum[] isOrNotEnums = IsOrNotEnum.values();
+                YesOrNoEnum[] yesOrNoEnums = YesOrNoEnum.values();
                 String proIsNew = projectExcelVO.getProIsNew();
                 if (proIsNew != null) {
-                    for (IsOrNotEnum i : isOrNotEnums) {
-                        if (proIsNew.equals(i.getStatusContent())) {
-                            project.setProIsNew(i.getStatus());
+                    for (YesOrNoEnum i : yesOrNoEnums) {
+                        if (proIsNew.equals(i.name)) {
+                            project.setProIsNew(i.val);
                         }
                         //是否当年度新开工项目
                         errorMsgList.add("是否当年度新开工项目【列】只能填是或否；");
@@ -392,9 +326,9 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
                 String proIsProvincial = projectExcelVO.getProIsProvincial();
                 if (proIsProvincial != null) {
-                    for (IsOrNotEnum i : isOrNotEnums) {
-                        if (proIsProvincial.equals(i.getStatusContent())) {
-                            project.setProIsProvincial(i.getStatus());
+                    for (YesOrNoEnum i : yesOrNoEnums) {
+                        if (proIsProvincial.equals(i.name)) {
+                            project.setProIsProvincial(i.val);
                         }
                         //是否省大中型项目
                         errorMsgList.add("是否省大中型项目【列】只能填是或否；");
@@ -435,7 +369,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Override
-    public ResultResponse getExamineProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getExamineProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage) {
         //获取用户信息
         UserDTO user = UserHolder.getUser();
         User u = userService.query().eq("u_id", user.getUId()).one();
@@ -445,13 +379,14 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         //当前时间
         Date date = new Date();
         List<QueryProjectVO> projectVOS = this.calProjectStage(queryProjectVOS, projectStage, date);
-        int total = projectVOS.size();
+
+        // FIXME
         List<QueryProjectVO> projectVOList = projectVOS.stream().skip((pageNum - 1) * 10L).limit(DEFAULT_PAGE_SIZE).collect(Collectors.toList());
-        return ResultResponse.ok(projectVOList, total);
+        return ResultResponse.ok(PageInfo.of(projectVOList));
     }
 
     @Override
-    public ResultResponse getDispatchProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getDispatchProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage) {
         //获取用户信息
         UserDTO user = UserHolder.getUser();
         User u = userService.query().eq("u_id", user.getUId()).one();
@@ -461,9 +396,10 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         //当前时间
         Date date = new Date();
         List<QueryProjectVO> projectVOS = this.calProjectStage(queryProjectVOS, projectStage, date);
-        int total = projectVOS.size();
+
+        // FIXME
         List<QueryProjectVO> projectVOList = projectVOS.stream().skip((pageNum - 1) * 10L).limit(DEFAULT_PAGE_SIZE).collect(Collectors.toList());
-        return ResultResponse.ok(projectVOList, total);
+        return ResultResponse.ok(PageInfo.of(projectVOList));
     }
 
     // 用于计算项目阶段
@@ -520,8 +456,8 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             Integer ps = project.getProStatus();
             ProjectStatusEnum[] values = ProjectStatusEnum.values();
             for (ProjectStatusEnum projectStatusEnum : values) {
-                if (ps == projectStatusEnum.getStatus()) {
-                    queryProjectVO.setProStatusContent(projectStatusEnum.getStatusContent());
+                if (ps == projectStatusEnum.val) {
+                    queryProjectVO.setProStatusContent(projectStatusEnum.name);
                 }
             }
             return queryProjectVO;

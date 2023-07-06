@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.Set;
 
-import static com.pxxy.constant.ResponseConstant.PERMISSION_NOT_ENOUGH;
+import static com.pxxy.constant.ResponseMessage.PERMISSION_NOT_ENOUGH;
 
 /**
  * @Author: hesen

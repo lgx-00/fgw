@@ -14,7 +14,7 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "新增乡镇请求参数")
+@ApiModel(value = "新增乡镇请求模型")
 public class AddCountyVO {
 
     @ApiModelProperty(value = "乡镇名称")

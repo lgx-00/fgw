@@ -4,8 +4,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.pxxy.pojo.County;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddCountyVO;
+import com.pxxy.vo.QueryCountyVO;
 import com.pxxy.vo.UpdateCountyVO;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
 
 /**
  * <p>
@@ -18,11 +21,11 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public interface CountyService extends IService<County> {
 
-    ResultResponse addCounty(@Validated AddCountyVO addCountyVO);
+    ResultResponse<?> addCounty(@Validated AddCountyVO addCountyVO);
 
-    ResultResponse updateCounty(@Validated UpdateCountyVO updateCountyVO);
+    ResultResponse<?> updateCounty(@Validated UpdateCountyVO updateCountyVO);
 
-    ResultResponse getAllCounty();
+    ResultResponse<List<QueryCountyVO>> getAllCounty();
 
-    ResultResponse deleteCounty(Integer couId);
+    ResultResponse<?> deleteCounty(Integer couId);
 }

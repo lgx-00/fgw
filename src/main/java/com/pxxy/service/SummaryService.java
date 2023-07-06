@@ -20,7 +20,7 @@ public interface SummaryService {
      * @Param: [statisticalType, beginTime, endTime, prcId, infId]
      * @return: com.pxxy.utils.ResultResponse
      **/
-    ResultResponse getSummary(Date beginTime, Date endTime, Integer prcId, Integer infId);
+    ResultResponse<?> getSummary(Date beginTime, Date endTime, Integer prcId, Integer infId);
 
     /**
      * @Description: 导出excel
@@ -29,5 +29,5 @@ public interface SummaryService {
      * @Param: [response]
      * @return: com.pxxy.utils.ResultResponse
      **/
-    ResultResponse exportSummaryExcel(HttpServletResponse response, List<SummaryVO> summaryVOList);
+    ResultResponse<?> exportSummaryExcel(HttpServletResponse response, List<SummaryVO> summaryVOList);
 }

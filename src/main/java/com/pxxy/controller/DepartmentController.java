@@ -4,6 +4,7 @@ package com.pxxy.controller;
 import com.pxxy.service.DepartmentService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddDepartmentVO;
+import com.pxxy.vo.QueryDepartmentVO;
 import com.pxxy.vo.UpdateDepartmentVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -11,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * <p>
@@ -30,25 +32,25 @@ public class DepartmentController {
 
     @PostMapping
     @ApiOperation("新增科室")
-    public ResultResponse addDepartment(@RequestBody @Validated AddDepartmentVO addDepartmentVO) {
+    public ResultResponse<?> addDepartment(@RequestBody @Validated AddDepartmentVO addDepartmentVO) {
         return departmentService.addDepartment(addDepartmentVO);
     }
 
     @PutMapping
     @ApiOperation("修改科室")
-    public ResultResponse updateDepartment(@RequestBody @Validated UpdateDepartmentVO updateDepartmentVO) {
+    public ResultResponse<?> updateDepartment(@RequestBody @Validated UpdateDepartmentVO updateDepartmentVO) {
         return departmentService.updateDepartment(updateDepartmentVO);
     }
 
     @GetMapping
     @ApiOperation("查询所有科室")
-    public ResultResponse getAllDepartment(){
+    public ResultResponse<List<QueryDepartmentVO>> getAllDepartment(){
         return departmentService.getAllDepartment();
     }
 
     @DeleteMapping
     @ApiOperation("删除科室")
-    public ResultResponse deleteDepartment(@RequestParam Integer depId) {
+    public ResultResponse<?> deleteDepartment(@RequestParam Integer depId) {
         return departmentService.deleteDepartment(depId);
     }
 

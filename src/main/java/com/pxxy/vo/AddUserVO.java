@@ -14,7 +14,7 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "新增用户请求参数")
+@ApiModel(value = "新增用户请求模型")
 public class AddUserVO {
     @ApiModelProperty(value = "用户名")
     @NotBlank(message = "用户名不能为空！")

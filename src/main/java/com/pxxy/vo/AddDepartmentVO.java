@@ -14,7 +14,7 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "新增科室请求参数")
+@ApiModel(value = "新增科室请求模型")
 public class AddDepartmentVO {
     @ApiModelProperty(value = "科室名")
     @NotBlank(message = "科室名称不能为空！")

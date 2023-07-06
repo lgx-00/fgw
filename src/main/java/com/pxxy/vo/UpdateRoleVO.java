@@ -13,7 +13,7 @@ import java.util.Map;
  * @Description:
  */
 @Data
-@ApiModel(value = "修改角色请求参数")
+@ApiModel(value = "修改角色请求模型")
 public class UpdateRoleVO {
 
     @ApiModelProperty(value = "角色ID")

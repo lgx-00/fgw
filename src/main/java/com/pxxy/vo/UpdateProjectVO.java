@@ -17,7 +17,7 @@ import java.util.Date;
  * @since 2023-06-14
  */
 @Data
-@ApiModel(value = "修改项目请求参数")
+@ApiModel(value = "修改项目请求模型")
 public class UpdateProjectVO {
 
 

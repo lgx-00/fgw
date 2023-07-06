@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
-import static com.pxxy.constant.ResponseConstant.INVALID_TOKEN;
+import static com.pxxy.constant.ResponseMessage.INVALID_TOKEN;
 
 
 /**

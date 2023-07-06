@@ -1,8 +1,7 @@
 package com.pxxy.utils;
 
 
-import com.pxxy.constant.ResponseConstant;
-import com.pxxy.exception.FgwException;
+import com.pxxy.constant.ResponseMessage;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,64 +10,45 @@ import java.io.Serializable;
  * @author: xrw
  **/
 @Data
-public class ResultResponse implements Serializable {
+public class ResultResponse<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private Integer code;
     private String msg;
-    private Object data;
-    // 记录总条数（分页使用）
-    private Integer total;
+    private T data;
 
     public ResultResponse() {
     }
 
-    private ResultResponse(int code, String msg, Object data,Integer total) {
+    private ResultResponse(int code, String msg, T data) {
         this.code = code;
         this.msg = msg;
         this.data = data;
-        this.total = total;
     }
 
-    public static ResultResponse ok() {
-        return new ResultResponse(ResponseConstant.OK_CODE, ResponseConstant.OK_MSG, null,null);
+    public static ResultResponse<?> ok() {
+        return new ResultResponse<>(ResponseMessage.OK_CODE, ResponseMessage.OK_MSG, null);
     }
 
-    public static  ResultResponse ok(Object data) {
-        return new ResultResponse(ResponseConstant.OK_CODE, ResponseConstant.OK_MSG, data,null);
+    public static <T> ResultResponse<T> ok(T data) {
+        return new ResultResponse<>(ResponseMessage.OK_CODE, ResponseMessage.OK_MSG, data);
     }
 
-    public static  ResultResponse ok(Object data,Integer total) {
-        return new ResultResponse(ResponseConstant.OK_CODE, ResponseConstant.OK_MSG,data,total);
+    public static <T> ResultResponse<T> ok(String msg, T data) {
+        return new ResultResponse<>(ResponseMessage.OK_CODE, msg, data);
     }
 
-    public static  ResultResponse ok(String msg, Object data) {
-        return new ResultResponse(ResponseConstant.OK_CODE, msg, data,null);
+    public static <T> ResultResponse<T> fail(String msg) {
+        return new ResultResponse<>(ResponseMessage.FAIL_CODE, msg, null);
     }
 
-    public static  ResultResponse fail(String msg) {
-        return new ResultResponse(ResponseConstant.FAIL_CODE, msg, null,null);
+    public static <T>ResultResponse<T> fail(int errorCode, String msg) {
+        return new ResultResponse<>(errorCode, msg, null);
     }
 
-    public static ResultResponse fail(int errorCode, String msg) {
-        return new ResultResponse(errorCode, msg, null,null);
-    }
-
-    public static  ResultResponse fail(int errorCode, String msg,Object data) {
-        return new ResultResponse(errorCode, msg, data,null);
-    }
-    /**
-     *自定义异常
-     * @param be
-     * @return
-     */
-    public static ResultResponse customException(FgwException be){
-        ResultResponse result = new ResultResponse();
-        result.setCode(be.getErrorCode());
-        result.setMsg(be.getErrorMsg());
-        result.setData(null);
-        return result;
+    public static <T> ResultResponse<T> fail(int errorCode, String msg, T data) {
+        return new ResultResponse<>(errorCode, msg, data);
     }
 
 }

@@ -2,13 +2,13 @@ import com.pxxy.FGWApplication;
 import com.pxxy.enums.ProjectStatusEnum;
 import com.pxxy.mapper.ProjectMapper;
 import com.pxxy.pojo.Project;
-import com.pxxy.utils.RandomTokenUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,25 +35,17 @@ public class TestMapper {
     public void test01(){
         ProjectStatusEnum[] values = ProjectStatusEnum.values();
         for (ProjectStatusEnum projectStatusEnum:values) {
-            System.out.println(projectStatusEnum.getStatus());
-            System.out.println(projectStatusEnum.getStatusContent());
+            System.out.println(projectStatusEnum.val);
+            System.out.println(projectStatusEnum.name);
         }
 
         ProjectStatusEnum projectStatusEnum = ProjectStatusEnum.valueOf("NORMAL");
-        System.out.println(projectStatusEnum.getStatusContent());
+        System.out.println(projectStatusEnum.name);
     }
 
     public static void main(String[] args) throws Exception {
 
-        for (int i = 0; i < 3; i++) {
-            String s = RandomTokenUtil.generate(1);
-            System.out.println(s);
-            Thread.sleep(500);
-            System.out.println(RandomTokenUtil.verifyAndRefresh(s, 1));
-            Thread.sleep(500);
-            System.out.println(RandomTokenUtil.verifyAndRefresh(s, 1));
-            Thread.sleep(1500);
-            System.out.println(RandomTokenUtil.verifyAndRefresh(s, 1));
-        }
+        System.out.println(new Date(Long.MAX_VALUE));
+
     }
 }

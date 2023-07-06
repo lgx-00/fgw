@@ -29,7 +29,7 @@ public class SummaryController {
 
     @GetMapping(value = "/all")
     @ApiOperation(value = "统计汇总所有项目")
-    public ResultResponse getSummary(
+    public ResultResponse<?> getSummary(
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
             Integer infId,
@@ -39,7 +39,7 @@ public class SummaryController {
 
     @PostMapping(value = "/exportExcel")
     @ApiOperation(value = "导出excel")
-    public ResultResponse exportSummaryExcel(HttpServletResponse response, @RequestBody List<SummaryVO> summaryVOList) {
+    public ResultResponse<?> exportSummaryExcel(HttpServletResponse response, @RequestBody List<SummaryVO> summaryVOList) {
         return summaryService.exportSummaryExcel(response, summaryVOList);
     }
 

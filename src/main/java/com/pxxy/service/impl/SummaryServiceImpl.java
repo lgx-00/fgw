@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -44,18 +45,17 @@ public class SummaryServiceImpl implements SummaryService {
     private ProjectMapper projectMapper;
 
     @Override
-    public ResultResponse getSummary(Date beginTime, Date endTime, Integer prcId, Integer infId) {
+    public ResultResponse<?> getSummary(Date beginTime, Date endTime, Integer prcId, Integer infId) {
         //先拿到用户信息
-        UserDTO user = UserHolder.getUser();
-        Integer uId = user.getUId();
+        Integer uId = UserHolder.getUser().getUId();
         //管理员特殊通道   区本级也可以访问
         if (uId == 1) {
             QueryWrapper<Project> wrapper = new QueryWrapper<>();
-            wrapper.eq("pro_status", ProjectStatusEnum.NORMAL.getStatusContent())    //只查询项目状态为正常的 0
-                    .eq(prcId != null, "prc_id", prcId)
-                    .eq(infId != null, "inf_id", infId)
-                    .ge(beginTime != null, "pro_date", beginTime)
-                    .le(endTime != null, "pro_date", endTime);
+            wrapper.eq("pro_status", ProjectStatusEnum.NORMAL.val)    //只查询项目状态为正常的 0
+                    .eq(Objects.nonNull(prcId), "prc_id", prcId)
+                    .eq(Objects.nonNull(infId), "inf_id", infId)
+                    .ge(Objects.nonNull(beginTime), "pro_date", beginTime)
+                    .le(Objects.nonNull(endTime), "pro_date", endTime);
             List<Project> projects = projectMapper.selectList(wrapper);
             Integer total = projectMapper.selectCount(wrapper);
             if (projects.size() == 0) {
@@ -80,9 +80,9 @@ public class SummaryServiceImpl implements SummaryService {
         }
 
         // 非管理员通道
-        User user1 = userService.query().eq("u_id", uId).one();
-        Integer depId = user1.getDepId();  //科室
-        Integer couId = user1.getCouId();   //辖区
+        User user = userService.query().eq("u_id", uId).one();
+        Integer depId = user.getDepId();  //科室
+        Integer couId = user.getCouId();   //辖区
         List<Project> projectList = projectMapper.getProjectByUser(depId, couId, uId);
         // 记录总条数
         Integer total = projectList.size();
@@ -95,7 +95,7 @@ public class SummaryServiceImpl implements SummaryService {
     }
 
     @Override
-    public ResultResponse exportSummaryExcel(HttpServletResponse response, List<SummaryVO> summaryVOList) {
+    public ResultResponse<?> exportSummaryExcel(HttpServletResponse response, List<SummaryVO> summaryVOList) {
         try {
             // 设置文本类型
             response.setContentType("application/vnd.ms-excel");

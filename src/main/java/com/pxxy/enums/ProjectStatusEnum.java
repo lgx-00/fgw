@@ -6,24 +6,18 @@ package com.pxxy.enums;
  * @Description:
  */
 public enum ProjectStatusEnum {
-    NORMAL(0,"正常"),
-    FAILURE_TO_REPORT(1,"未上报"),
+    FAILURE_TO_REPORT(0,"未上报"),
+    NORMAL(1,"正常"),
     PENDING_REVIEW(2,"待审核"),
     UNLOCKED(3,"未锁定"),
     TO_BE_SCHEDULED(4,"待调度");
-    public final int status;
-    public final String statusContent;
 
-    ProjectStatusEnum(int status, String statusContent) {
-        this.status = status;
-        this.statusContent = statusContent;
+    public final int val;
+    public final String name;
+
+    ProjectStatusEnum(int val, String name) {
+        this.val = val;
+        this.name = name;
     }
 
-    public int getStatus() {
-        return status;
-    }
-
-    public String getStatusContent() {
-        return statusContent;
-    }
 }

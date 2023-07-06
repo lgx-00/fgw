@@ -2,8 +2,8 @@ package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.pagehelper.PageInfo;
 import com.pxxy.dto.LoginFormDTO;
 import com.pxxy.dto.PermissionDTO;
 import com.pxxy.dto.UserDTO;
@@ -11,6 +11,7 @@ import com.pxxy.mapper.UserMapper;
 import com.pxxy.pojo.*;
 import com.pxxy.service.*;
 import com.pxxy.utils.Md5Util;
+import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.RandomTokenUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddUserVO;
@@ -27,6 +28,7 @@ import javax.servlet.http.HttpSession;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.pxxy.constant.SystemConstant.*;
@@ -60,13 +62,41 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
     private RolePermissionService rolePermissionService;
 
+    private final Function<User, QueryUserVO> mapUserToVO = user -> {
+        QueryUserVO queryUserVO = new QueryUserVO();
+        BeanUtil.copyProperties(user, queryUserVO);
+        // 根据科室id获取科室名
+        Department department = departmentService.query().eq("dep_id", user.getDepId()).one();
+        if (department != null) {
+            queryUserVO.setDepName(department.getDepName());
+        }
+        // 根据辖区id获取辖区名
+        County county = countyService.query().eq("cou_id", user.getCouId()).one();
+        if (county != null) {
+            queryUserVO.setCouName(county.getCouName());
+        }
+        // 根据用户id查询用户角色
+        List<UserRole> userRoleList = userRoleService.query().eq("u_id", user.getUId()).list();
+        // 查询角色名
+        List<String> roleNames = userRoleList.stream().map(userRole -> {
+            Role role = roleService.query().eq("r_id", userRole.getRId()).one();
+            if (role == null) {
+                return null;
+            }
+            return role.getRName();
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        queryUserVO.setRoleList(roleNames);
+        return queryUserVO;
+    };
+
     // 用来存储被禁用用户的禁用时间
     static Map<String, Date> disableTimeMap = new HashMap<>();
 
     static Map<String, Integer> mistakeTimes = new ConcurrentHashMap<>();
 
     @Override
-    public ResultResponse login(LoginFormDTO loginForm, HttpSession session) {
+    public ResultResponse<String> login(LoginFormDTO loginForm, HttpSession session) {
 
         // 根据用户名查询用户
         String uName = loginForm.getUName();
@@ -161,7 +191,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public ResultResponse logout(HttpSession session) {
+    public ResultResponse<String> logout(HttpSession session) {
         if (session != null) {
             // 退出登录，如果session存在吗，则销毁
             session.invalidate();
@@ -172,7 +202,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public ResultResponse addUser(AddUserVO addUserVO) {
+    public ResultResponse<?> addUser(AddUserVO addUserVO) {
         User user = new User();
         // 对象属性拷贝
         BeanUtil.copyProperties(addUserVO, user);
@@ -214,7 +244,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public ResultResponse deleteUser(Integer userId) {
+    public ResultResponse<?> deleteUser(Integer userId) {
         User user = query().eq("u_id", userId).one();
         user.setUStatus(DELETED_STATUS);
         updateById(user);
@@ -223,7 +253,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public ResultResponse modifyUser(UpdateUserVO updateUserVO) {
+    public ResultResponse<?> modifyUser(UpdateUserVO updateUserVO) {
 
         if (updateUserVO.getRoleList() == null || updateUserVO.getRoleList().size() == 0) {
             return ResultResponse.fail("非法操作！");
@@ -254,83 +284,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public ResultResponse getAllUser(Integer pageNum) {
+    public ResultResponse<PageInfo<QueryUserVO>> getAllUser(Integer pageNum) {
         //  根据类型分页查询
-        Page<User> page = query().ne("u_status",DELETED_STATUS).page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
-
-        List<User> userList = page.getRecords();
-
-        List<QueryUserVO> queryUserVOS = userList.stream().map(user -> {
-            QueryUserVO queryUserVO = new QueryUserVO();
-            BeanUtil.copyProperties(user, queryUserVO);
-            // 根据科室id获取科室名
-            Department department = departmentService.query().eq("dep_id", user.getDepId()).one();
-            if (department != null) {
-                queryUserVO.setDepName(department.getDepName());
-            }
-            // 根据辖区id获取辖区名
-            County county = countyService.query().eq("cou_id", user.getCouId()).one();
-            if (county != null) {
-                queryUserVO.setCouName(county.getCouName());
-            }
-            // 根据用户id查询用户角色
-            List<UserRole> userRoleList = userRoleService.query().eq("u_id", user.getUId()).list();
-            // 查询角色名
-            List<String> roleNames = userRoleList.stream().map(userRole -> {
-                Role role = roleService.query().eq("r_id", userRole.getRId()).one();
-                if (role == null){
-                    return null;
-                }
-                return role.getRName();
-            }).filter(Objects::nonNull).collect(Collectors.toList());
-
-            queryUserVO.setRoleList(roleNames);
-
-            return queryUserVO;
-        }).collect(Collectors.toList());
-
-        //  返回数据
-        return ResultResponse.ok(queryUserVOS, (int) page.getTotal());
+        PageInfo<QueryUserVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE,
+                () -> query().ne("u_status",DELETED_STATUS).list(), mapUserToVO);
+        return ResultResponse.ok(pageInfo);
     }
 
     @Override
-    public ResultResponse getVagueUser(int pageNum, String uName) {
+    public ResultResponse<PageInfo<QueryUserVO>> getVagueUser(int pageNum, String uName) {
         //  根据类型分页查询
-        Page<User> page = query().like("u_name", uName).ne("u_status",DELETED_STATUS).page(new Page<>(pageNum, DEFAULT_PAGE_SIZE));
-
-        List<User> userList = page.getRecords();
-
-        List<QueryUserVO> queryUserVOS = userList.stream().map(user -> {
-            QueryUserVO queryUserVO = new QueryUserVO();
-            BeanUtil.copyProperties(user, queryUserVO);
-            // 根据科室id获取科室名
-            Department department = departmentService.query().eq("dep_id", user.getDepId()).one();
-            if (department != null) {
-                queryUserVO.setDepName(department.getDepName());
-            }
-            // 根据辖区id获取辖区名
-            County county = countyService.query().eq("cou_id", user.getCouId()).one();
-            if (county != null) {
-                queryUserVO.setCouName(county.getCouName());
-            }
-            // 根据用户id查询用户角色
-            List<UserRole> userRoleList = userRoleService.query().eq("u_id", user.getUId()).list();
-            // 查询角色名
-            List<String> roleNames = userRoleList.stream().map(userRole -> {
-                Role role = roleService.query().eq("r_id", userRole.getRId()).one();
-                if (role == null){
-                    return null;
-                }
-                return role.getRName();
-            }).filter(Objects::nonNull).collect(Collectors.toList());
-
-            queryUserVO.setRoleList(roleNames);
-
-            return queryUserVO;
-        }).collect(Collectors.toList());
-
-        // 返回数据
-        return ResultResponse.ok(queryUserVOS, (int) page.getTotal());
+        PageInfo<QueryUserVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE,
+                () -> query().like("u_name", uName)
+                        .ne("u_status", DELETED_STATUS).list(), mapUserToVO);
+        return ResultResponse.ok(pageInfo);
     }
 
 }

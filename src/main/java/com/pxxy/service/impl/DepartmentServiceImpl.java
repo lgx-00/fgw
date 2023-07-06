@@ -39,7 +39,7 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
 
     @Override
     @Transactional
-    public ResultResponse addDepartment(AddDepartmentVO addDepartmentVO) {
+    public ResultResponse<?> addDepartment(AddDepartmentVO addDepartmentVO) {
         Department department = new Department();
         department.setDepName(addDepartmentVO.getDepName());
         save(department);
@@ -58,7 +58,7 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
 
     @Override
     @Transactional
-    public ResultResponse updateDepartment(UpdateDepartmentVO updateDepartmentVO) {
+    public ResultResponse<?> updateDepartment(UpdateDepartmentVO updateDepartmentVO) {
         Integer depId = updateDepartmentVO.getDepId();
         Department department = query().eq("dep_id", depId).one();
         if (department == null){
@@ -85,15 +85,15 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
     }
 
     @Override
-    public ResultResponse getAllDepartment() {
+    public ResultResponse<List<QueryDepartmentVO>> getAllDepartment() {
         List<Department> departmentList = query().list();
         List<QueryDepartmentVO> queryDepartmentVOS = departmentList.stream().map(department -> {
             QueryDepartmentVO queryDepartmentVO = new QueryDepartmentVO();
             BeanUtil.copyProperties(department,queryDepartmentVO);
             List<DepPrc> depPrcList = depPrcService.query().eq("dep_id", department.getDepId()).list();
-            List<String> projectCategoryName = depPrcList.stream().map(depPrc -> {
-                return projectCategoryService.query().eq("prc_id", depPrc.getPrcId()).one().getPrcName();
-            }).collect(Collectors.toList());
+            List<String> projectCategoryName = depPrcList.stream().map(depPrc ->
+                    projectCategoryService.query().eq("prc_id", depPrc.getPrcId())
+                            .one().getPrcName()).collect(Collectors.toList());
             queryDepartmentVO.setProjectCategoryName(projectCategoryName);
             return queryDepartmentVO;
         }).collect(Collectors.toList());
@@ -102,7 +102,7 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
     }
 
     @Override
-    public ResultResponse deleteDepartment(Integer depId) {
+    public ResultResponse<?> deleteDepartment(Integer depId) {
         Department department = query().eq("dep_id", depId).one();
         if (department == null){
             return ResultResponse.fail("非法操作");

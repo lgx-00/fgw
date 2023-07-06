@@ -10,7 +10,7 @@ import lombok.Data;
  * @Description:
  */
 @Data
-@ApiModel(value = "新增调度请求参数")
+@ApiModel(value = "新增调度请求模型")
 public class AddDispatchVO {
 
     @ApiModelProperty(value = "总累计已完成的投资额")

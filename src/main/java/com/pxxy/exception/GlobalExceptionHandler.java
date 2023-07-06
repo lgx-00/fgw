@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResultResponse constraintViolationException(ConstraintViolationException e){
+    public ResultResponse<?> constraintViolationException(ConstraintViolationException e){
         log.warn("ConstraintViolationException:", e);
         Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
         String message = violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining("/"));
@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseBody
-    public ResultResponse error(HttpMessageNotReadableException e){
+    public ResultResponse<?> error(HttpMessageNotReadableException e){
         log.warn("参数错误(json)"+e);
         return ResultResponse.fail("参数错误(json)");
     }
@@ -55,7 +55,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResultResponse methodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    public ResultResponse<?> methodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
         BindingResult bindingResult = ex.getBindingResult();
         ObjectError objectError = bindingResult.getAllErrors().stream().findFirst().get();
         String messages = objectError.getDefaultMessage();

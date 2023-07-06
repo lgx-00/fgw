@@ -9,6 +9,9 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
+import static com.pxxy.constant.SystemConstant.DEFAULT_STATUS;
+import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
+
 /**
  * <p>
  * 
@@ -38,7 +41,7 @@ public class Stage implements Serializable {
     /**
      * 当前状态 非空，状态有：0正常、5已删除
      */
-    @TableLogic(value = "0",delval = "5")
+    @TableLogic(value = DEFAULT_STATUS + "",delval = DELETED_STATUS + "")
     private Integer stageStatus;
 
     /**

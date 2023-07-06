@@ -13,7 +13,7 @@ import java.util.Map;
  * @Description:
  */
 @Data
-@ApiModel(value = "新增角色请求参数")
+@ApiModel(value = "新增角色请求模型")
 public class AddRoleVO {
     @ApiModelProperty(value = "角色名")
     @NotBlank(message = "角色名不能为空！")

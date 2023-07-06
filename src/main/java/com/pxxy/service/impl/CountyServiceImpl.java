@@ -35,7 +35,7 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
 
     @Override
     @Transactional
-    public ResultResponse addCounty(AddCountyVO addCountyVO) {
+    public ResultResponse<?> addCounty(AddCountyVO addCountyVO) {
         County county = new County();
         county.setCouName(addCountyVO.getCouName());
         save(county);
@@ -50,7 +50,7 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
 
     @Override
     @Transactional
-    public ResultResponse updateCounty(UpdateCountyVO updateCountyVO) {
+    public ResultResponse<?> updateCounty(UpdateCountyVO updateCountyVO) {
 
         Integer couId = updateCountyVO.getCouId();
         County county = query().eq("cou_id",couId).one();
@@ -77,7 +77,7 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
     }
 
     @Override
-    public ResultResponse getAllCounty() {
+    public ResultResponse<List<QueryCountyVO>> getAllCounty() {
         List<County> countyList = query().list();
         List<QueryCountyVO> queryCountyVOS = countyList.stream().map(county -> {
             QueryCountyVO queryCountyVO = new QueryCountyVO();
@@ -86,7 +86,7 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
                     .eq("cou_id", county.getCouId())
                     .list()
                     .stream()
-                    .map(town -> town.getTownName())
+                    .map(Town::getTownName)
                     .collect(Collectors.toList());
             queryCountyVO.setTownNames(townNames);
             return queryCountyVO;
@@ -95,7 +95,7 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
     }
 
     @Override
-    public ResultResponse deleteCounty(Integer couId) {
+    public ResultResponse<?> deleteCounty(Integer couId) {
         County county = query().eq("cou_id", couId).one();
         if (county == null){
             return ResultResponse.fail("非法操作");

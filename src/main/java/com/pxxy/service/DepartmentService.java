@@ -4,8 +4,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.pxxy.pojo.Department;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddDepartmentVO;
+import com.pxxy.vo.QueryDepartmentVO;
 import com.pxxy.vo.UpdateDepartmentVO;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
 
 /**
  * <p>
@@ -18,11 +21,11 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public interface DepartmentService extends IService<Department> {
 
-    ResultResponse addDepartment(@Validated AddDepartmentVO addDepartmentVO);
+    ResultResponse<?> addDepartment(@Validated AddDepartmentVO addDepartmentVO);
 
-    ResultResponse updateDepartment(@Validated UpdateDepartmentVO updateDepartmentVO);
+    ResultResponse<?> updateDepartment(@Validated UpdateDepartmentVO updateDepartmentVO);
 
-    ResultResponse getAllDepartment();
+    ResultResponse<List<QueryDepartmentVO>> getAllDepartment();
 
-    ResultResponse deleteDepartment(Integer depId);
+    ResultResponse<?> deleteDepartment(Integer depId);
 }

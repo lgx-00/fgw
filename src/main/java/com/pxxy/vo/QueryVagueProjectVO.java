@@ -12,7 +12,7 @@ import java.util.Date;
  * @Description:
  */
 @Data
-@ApiModel(value = "模糊查询项目请求参数")
+@ApiModel(value = "模糊查询项目请求模型")
 public class QueryVagueProjectVO {
 
     @ApiModelProperty(value = "项目名称")

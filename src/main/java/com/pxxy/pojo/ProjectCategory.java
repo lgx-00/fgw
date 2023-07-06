@@ -9,6 +9,9 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
+import static com.pxxy.constant.SystemConstant.DEFAULT_STATUS;
+import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
+
 /**
  * <p>
  * 
@@ -34,7 +37,7 @@ public class ProjectCategory implements Serializable {
      */
     private Integer prcPeriod;
 
-    @TableLogic(value = "0",delval = "5")
+    @TableLogic(value = DEFAULT_STATUS + "",delval = DELETED_STATUS + "")
     private Integer prcStatus;
 
     private String prcRemark;
