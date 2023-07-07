@@ -24,6 +24,7 @@ import java.util.List;
  */
 @Validated
 @Api(tags = "类型")
+@CrossOrigin
 @RestController
 @RequestMapping("/basedata/category")
 public class ProjectCategoryController {

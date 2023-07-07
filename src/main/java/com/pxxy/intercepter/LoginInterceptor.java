@@ -2,14 +2,14 @@ package com.pxxy.intercepter;
 
 import cn.hutool.json.JSONUtil;
 import com.pxxy.dto.UserDTO;
-import com.pxxy.utils.RandomTokenUtil;
+import com.pxxy.utils.TokenUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 import static com.pxxy.constant.ResponseMessage.INVALID_TOKEN;
@@ -20,22 +20,29 @@ import static com.pxxy.constant.ResponseMessage.INVALID_TOKEN;
  * @Date: 2023-06-05-15:08
  * @Description:
  */
+
+@Slf4j
 public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        //获取session
-        HttpSession session = request.getSession();
+
+        // 拦截器取到请求先进行判断，如果是OPTIONS请求，则放行
+        if("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            log.info("Method:OPTIONS");
+            return true;
+        }
 
         // 验证 Token 的有效性
         String xToken = request.getHeader("X-Token");
-        if (!RandomTokenUtil.verifyAndRefresh(xToken, session.getMaxInactiveInterval())) {
+        UserDTO user = TokenUtil.getUser(xToken);
+        if (user == null) {
             return fail(response);
         }
 
-        //获取session中的用户，保存用户信息到ThreadLocal
-        UserHolder.saveUser((UserDTO) session.getAttribute("user"));
+        // 保存用户信息到 ThreadLocal
+        UserHolder.saveUser(user);
 
-        //放行
+        // 放行
         return true;
     }
 

@@ -126,6 +126,23 @@
         <if test="proStatus != null">
             and pro_status = #{proStatus}
         </if>
+
+        <if test="beginTime != null || endTime != null">
+            and pro_date between #{beginTime} and #{endTime}
+        </if>
+
+        <if test="projectStage > 0">
+            <if test="projectStage == 1">
+                AND IFNULL(pro_dis_start, '2222-12-22') > CURRENT_DATE
+            </if>
+            <if test="projectStage == 2">
+                AND pro_dis_start &lt;= pro_dis_complete AND IFNULL(pro_dis_complete, '2222-12-22') > CURRENT_DATE
+            </if>
+            <if test="projectStage == 3">
+                AND IFNULL(pro_dis_complete, '2222-12-22') &lt;= CURRENT_DATE
+            </if>
+        </if>
+
     </select>
 
     <select id="getExamineProjectByUser" resultType="com.pxxy.pojo.Project">

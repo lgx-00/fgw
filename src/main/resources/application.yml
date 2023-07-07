@@ -17,6 +17,9 @@ logging:
   level:
     com.pxxy: info
 
-#mybatis-plus:
-#  configuration:
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+fgw:
+  max-inactive-interval: 1800
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

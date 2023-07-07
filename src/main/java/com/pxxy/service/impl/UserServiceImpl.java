@@ -12,7 +12,7 @@ import com.pxxy.pojo.*;
 import com.pxxy.service.*;
 import com.pxxy.utils.Md5Util;
 import com.pxxy.utils.PageUtil;
-import com.pxxy.utils.RandomTokenUtil;
+import com.pxxy.utils.TokenUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddUserVO;
 import com.pxxy.vo.QueryUserVO;
@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -96,7 +95,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     static Map<String, Integer> mistakeTimes = new ConcurrentHashMap<>();
 
     @Override
-    public ResultResponse<String> login(LoginFormDTO loginForm, HttpSession session) {
+    public ResultResponse<String> login(LoginFormDTO loginForm) {
 
         // 根据用户名查询用户
         String uName = loginForm.getUName();
@@ -104,7 +103,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = query().eq("u_name", uName).one();
 
         if (user == null) {
-            return ResultResponse.fail("用户不存在！");
+            return ResultResponse.fail("用户名或密码错误！");
         }
 
         // 用户提交的密码给加密
@@ -138,7 +137,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     // 密码错误
                     // 错误次数+1
                     // 用户提交错误登录信息次数
-                    int aMistakeTimes = mistakeTimes.getOrDefault(USER_MISTAKE_TIMES_KEY + user.getUId(), USER_MISTAKE_DEFAULT_TIMES) + 1;
+                    int aMistakeTimes = mistakeTimes.getOrDefault(USER_MISTAKE_TIMES_KEY + user.getUId(),
+                            USER_MISTAKE_DEFAULT_TIMES) + 1;
                     mistakeTimes.put(USER_MISTAKE_TIMES_KEY + user.getUId(), aMistakeTimes);
                     if (aMistakeTimes > USER_MISPASS_TIMES) {
                         // 将用户状态设置为禁用
@@ -158,7 +158,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         return ResultResponse.fail("用户角色已被删除，请联系管理员！");
                     }
 
-                    // 登录成功，更新用户登录时间，并将用户信息存入session
+                    // 登录成功，更新用户登录时间
                     user.setULoginTime(new Date());
                     updateById(user);
 
@@ -181,23 +181,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     }
 
                     UserDTO dto = new UserDTO(user.getUId(), user.getUName(), permission);
-                    session.setAttribute("user", dto);
-                    String xToken = RandomTokenUtil.generate(session.getMaxInactiveInterval());
-                    return ResultResponse.ok(xToken);
+                    TokenUtil.Token xToken = TokenUtil.generate(dto);
+                    return ResultResponse.ok(xToken.token);
                 }
             default:
                 return ResultResponse.fail("用户状态异常！");
         }
-    }
-
-    @Override
-    public ResultResponse<String> logout(HttpSession session) {
-        if (session != null) {
-            // 退出登录，如果session存在吗，则销毁
-            session.invalidate();
-            return ResultResponse.ok("销毁session成功！");
-        }
-        return ResultResponse.fail("销毁session失败！");
     }
 
     @Override

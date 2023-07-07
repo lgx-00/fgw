@@ -19,6 +19,7 @@ import java.util.List;
  * @CreateTime: 2023-07-01  13:54
  */
 @Validated
+@CrossOrigin
 @RestController
 @Api(tags = "统计")
 @RequestMapping("/summary")

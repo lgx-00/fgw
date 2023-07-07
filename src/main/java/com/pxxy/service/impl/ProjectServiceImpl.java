@@ -3,8 +3,10 @@ package com.pxxy.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.exception.ExcelCommonException;
+import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
+import com.pxxy.dto.GetVagueProjectDTO;
 import com.pxxy.dto.UserDTO;
 import com.pxxy.enums.YesOrNoEnum;
 import com.pxxy.enums.ProjectStatusEnum;
@@ -128,17 +130,32 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         Integer uId = user.getUId();
         // 管理员特殊通道
         if (uId == 1) {
-            PageInfo<QueryProjectVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE, () -> query()
-                            .like(Objects.nonNull(proName), "pro_name", proName)
-                            .eq(Objects.nonNull(couId), "cou_id", couId)
-                            .eq(Objects.nonNull(townId), "town_id", townId)
-                            .eq(Objects.nonNull(prcId), "prc_id", prcId)
-                            .eq(Objects.nonNull(infId), "inf_id", infId)
-                            .eq(Objects.nonNull(proStatus), "pro_status", proStatus)
-                    // TODO select with stage
-                            .between(Objects.nonNull(beginTime) && Objects.nonNull(endTime), "pro_date",
-                                    Optional.ofNullable(beginTime).orElse(new Date(0)),
-                                    Optional.ofNullable(endTime).orElse(new Date(Long.MAX_VALUE))),
+            PageInfo<QueryProjectVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE, () -> {
+                        QueryChainWrapper<Project> wrapper = query()
+                                .like(Objects.nonNull(proName), "pro_name", proName)
+                                .eq(Objects.nonNull(couId), "cou_id", couId)
+                                .eq(Objects.nonNull(townId), "town_id", townId)
+                                .eq(Objects.nonNull(prcId), "prc_id", prcId)
+                                .eq(Objects.nonNull(infId), "inf_id", infId)
+                                .eq(Objects.nonNull(proStatus), "pro_status", proStatus)
+                                .between(Objects.nonNull(beginTime) || Objects.nonNull(endTime), "pro_date",
+                                        Optional.ofNullable(beginTime).orElse(new Date(0)),
+                                        Optional.ofNullable(endTime).orElse(new Date(7985664000000L)));
+                        Date now = new Date();
+                        switch (projectStage) {
+                            case 1:
+                                wrapper.gt("ifnull(pro_dis_start,'2222-12-22')", now);
+                                break;
+                            case 2:
+                                wrapper.le("pro_dis_start", now)
+                                        .gt("ifnull(pro_dis_complete,'2222-12-22')", now);
+                                break;
+                            case 3:
+                                wrapper.le("ifnull(pro_dis_complete,'2222-12-22')", now);
+                                break;
+                        }
+                        wrapper.list();
+                    },
                     mapProjectToVO);
 
             return ResultResponse.ok(pageInfo);
@@ -148,15 +165,11 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         User u = userService.query().eq("u_id", uId).one();
         Integer uCouId = u.getCouId();
         Integer uDepId = u.getDepId();
-        List<Project> projectList = projectMapper.getVagueProjectByUser(uDepId, uCouId, uId, proName, townId, prcId, infId, proStatus);
-        List<QueryProjectVO> queryProjectVOS = this.packProjectVO(projectList, beginTime, endTime);
-        //当前时间
-        Date date = new Date();
-
-        // FIXME
-        List<QueryProjectVO> projectVOS = this.calProjectStage(queryProjectVOS, projectStage, date);
-        List<QueryProjectVO> projectVOList = projectVOS.stream().skip((pageNum - 1) * 10L).limit(DEFAULT_PAGE_SIZE).collect(Collectors.toList());
-        return ResultResponse.ok(PageInfo.of(projectVOList));
+        GetVagueProjectDTO dto = new GetVagueProjectDTO(uDepId, uCouId, uId, proName, townId,
+                prcId, infId, proStatus, beginTime, endTime, projectStage);
+        PageInfo<QueryProjectVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE, () ->
+                projectMapper.getVagueProjectByUser(dto), mapProjectToVO);
+        return ResultResponse.ok(pageInfo);
     }
 
     @Override
@@ -422,7 +435,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     // project -> QueryProjectVO(其实就是为了减少代码冗余，并无实际意义)
     private List<QueryProjectVO> packProjectVO(List<Project> projectList, Date beginTime, Date endTime) {
-        List<QueryProjectVO> queryProjectVOS = projectList.stream().filter(project -> {
+        return projectList.stream().filter(project -> {
             if (beginTime != null) {
                 return project.getProDate().after(beginTime);
             }
@@ -462,7 +475,6 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             }
             return queryProjectVO;
         }).collect(Collectors.toList());
-        return queryProjectVOS;
     }
 
 }

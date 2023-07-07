@@ -22,8 +22,9 @@ import java.util.List;
  * @author xrw
  * @since 2023-06-14
  */
-@RestController
 @Validated
+@CrossOrigin
+@RestController
 @Api(tags = "行业")
 @RequestMapping("/basedata/industry")
 public class IndustryFieldController {

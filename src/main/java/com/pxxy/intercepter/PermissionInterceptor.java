@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.pxxy.dto.PermissionDTO;
 import com.pxxy.dto.UserDTO;
 import com.pxxy.enums.RequestMethodEnum;
+import com.pxxy.utils.TokenUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
 import lombok.Data;
@@ -28,9 +29,15 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest req, HttpServletResponse resp, Object handler) throws Exception {
+        //拦截器取到请求先进行判断，如果是OPTIONS请求，则放行
+        if("OPTIONS".equalsIgnoreCase(req.getMethod())) {
+            log.info("Method:OPTIONS");
+            return true;
+        }
+
         log.info("进入权限拦截器，请求路径为：{}，请求方法为：{}", req.getServletPath(), req.getMethod());
 
-        UserDTO user = UserHolder.getUser();
+        UserDTO user = TokenUtil.getUser(req.getHeader("X-Token"));
 
         // 管理员的后门
         if (user.getUId().equals(1)) {
@@ -68,7 +75,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request,
                                 HttpServletResponse response,
-                                Object handler, Exception ex) throws Exception {
+                                Object handler, Exception ex) {
         UserHolder.removeUser();
     }
 }

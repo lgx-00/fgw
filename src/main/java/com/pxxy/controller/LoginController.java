@@ -2,7 +2,7 @@ package com.pxxy.controller;
 
 import com.pxxy.dto.LoginFormDTO;
 import com.pxxy.service.UserService;
-import com.pxxy.utils.RandomTokenUtil;
+import com.pxxy.utils.TokenUtil;
 import com.pxxy.utils.ResultResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 /**
  * @Author: hesen
@@ -19,34 +18,35 @@ import javax.servlet.http.HttpSession;
  * @Description:
  */
 @Controller
+@CrossOrigin
 @Api(tags = "登录")
 @RequestMapping("/log")
 public class LoginController {
+
     @Resource
     private UserService userService;
 
-    @ApiOperation("用户登录")
+    @ResponseBody
     @PostMapping("/in")
-    @ResponseBody
-    public ResultResponse<String> login(@RequestBody LoginFormDTO loginForm, HttpSession session) {
+    @ApiOperation("用户登录")
+    public ResultResponse<String> login(@RequestBody LoginFormDTO loginForm) {
         //实现登录功能
-        return userService.login(loginForm, session);
+        return userService.login(loginForm);
     }
 
-    @ApiOperation("退出登录")
-    @PostMapping("/out")
     @ResponseBody
-    public ResultResponse<String> logout(HttpServletRequest req, HttpSession session) {
+    @PostMapping("/out")
+    @ApiOperation("退出登录")
+    public ResultResponse<String> logout(HttpServletRequest req) {
         //实现登出功能
-        RandomTokenUtil.invalid(req.getHeader("X-Token"));
-        return userService.logout(session);
+        TokenUtil.invalid(req.getHeader("X-Token"));
+        return ResultResponse.ok("退出成功！");
     }
 
-    @ApiOperation("测试导出")
     @GetMapping("/test")
+    @ApiOperation("测试导出")
     public String test(){
         return "fetch";
     }
-
 
 }

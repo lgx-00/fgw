@@ -24,6 +24,7 @@ import java.util.List;
  */
 @Validated
 @Api(tags = "阶段")
+@CrossOrigin
 @RestController
 @RequestMapping("/basedata/stage")
 public class StageController {

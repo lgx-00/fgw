@@ -22,6 +22,7 @@ import java.util.List;
  */
 
 @Validated
+@CrossOrigin
 @RestController
 @RequestMapping("/project/dispatch")
 @Api(tags = "调度")

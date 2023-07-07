@@ -22,6 +22,7 @@ import javax.annotation.Resource;
  * @author hs
  * @since 2023-06-14
  */
+@CrossOrigin
 @RestController
 @Validated
 @RequestMapping("/sys/role")

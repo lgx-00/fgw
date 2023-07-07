@@ -23,6 +23,7 @@ import java.util.List;
  * @since 2023-06-14
  */
 @Validated
+@CrossOrigin
 @RestController
 @Api(tags = "乡镇")
 @RequestMapping("/basedata/county")

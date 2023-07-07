@@ -10,8 +10,6 @@ import com.pxxy.vo.QueryUserVO;
 import com.pxxy.vo.UpdateUserVO;
 import org.springframework.validation.annotation.Validated;
 
-import javax.servlet.http.HttpSession;
-
 /**
  * <p>
  *  服务类
@@ -23,9 +21,7 @@ import javax.servlet.http.HttpSession;
 @Validated
 public interface UserService extends IService<User> {
 
-    ResultResponse<String> login(LoginFormDTO loginForm, HttpSession session);
-
-    ResultResponse<String> logout(HttpSession session);
+    ResultResponse<String> login(LoginFormDTO loginForm);
 
     ResultResponse<?> addUser(@Validated AddUserVO addUserVO);
 

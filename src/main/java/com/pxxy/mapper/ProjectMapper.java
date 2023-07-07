@@ -1,5 +1,6 @@
 package com.pxxy.mapper;
 
+import com.pxxy.dto.GetVagueProjectDTO;
 import com.pxxy.pojo.Project;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
@@ -18,7 +19,7 @@ public interface ProjectMapper extends BaseMapper<Project> {
 
     List<Project> getProjectByUser(Integer depId, Integer couId, Integer uId);
 
-    List<Project> getVagueProjectByUser(Integer depId, Integer couId, Integer uId, String proName, Integer townId, Integer prcId, Integer infId, Integer proStatus);
+    List<Project> getVagueProjectByUser(GetVagueProjectDTO dto);
 
     List<Project> getExamineProjectByUser(Integer depId, String proName, Integer townId, Integer prcId, Integer infId);
 

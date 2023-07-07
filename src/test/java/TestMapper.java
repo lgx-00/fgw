@@ -27,7 +27,7 @@ public class TestMapper {
         System.out.println(allProjectByUser);
         System.out.println(allProjectByUser.size());
 
-        List<Project> projectList = projectMapper.getVagueProjectByUser(2, null, 113, "萍乡", null, null, null, null);
+        List<Project> projectList = projectMapper.getVagueProjectByUser(null);
         System.out.println(projectList);
         System.out.println(projectList.size());
     }
@@ -45,7 +45,7 @@ public class TestMapper {
 
     public static void main(String[] args) throws Exception {
 
-        System.out.println(new Date(Long.MAX_VALUE));
+        System.out.println(new Date(7985664000000L));
 
     }
 }

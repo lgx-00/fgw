@@ -24,6 +24,7 @@ import javax.annotation.Resource;
  * @since 2023-06-13
  */
 @Validated
+@CrossOrigin
 @RestController
 @Api(tags = "用户")
 @RequestMapping("/sys/user")
