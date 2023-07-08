@@ -1,5 +1,7 @@
 package com.pxxy.constant;
 
+import java.util.Date;
+
 public class SystemConstant {
     // 默认状态
     public static final int         DEFAULT_STATUS                  =                0;
@@ -21,5 +23,8 @@ public class SystemConstant {
 
     // 默认分页大小
     public static final int         DEFAULT_PAGE_SIZE               =               10;
+
+    public static final Date        INFINITY_DATE                   = new Date(7985664000000L);
+    public static final Date        ZERO_DATE                       = new Date(0);
 
 }

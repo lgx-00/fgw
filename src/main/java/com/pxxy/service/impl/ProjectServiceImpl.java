@@ -3,13 +3,14 @@ package com.pxxy.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.exception.ExcelCommonException;
-import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.pagehelper.ISelect;
 import com.github.pagehelper.PageInfo;
 import com.pxxy.dto.GetVagueProjectDTO;
 import com.pxxy.dto.UserDTO;
-import com.pxxy.enums.YesOrNoEnum;
+import com.pxxy.enums.ProjectStageEnum;
 import com.pxxy.enums.ProjectStatusEnum;
+import com.pxxy.enums.YesOrNoEnum;
 import com.pxxy.mapper.ProjectMapper;
 import com.pxxy.pojo.*;
 import com.pxxy.service.*;
@@ -30,8 +31,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.pxxy.constant.SystemConstant.DEFAULT_PAGE_SIZE;
-import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
+import static com.pxxy.constant.SystemConstant.*;
 
 /**
  * <p>
@@ -104,10 +104,8 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
         //管理员特殊通道
-        if (uId == 1) {
-            return ResultResponse.ok(PageUtil.selectPage(pageNum,
-                    DEFAULT_PAGE_SIZE, () -> this.query().list(), mapProjectToVO));
-        }
+        if (uId == 1) return ResultResponse.ok(PageUtil.selectPage(pageNum,
+                DEFAULT_PAGE_SIZE, () -> this.query().list(), mapProjectToVO));
 
         // 非管理员通道
         User u = userService.query().eq("u_id", uId).one();
@@ -128,38 +126,22 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         //先拿到用户信息
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
-        // 管理员特殊通道
-        if (uId == 1) {
-            PageInfo<QueryProjectVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE, () -> {
-                        QueryChainWrapper<Project> wrapper = query()
-                                .like(Objects.nonNull(proName), "pro_name", proName)
-                                .eq(Objects.nonNull(couId), "cou_id", couId)
-                                .eq(Objects.nonNull(townId), "town_id", townId)
-                                .eq(Objects.nonNull(prcId), "prc_id", prcId)
-                                .eq(Objects.nonNull(infId), "inf_id", infId)
-                                .eq(Objects.nonNull(proStatus), "pro_status", proStatus)
-                                .between(Objects.nonNull(beginTime) || Objects.nonNull(endTime), "pro_date",
-                                        Optional.ofNullable(beginTime).orElse(new Date(0)),
-                                        Optional.ofNullable(endTime).orElse(new Date(7985664000000L)));
-                        Date now = new Date();
-                        switch (projectStage) {
-                            case 1:
-                                wrapper.gt("ifnull(pro_dis_start,'2222-12-22')", now);
-                                break;
-                            case 2:
-                                wrapper.le("pro_dis_start", now)
-                                        .gt("ifnull(pro_dis_complete,'2222-12-22')", now);
-                                break;
-                            case 3:
-                                wrapper.le("ifnull(pro_dis_complete,'2222-12-22')", now);
-                                break;
-                        }
-                        wrapper.list();
-                    },
-                    mapProjectToVO);
 
-            return ResultResponse.ok(pageInfo);
-        }
+        // 抽取查询为一个 Lambda 表达式
+        ISelect select = () -> ProjectStageEnum.values()[projectStage].list(query()
+                    .like(Objects.nonNull(proName), "pro_name", proName)
+                    .eq(Objects.nonNull(couId), "cou_id", couId)
+                    .eq(Objects.nonNull(townId), "town_id", townId)
+                    .eq(Objects.nonNull(prcId), "prc_id", prcId)
+                    .eq(Objects.nonNull(infId), "inf_id", infId)
+                    .eq(Objects.nonNull(proStatus), "pro_status", proStatus)
+                    .between(Objects.nonNull(beginTime) || Objects.nonNull(endTime), "pro_date",
+                            Optional.ofNullable(beginTime).orElse(ZERO_DATE),
+                            Optional.ofNullable(endTime).orElse(INFINITY_DATE)));
+
+        // 管理员特殊通道, 使用上边的查询
+        if (uId == 1) return ResultResponse.ok(PageUtil
+                .selectPage(pageNum, DEFAULT_PAGE_SIZE, select, mapProjectToVO));
 
         // 非管理员通道
         User u = userService.query().eq("u_id", uId).one();
@@ -167,9 +149,8 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         Integer uDepId = u.getDepId();
         GetVagueProjectDTO dto = new GetVagueProjectDTO(uDepId, uCouId, uId, proName, townId,
                 prcId, infId, proStatus, beginTime, endTime, projectStage);
-        PageInfo<QueryProjectVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE, () ->
-                projectMapper.getVagueProjectByUser(dto), mapProjectToVO);
-        return ResultResponse.ok(pageInfo);
+        return ResultResponse.ok(PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE, () ->
+                projectMapper.getVagueProjectByUser(dto), mapProjectToVO));
     }
 
     @Override
@@ -382,24 +363,24 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Override
-    public ResultResponse<PageInfo<QueryProjectVO>> getExamineProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getExamineProject(
+            Integer pageNum, String proName, Date beginTime, Date endTime,
+            Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage
+    ) {
         //获取用户信息
         UserDTO user = UserHolder.getUser();
-        User u = userService.query().eq("u_id", user.getUId()).one();
-        Integer depId = u.getDepId();
-        List<Project> projectList = projectMapper.getExamineProjectByUser(depId, proName, townId, prcId, infId);
-        List<QueryProjectVO> queryProjectVOS = this.packProjectVO(projectList, beginTime, endTime);
-        //当前时间
-        Date date = new Date();
-        List<QueryProjectVO> projectVOS = this.calProjectStage(queryProjectVOS, projectStage, date);
-
-        // FIXME
-        List<QueryProjectVO> projectVOList = projectVOS.stream().skip((pageNum - 1) * 10L).limit(DEFAULT_PAGE_SIZE).collect(Collectors.toList());
-        return ResultResponse.ok(PageInfo.of(projectVOList));
+        Integer depId = userService.query().eq("u_id", user.getUId()).one().getDepId();
+        return ResultResponse.ok(
+                PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE, () ->
+                        projectMapper.getExamineProjectByUser(depId, proName, townId, prcId, infId), mapProjectToVO)
+        );
     }
 
     @Override
-    public ResultResponse<PageInfo<QueryProjectVO>> getDispatchProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getDispatchProject(
+            Integer pageNum, String proName, Date beginTime, Date endTime,
+            Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage
+    ) {
         //获取用户信息
         UserDTO user = UserHolder.getUser();
         User u = userService.query().eq("u_id", user.getUId()).one();
