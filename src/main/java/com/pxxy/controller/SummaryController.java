@@ -2,6 +2,7 @@ package com.pxxy.controller;
 
 import com.pxxy.service.SummaryService;
 import com.pxxy.utils.ResultResponse;
+import com.pxxy.vo.SummaryDetailsVO;
 import com.pxxy.vo.SummaryVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,12 +31,22 @@ public class SummaryController {
 
     @GetMapping(value = "/all")
     @ApiOperation(value = "统计汇总所有项目")
-    public ResultResponse<?> getSummary(
+    public ResultResponse<List<SummaryVO>> getSummary(
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
             Integer infId,
             Integer prcId) {
         return summaryService.getSummary(beginTime, endTime, prcId, infId);
+    }
+
+    @GetMapping(value = "/details")
+    @ApiOperation(value = "统计汇总详情")
+    public ResultResponse<List<SummaryDetailsVO>> detailsSummary(
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
+            Integer infId,
+            Integer prcId) {
+        return summaryService.detailsSummary(beginTime, endTime, prcId, infId);
     }
 
     @PostMapping(value = "/exportExcel")

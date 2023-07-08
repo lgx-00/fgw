@@ -2,9 +2,13 @@ package com.pxxy.vo;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.annotation.write.style.ColumnWidth;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+
+import java.util.List;
 
 /**
  * @Author: XRW
@@ -12,6 +16,7 @@ import lombok.experimental.Accessors;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
+@ApiModel(value = "统计汇总")
 @Accessors(chain = true)
 public class SummaryVO {
 
@@ -22,6 +27,7 @@ public class SummaryVO {
      */
     @ExcelProperty("乡镇名称")
     @ColumnWidth(10)
+    @ApiModelProperty(value = "乡镇名称")
     private String townName;
 
     /**
@@ -29,6 +35,7 @@ public class SummaryVO {
      */
     @ExcelProperty("项目个数")
     @ColumnWidth(10)
+    @ApiModelProperty(value = "项目个数")
     private Integer projectNum;
 
     /**
@@ -36,6 +43,7 @@ public class SummaryVO {
      */
     @ExcelProperty("开工个数")
     @ColumnWidth(10)
+    @ApiModelProperty(value = "开工个数")
     private Integer projectWorkNum;
 
     /**
@@ -43,6 +51,7 @@ public class SummaryVO {
      */
     @ExcelProperty("开工率")
     @ColumnWidth(10)
+    @ApiModelProperty(value = "开工率")
     private String ratio;
 
     /**
@@ -50,6 +59,7 @@ public class SummaryVO {
      */
     @ExcelProperty("总投资")
     @ColumnWidth(10)
+    @ApiModelProperty(value = "总投资")
     private Integer proAllPlan;
 
     /**
@@ -57,13 +67,15 @@ public class SummaryVO {
      */
     @ExcelProperty("年计划投资")
     @ColumnWidth(10)
+    @ApiModelProperty(value = "年计划投资")
     private Integer proPlanYear;
 
     /**
-     * 1-7月完成投资
+     * 今年已完成投资
      */
-    @ExcelProperty("1-7月完成投资")
+    @ExcelProperty("今年完成投资")
     @ColumnWidth(10)
+    @ApiModelProperty(value = "今年完成投资")
     private Integer proPlanMonths;
 
     /**
@@ -71,7 +83,11 @@ public class SummaryVO {
      */
     @ExcelProperty("完成比例")
     @ColumnWidth(10)
+    @ApiModelProperty(value = "完成比例")
     private String proCompletionPercent;
+
+    //存放子菜单目录
+    private List<SummaryVO> children;
 
 
 }

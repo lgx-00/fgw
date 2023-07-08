@@ -4,33 +4,43 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.pxxy.pojo.Dispatch">
-        <id column="dis_id" property="disId" />
-        <result column="pro_id" property="proId" />
-        <result column="dis_time" property="disTime" />
-        <result column="u_id" property="uId" />
-        <result column="dis_total" property="disTotal" />
-        <result column="dis_plan_year" property="disPlanYear" />
-        <result column="dis_year" property="disYear" />
-        <result column="dis_total_percent" property="disTotalPercent" />
-        <result column="dis_year_percent" property="disYearPercent" />
-        <result column="dis_progress" property="disProgress" />
-        <result column="stage_id" property="stageId" />
-        <result column="dis_invest" property="disInvest" />
-        <result column="dis_apply" property="disApply" />
-        <result column="dis_situation" property="disSituation" />
-        <result column="dis_to_dep" property="disToDep" />
-        <result column="dis_source" property="disSource" />
-        <result column="dis_guarantee" property="disGuarantee" />
-        <result column="dis_filed" property="disFiled" />
-        <result column="dis_issue" property="disIssue" />
-        <result column="dis_status" property="disStatus" />
-        <result column="dis_remark" property="disRemark" />
-        <result column="dis_appendix" property="disAppendix" />
+        <id column="dis_id" property="disId"/>
+        <result column="pro_id" property="proId"/>
+        <result column="dis_time" property="disTime"/>
+        <result column="u_id" property="uId"/>
+        <result column="dis_total" property="disTotal"/>
+        <result column="dis_plan_year" property="disPlanYear"/>
+        <result column="dis_year" property="disYear"/>
+        <result column="dis_total_percent" property="disTotalPercent"/>
+        <result column="dis_year_percent" property="disYearPercent"/>
+        <result column="dis_progress" property="disProgress"/>
+        <result column="stage_id" property="stageId"/>
+        <result column="dis_invest" property="disInvest"/>
+        <result column="dis_apply" property="disApply"/>
+        <result column="dis_situation" property="disSituation"/>
+        <result column="dis_to_dep" property="disToDep"/>
+        <result column="dis_source" property="disSource"/>
+        <result column="dis_guarantee" property="disGuarantee"/>
+        <result column="dis_filed" property="disFiled"/>
+        <result column="dis_issue" property="disIssue"/>
+        <result column="dis_status" property="disStatus"/>
+        <result column="dis_remark" property="disRemark"/>
+        <result column="dis_appendix" property="disAppendix"/>
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        dis_id, pro_id, dis_time, u_id, dis_total, dis_plan_year, dis_year, dis_total_percent, dis_year_percent, dis_progress, stage_id, dis_invest, dis_apply, dis_situation, dis_to_dep, dis_source, dis_guarantee, dis_filed, dis_issue, dis_status, dis_remark, dis_appendix
+        dis_id
+        , pro_id, dis_time, u_id, dis_total, dis_plan_year, dis_year, dis_total_percent, dis_year_percent, dis_progress, stage_id, dis_invest, dis_apply, dis_situation, dis_to_dep, dis_source, dis_guarantee, dis_filed, dis_issue, dis_status, dis_remark, dis_appendix
     </sql>
 
+    <select id="getDispatch" resultType="com.pxxy.pojo.Dispatch">
+        select pro_id, dis_time, dis_total, dis_plan_year, dis_year
+        from dispatch
+        where dis_id
+                  in (select max(dis_id)
+                      from dispatch
+                      where dis_time between #{startDate, typeHandler=org.apache.ibatis.type.LocalDateTypeHandler} and #{endDate, typeHandler=org.apache.ibatis.type.LocalDateTypeHandler}
+                      group by pro_id)
+    </select>
 </mapper>
