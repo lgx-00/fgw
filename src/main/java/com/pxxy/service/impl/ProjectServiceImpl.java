@@ -367,12 +367,9 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             Integer pageNum, String proName, Date beginTime, Date endTime,
             Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage
     ) {
-        //获取用户信息
-        UserDTO user = UserHolder.getUser();
-        Integer depId = userService.query().eq("u_id", user.getUId()).one().getDepId();
-        return ResultResponse.ok(
-                PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE, () ->
-                        projectMapper.getExamineProjectByUser(depId, proName, townId, prcId, infId), mapProjectToVO)
+        return getVagueProject(
+                pageNum, proName, beginTime, endTime,
+                couId, townId, prcId, infId, ProjectStatusEnum.PENDING_REVIEW.val, projectStage
         );
     }
 

@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @Author: hesen
@@ -23,5 +25,9 @@ public class UpdateDepartmentVO {
     private String depName;
 
     @ApiModelProperty(value = "项目类别ID")
-    Integer[] projectCategory;
+    private List<Integer> projectCategory;
+
+    public void setProjectCategory(Integer[] projectCategory) {
+        this.projectCategory = Arrays.asList(projectCategory);
+    }
 }

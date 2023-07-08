@@ -5,6 +5,9 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @Author: hesen
@@ -18,5 +21,11 @@ public class AddDepartmentVO {
     @NotBlank(message = "科室名称不能为空！")
     private String depName;
     @ApiModelProperty(value = "项目类别ID")
-    private Integer[] projectCategory;
+    @NotEmpty(message = "项目类别不能为空！")
+    private List<Integer> projectCategory;
+
+    public void setProjectCategory(Integer[] projectCategory) {
+        this.projectCategory = Arrays.asList(projectCategory);
+    }
+
 }

@@ -26,9 +26,11 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
+        log.info("进入登录拦截器。");
+
         // 拦截器取到请求先进行判断，如果是OPTIONS请求，则放行
         if("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            log.info("Method:OPTIONS");
+            log.info("离开登录拦截器，OPTIONS 请求顺利通过。");
             return true;
         }
 
@@ -43,6 +45,8 @@ public class LoginInterceptor implements HandlerInterceptor {
         UserHolder.saveUser(user);
 
         // 放行
+
+        log.info("离开登录拦截器，请求顺利通过。");
         return true;
     }
 
@@ -52,6 +56,8 @@ public class LoginInterceptor implements HandlerInterceptor {
         response.setHeader("Content-Type", "application/json");
         response.setCharacterEncoding("utf-8");
         response.getWriter().write(JSONUtil.toJsonStr(ResultResponse.fail(INVALID_TOKEN, "无效的 Token！")));
+
+        log.info("离开登录拦截器，请求已被拦截。");
         return false;
     }
 }
