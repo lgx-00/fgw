@@ -5,8 +5,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @Author: hesen
@@ -19,6 +17,6 @@ public class AddDepartmentVO {
     @ApiModelProperty(value = "科室名")
     @NotBlank(message = "科室名称不能为空！")
     private String depName;
-    @ApiModelProperty(value = "类别")
-    List<ProjectCategoryVO> projectCategory = new ArrayList<>();
+    @ApiModelProperty(value = "项目类别ID")
+    private Integer[] projectCategory;
 }

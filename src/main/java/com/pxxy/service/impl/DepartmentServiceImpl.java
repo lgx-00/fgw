@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.mapper.DepartmentMapper;
 import com.pxxy.pojo.DepPrc;
 import com.pxxy.pojo.Department;
+import com.pxxy.pojo.ProjectCategory;
 import com.pxxy.service.DepPrcService;
 import com.pxxy.service.DepartmentService;
 import com.pxxy.service.ProjectCategoryService;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,10 +46,17 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
         department.setDepName(addDepartmentVO.getDepName());
         save(department);
         Integer depId = department.getDepId();
-        List<DepPrc> depPrcList = addDepartmentVO.getProjectCategory().stream().map(projectCategoryVO -> {
+        Integer[] projectCategory = addDepartmentVO.getProjectCategory();
+
+        //分类Id集合
+        List<Integer> prcIdList = Arrays.stream(projectCategory).collect(Collectors.toList());
+
+        List<ProjectCategory> projectCategoryList = projectCategoryService.query()
+                .in("prc_id", prcIdList).list();
+
+        List<DepPrc> depPrcList = projectCategoryList.stream().map(proCategory -> {
             DepPrc depPrc = new DepPrc();
-            depPrc.setDepId(depId)
-                    .setPrcId(projectCategoryVO.getPrcId());
+            depPrc.setDepId(depId).setPrcId(proCategory.getPrcId());
             return depPrc;
         }).collect(Collectors.toList());
 
@@ -72,10 +81,18 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
         //先删除
         depPrcService.remove(depPrcLambdaQueryWrapper);
         //再添加
-        List<DepPrc> depPrcList = updateDepartmentVO.getProjectCategory().stream().map(projectCategoryVO -> {
+
+        Integer[] projectCategory = updateDepartmentVO.getProjectCategory();
+
+        //分类Id集合
+        List<Integer> prcIdList = Arrays.stream(projectCategory).collect(Collectors.toList());
+
+        List<ProjectCategory> projectCategoryList = projectCategoryService.query()
+                .in("prc_id", prcIdList).list();
+
+        List<DepPrc> depPrcList = projectCategoryList.stream().map(proCategory -> {
             DepPrc depPrc = new DepPrc();
-            depPrc.setDepId(depId)
-                    .setPrcId(projectCategoryVO.getPrcId());
+            depPrc.setDepId(depId).setPrcId(proCategory.getPrcId());
             return depPrc;
         }).collect(Collectors.toList());
 
