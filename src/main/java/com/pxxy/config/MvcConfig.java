@@ -1,5 +1,7 @@
 package com.pxxy.config;
 
+import com.pxxy.intercepter.LoginInterceptor;
+import com.pxxy.intercepter.PermissionInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -23,12 +25,12 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-//        //设置了一个order 其中值越小代表拦截器优先级越高
-//        registry.addInterceptor(new LoginInterceptor()).
-//                excludePathPatterns(EXCLUDE_PATH).order(0);
-//
-//        // 权限拦截器
-//        registry.addInterceptor(new PermissionInterceptor()).excludePathPatterns(EXCLUDE_PATH).order(1);
+       //设置了一个order 其中值越小代表拦截器优先级越高
+       registry.addInterceptor(new LoginInterceptor()).
+               excludePathPatterns(EXCLUDE_PATH).order(0);
+
+       // 权限拦截器
+       registry.addInterceptor(new PermissionInterceptor()).excludePathPatterns(EXCLUDE_PATH).order(1);
     }
 
 

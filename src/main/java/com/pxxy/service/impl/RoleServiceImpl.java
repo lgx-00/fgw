@@ -26,6 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.pxxy.constant.ResponseMessage.ADD_FAILED;
+import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
 import static com.pxxy.constant.SystemConstant.DEFAULT_PAGE_SIZE;
 
 /**
@@ -109,7 +110,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     public ResultResponse<?> deleteRole(Integer roleId) {
         Role role = query().eq("r_id", roleId).one();
         if (role == null){
-            return ResultResponse.fail("非法操作");
+            return ResultResponse.fail(ILLEGAL_OPERATE);
         }
         removeById(roleId);
         return ResultResponse.ok();
@@ -120,7 +121,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     public ResultResponse<?> updateRole(UpdateRoleVO updateRoleVO) {
         Role role = query().eq("r_id", updateRoleVO.getRId()).one();
         if (role == null){
-            return ResultResponse.fail("非法操作");
+            return ResultResponse.fail(ILLEGAL_OPERATE);
         }
         role.setRName(updateRoleVO.getRName());
         updateById(role);

@@ -12,7 +12,8 @@ public class TokenUtil {
 
     private static final Map<Token, UserDTO> TOKEN_MAPPER = new HashMap<>();
 
-    private static final String BASE_STRING = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String BASE_STRING = "123456789012345678901234567890" +
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     private static final int LENGTH = 32;
 

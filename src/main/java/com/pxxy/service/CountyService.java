@@ -25,7 +25,9 @@ public interface CountyService extends IService<County> {
 
     ResultResponse<?> updateCounty(@Validated UpdateCountyVO updateCountyVO);
 
-    ResultResponse<List<QueryCountyVO>> getAllCounty();
+    ResultResponse<List<QueryCountyVO>> getAllCounties();
 
     ResultResponse<?> deleteCounty(Integer couId);
+
+    ResultResponse<QueryCountyVO> getCounty(Integer couId);
 }

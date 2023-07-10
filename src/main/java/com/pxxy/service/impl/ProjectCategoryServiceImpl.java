@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
+
 /**
  * <p>
  *  服务实现类
@@ -37,7 +39,7 @@ public class ProjectCategoryServiceImpl extends ServiceImpl<ProjectCategoryMappe
     public ResultResponse<?> updateProjectCategory(UpdateProjectCategoryVO updateProjectCategoryVO) {
         ProjectCategory projectCategory = query().eq("prc_id", updateProjectCategoryVO.getPrcId()).one();
         if (projectCategory == null){
-            return ResultResponse.fail("非法操作");
+            return ResultResponse.fail(ILLEGAL_OPERATE);
         }
 
         projectCategory.setPrcName(updateProjectCategoryVO.getPrcName())
@@ -61,7 +63,7 @@ public class ProjectCategoryServiceImpl extends ServiceImpl<ProjectCategoryMappe
     public ResultResponse<?> deleteProjectCategory(Integer prcId) {
         ProjectCategory projectCategory = query().eq("prc_id", prcId).one();
         if (projectCategory == null){
-            return ResultResponse.fail("非法操作");
+            return ResultResponse.fail(ILLEGAL_OPERATE);
         }
         removeById(prcId);
         return ResultResponse.ok();

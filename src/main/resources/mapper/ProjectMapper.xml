@@ -46,38 +46,36 @@
 
     <!--通用查询结果列 -->
     <sql id="Base_Column_List">
-        pro_id
-        , pro_date, dep_id, cou_id, town_id, prc_id, inf_id, pro_code, pro_in_code, pro_name, pro_content, pro_location, pro_start, pro_complete, pro_plan, pro_plan_year, pro_legal_person, pro_dis_start, pro_dis_complete, pro_is_new, pro_is_provincial, pro_next_update, pro_dis_date_range, pro_type, pro_arrange, pro_guarantee, pro_dis_total, pro_dis_year, pro_dis_total_percent, pro_dis_year_percent, pro_dis_progress, pro_add_time, u_id, pro_last_dis, pro_status, pro_check_dep, pro_mark, pro_remark
+        pro_id, pro_date, dep_id, cou_id, town_id, prc_id, inf_id, pro_code, pro_in_code, pro_name, pro_content, pro_location, pro_start, pro_complete, pro_plan, pro_plan_year, pro_legal_person, pro_dis_start, pro_dis_complete, pro_is_new, pro_is_provincial, pro_next_update, pro_dis_date_range, pro_type, pro_arrange, pro_guarantee, pro_dis_total, pro_dis_year, pro_dis_total_percent, pro_dis_year_percent, pro_dis_progress, pro_add_time, u_id, pro_last_dis, pro_status, pro_check_dep, pro_mark, pro_remark
     </sql>
 
     <!--union all是不去重 union 是去重-->
     <select id="getAllProjectByUser" resultType="com.pxxy.pojo.Project">
-        SELECT * FROM
+        SELECT * FROM project WHERE pro_id IN
         (
 
         <if test="depId != null">
-            SELECT * FROM project
-            WHERE dep_id = #{depId}
+            SELECT pro_id FROM project
+            WHERE dep_id = #{depId} AND pro_status != 5
         </if>
 
         <if test="couId != null">
             <if test="depId != null">
-                union
+                UNION
             </if>
-            SELECT * FROM project
-            WHERE cou_id = #{couId}
+            SELECT pro_id FROM project
+            WHERE cou_id = #{couId} AND pro_status != 5
         </if>
 
         <if test="uId != null">
             <if test="couId != null or depId != null">
-                union
+                UNION
             </if>
-            SELECT * FROM project
-            WHERE u_id = #{uId}
+            SELECT pro_id FROM project
+            WHERE u_id = #{uId} AND pro_status != 5
         </if>
 
-
-        ) AS pro WHERE pro_status != 5
+        )
     </select>
 
     <!--union all是不去重 union 是去重-->
@@ -107,7 +105,7 @@
         </if>
 
 
-        ) AS pro WHERE 1=1
+        ) AS pro WHERE TRUE
         <if test="proStatus == null">
             and pro_status != 5
         </if>
@@ -127,9 +125,7 @@
             and pro_status = #{proStatus}
         </if>
 
-        <if test="beginTime != null || endTime != null">
-            and pro_date between #{beginTime} and #{endTime}
-        </if>
+        and pro_date between #{beginTime} and #{endTime}
 
         <if test="projectStage > 0">
             <if test="projectStage == 1">
@@ -147,7 +143,7 @@
 
     <select id="getExamineProjectByUser" resultType="com.pxxy.pojo.Project">
         SELECT * FROM
-        project WHERE 1=1
+        project WHERE TRUE
         <if test="depId != null">
             and dep_id = #{depId}
         </if>
@@ -165,9 +161,7 @@
         </if>
         and pro_status = 2
 
-        <if test="beginTime != null || endTime != null">
-            and pro_date between #{beginTime} and #{endTime}
-        </if>
+        and pro_date between #{beginTime} and #{endTime}
 
         <if test="projectStage > 0">
             <if test="projectStage == 1">
@@ -186,7 +180,7 @@
     <!--待调度-->
     <select id="getDispatchProjectByUser" resultType="com.pxxy.pojo.Project">
         SELECT * FROM
-        project WHERE 1=1
+        project WHERE TRUE
         <if test="depId != null">
             and dep_id = #{depId}
         </if>
@@ -203,6 +197,20 @@
             and inf_id = #{infId}
         </if>
         and pro_status = 4
+
+        and pro_date between #{beginTime} and #{endTime}
+
+        <if test="projectStage > 0">
+            <if test="projectStage == 1">
+                AND IFNULL(pro_dis_start, '2222-12-22') > CURRENT_DATE
+            </if>
+            <if test="projectStage == 2">
+                AND pro_dis_start &lt;= pro_dis_complete AND IFNULL(pro_dis_complete, '2222-12-22') > CURRENT_DATE
+            </if>
+            <if test="projectStage == 3">
+                AND IFNULL(pro_dis_complete, '2222-12-22') &lt;= CURRENT_DATE
+            </if>
+        </if>
     </select>
 
     <!--union all是不去重 union 是去重-->
@@ -231,8 +239,58 @@
             WHERE u_id = #{uId}
         </if>
 
-
         ) AS pro WHERE pro_status = 0
+
+        and pro_date between #{beginTime} and #{endTime}
+
+        <if test="projectStage > 0">
+            <if test="projectStage == 1">
+                AND IFNULL(pro_dis_start, '2222-12-22') > CURRENT_DATE
+            </if>
+            <if test="projectStage == 2">
+                AND pro_dis_start &lt;= pro_dis_complete AND IFNULL(pro_dis_complete, '2222-12-22') > CURRENT_DATE
+            </if>
+            <if test="projectStage == 3">
+                AND IFNULL(pro_dis_complete, '2222-12-22') &lt;= CURRENT_DATE
+            </if>
+        </if>
+
+    </select>
+
+    <!--union all是不去重 union 是去重-->
+    <select id="getDispatchingCount" resultType="Integer">
+        SELECT COUNT(1) FROM
+        (
+
+        <if test="depId != null">
+            SELECT pro_id FROM project
+            WHERE dep_id = #{depId}
+              AND pro_status = ${proStatus}
+              AND pro_dis_complete IS NULL
+        </if>
+
+        <if test="couId != null">
+            <if test="depId != null">
+                UNION
+            </if>
+            SELECT pro_id FROM project
+            WHERE cou_id = #{couId}
+              AND pro_status = ${proStatus}
+              AND pro_dis_complete IS NULL
+        </if>
+
+        <if test="uId != null">
+            <if test="couId != null or depId != null">
+                UNION
+            </if>
+            SELECT pro_id FROM project
+            WHERE <if test="uId != 1">u_id = #{uId}
+              AND </if>pro_status = ${proStatus}
+              AND pro_dis_complete IS NULL
+        </if>
+
+        ) p
+
     </select>
 
 </mapper>

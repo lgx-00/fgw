@@ -26,6 +26,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static com.pxxy.enums.ProjectStatusEnum.*;
+
 
 /**
  * @Author: XRW
@@ -55,14 +57,14 @@ public class SummaryServiceImpl implements SummaryService {
         //管理员特殊通道   区本级也可以访问
         if (uId == 1) {
             QueryWrapper<Project> wrapper = new QueryWrapper<>();
-            wrapper.eq("pro_status", ProjectStatusEnum.NORMAL.val)    //只查询项目状态为正常的 0
+            wrapper.in("pro_status", Arrays.asList(NORMAL.val, UNLOCKED.val, TO_BE_SCHEDULED.val))
                     .eq(Objects.nonNull(prcId), "prc_id", prcId)
                     .eq(Objects.nonNull(infId), "inf_id", infId)
                     .ge(Objects.nonNull(beginTime), "pro_date", beginTime)
                     .le(Objects.nonNull(endTime), "pro_date", endTime);
             List<Project> projects = projectMapper.selectList(wrapper);
             if (projects.size() == 0) {
-                return ResultResponse.fail("无符合查询的数据！");
+                return ResultResponse.ok(Collections.emptyList());
             }
             List<SummaryVO> summaryVOList = groupSummary(projects);
 
@@ -99,7 +101,7 @@ public class SummaryServiceImpl implements SummaryService {
         Integer couId = user.getCouId();   //辖区
         List<Project> projectList = projectMapper.getProjectByUser(depId, couId, uId);
         if (projectList.size() == 0) {
-            return ResultResponse.fail("无符合查询的数据！");
+            return ResultResponse.ok(Collections.emptyList());
         }
         List<SummaryVO> summaryVOList = groupSummary(projectList);
 
@@ -113,14 +115,14 @@ public class SummaryServiceImpl implements SummaryService {
         //管理员特殊通道   区本级也可以访问
         if (uId == 1) {
             QueryWrapper<Project> wrapper = new QueryWrapper<>();
-            wrapper.eq("pro_status", ProjectStatusEnum.NORMAL.val)    //只查询项目状态为正常的 0
+            wrapper.in("pro_status", Arrays.asList(NORMAL.val, UNLOCKED.val, TO_BE_SCHEDULED.val))
                     .eq(Objects.nonNull(prcId), "prc_id", prcId)
                     .eq(Objects.nonNull(infId), "inf_id", infId)
                     .ge(Objects.nonNull(beginTime), "pro_date", beginTime)
                     .le(Objects.nonNull(endTime), "pro_date", endTime);
             List<Project> projects = projectMapper.selectList(wrapper);
             if (projects.size() == 0) {
-                return ResultResponse.fail("无符合查询的数据！");
+                return ResultResponse.ok(Collections.emptyList());
             }
             LocalDate[] extracted = extracted();
             List<Dispatch> dispatchList = dispatchMapper.getDispatch(extracted[0], extracted[1]);
@@ -153,7 +155,7 @@ public class SummaryServiceImpl implements SummaryService {
         Integer couId = user.getCouId();   //辖区
         List<Project> projectList = projectMapper.getProjectByUser(depId, couId, uId);
         if (projectList.size() == 0) {
-            return ResultResponse.fail("无符合查询的数据！");
+            return ResultResponse.ok(Collections.emptyList());
         }
         LocalDate[] extracted = extracted();
         List<Dispatch> dispatchList = dispatchMapper.getDispatch(extracted[0], extracted[1]);
@@ -179,7 +181,7 @@ public class SummaryServiceImpl implements SummaryService {
     }
 
     private List<SummaryVO> groupSummary(List<Project> projects) {
-        //对同一乡镇的项目进行分组
+        //对同一二级辖区的项目进行分组
         Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getTownId));
         return listMap.keySet().stream().map(key -> {
             SummaryVO summaryVO = new SummaryVO();
@@ -200,7 +202,7 @@ public class SummaryServiceImpl implements SummaryService {
             String ratio = calculatePercentage(count.get(), projectsList.size());
             summaryVO.setRatio(ratio);
 
-            int proAllPlan = projectsList.stream().mapToInt(Project::getProDisTotal).sum();  //每个乡镇所有项目总投资
+            int proAllPlan = projectsList.stream().mapToInt(Project::getProDisTotal).sum();  //每个辖区所有项目总投资
             summaryVO.setProAllPlan(proAllPlan);
 
             int proPlanYear = projectsList.stream().mapToInt(Project::getProPlanYear).sum();  //年计划完成投资
@@ -219,12 +221,12 @@ public class SummaryServiceImpl implements SummaryService {
     }
 
     private List<SummaryDetailsVO> groupSummaryDetails(List<Project> projects, List<Dispatch> dispatchList) {
-        //对同一乡镇的项目进行分组
+        //对同一二级辖区的项目进行分组
         Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getTownId));
 
         return listMap.keySet().stream().map(key -> {
             ArrayList<SummaryDetailsVO> summaryDetailsVOArrayList = new ArrayList<>();
-            List<Project> projectList = listMap.get(key);     //此乡镇下的项目集合
+            List<Project> projectList = listMap.get(key);     //此辖区下的项目集合
             for (Project project : projectList) {
                 SummaryDetailsVO summaryDetailsVO = new SummaryDetailsVO()
                         .setProName(project.getProName())
@@ -258,7 +260,7 @@ public class SummaryServiceImpl implements SummaryService {
                 }
                 summaryDetailsVOArrayList.add(summaryDetailsVO);
             }
-            //对乡镇下面的项目进行统计
+            //对辖区下面的项目进行统计
             SummaryDetailsVO summaryDetailsVO = new SummaryDetailsVO()
                     .setProName(townMapper.selectById(key).getTownName())
                     .setProjectNum(projectList.size())

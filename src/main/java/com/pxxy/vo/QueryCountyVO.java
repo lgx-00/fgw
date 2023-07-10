@@ -13,15 +13,15 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "返回给前端的乡镇信息")
+@ApiModel(value = "返回给前端的辖区信息")
 public class QueryCountyVO {
 
-    @ApiModelProperty(value = "乡镇ID")
+    @ApiModelProperty(value = "辖区ID")
     private Integer couId;
 
-    @ApiModelProperty(value = "乡镇名称")
+    @ApiModelProperty(value = "辖区名称")
     private String couName;
 
-    @ApiModelProperty(value = "下辖的村社")
-    private List<String> townNames = new ArrayList<>();
+    @ApiModelProperty(value = "下辖的二级辖区")
+    private List<QueryTownVO> towns = new ArrayList<>();
 }

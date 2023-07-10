@@ -32,8 +32,8 @@ public class SummaryController {
     @GetMapping(value = "/all")
     @ApiOperation(value = "统计汇总所有项目")
     public ResultResponse<List<SummaryVO>> getSummary(
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
             Integer infId,
             Integer prcId) {
         return summaryService.getSummary(beginTime, endTime, prcId, infId);
@@ -42,8 +42,8 @@ public class SummaryController {
     @GetMapping(value = "/details")
     @ApiOperation(value = "统计汇总详情")
     public ResultResponse<List<SummaryDetailsVO>> detailsSummary(
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
             Integer infId,
             Integer prcId) {
         return summaryService.detailsSummary(beginTime, endTime, prcId, infId);

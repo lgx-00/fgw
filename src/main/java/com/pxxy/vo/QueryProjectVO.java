@@ -25,9 +25,9 @@ public class QueryProjectVO {
     private Date proDate;
 
     @ApiModelProperty(value = "审核单位名称")
-    private String departmentName;
+    private String depName;
 
-    @ApiModelProperty(value = "辖区（区-乡镇）")
+    @ApiModelProperty(value = "辖区（辖区-二级辖区）")
     private String area;
 
     @ApiModelProperty(value = "项目类型名称")
@@ -111,14 +111,22 @@ public class QueryProjectVO {
     /**
      * 累积投资完成率% 百分比值的 100 倍
      */
-    @ApiModelProperty(value = "累积投资完成率% 百分比值的 100 倍")
-    private Integer proDisTotalPercent;
+    @ApiModelProperty(value = "累积投资完成率%")
+    private Integer proDisTotalPercent = 0;
+
+    public String getProDisTotalPercent() {
+        return "" + proDisTotalPercent / 100 + "." + proDisTotalPercent % 100 + "%";
+    }
 
     /**
      * 今年投资完成率% 百分比值的 100 倍
      */
-    @ApiModelProperty(value = "今年投资完成率% 百分比值的 100 倍")
-    private Integer proDisYearPercent;
+    @ApiModelProperty(value = "今年投资完成率%")
+    private Integer proDisYearPercent = 0;
+
+    public String getProDisYearPercent() {
+        return "" + proDisYearPercent / 100 + "." + proDisYearPercent % 100 + "%";
+    }
 
     /**
      * 主要形象进度
@@ -164,12 +172,21 @@ public class QueryProjectVO {
     @ApiModelProperty(value = "下次调度的日期")
     private Date proNextUpdate;
 
-
     /**
-     * 标记
+     * 标记1
      */
-    @ApiModelProperty(value = "标记")
-    private String proMark;
+    @ApiModelProperty(value = "标记1")
+    private String proMark1;
+    /**
+     * 标记2
+     */
+    @ApiModelProperty(value = "标记2")
+    private String proMark2;
+    /**
+     * 标记3
+     */
+    @ApiModelProperty(value = "标记3")
+    private String proMark3;
 
     /**
      * 备注

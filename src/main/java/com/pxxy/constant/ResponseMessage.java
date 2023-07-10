@@ -12,12 +12,15 @@ public class ResponseMessage {
     public static final int PERMISSION_NOT_ENOUGH = 402;
     public static final int FAIL_MESSAGE_NOT_FOUND = 404;
 
-    public static final String OK_MSG = "请求成功";
-    public static final String FAIL_MSG = "请求失败";
+    public static final String OK_MSG = "操作成功";
+    public static final String FAIL_MSG = "操作失败";
+    public static final String ILLEGAL_OPERATE = "非法操作";
 
     public static final String ADD_FAILED = "新增失败";
     public static final String DELETE_FAILED = "删除失败";
     public static final String UPDATE_FAILED = "更新失败";
     public static final String QUERY_FAILED = "获取数据失败";
+
+    public static final String COUNTY_AND_TOWN_NOT_MATCH = "辖区和二级辖区不匹配";
 
 }

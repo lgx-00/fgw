@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * <p>
- * 乡镇 服务实现类
+ * 二级辖区 服务实现类
  * </p>
  *
  * @author hs

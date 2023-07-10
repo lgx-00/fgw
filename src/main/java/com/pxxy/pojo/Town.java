@@ -14,7 +14,7 @@ import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
 
 /**
  * <p>
- * 乡镇
+ * 二级辖区
  * </p>
  *
  * @author hs
@@ -28,7 +28,7 @@ public class Town implements Serializable {
     private static final long serialVersionUID=1L;
 
     /**
-     * 乡镇编号
+     * 二级辖区编号
      */
     @TableId(value = "town_id", type = IdType.AUTO)
     private Integer townId;
@@ -39,7 +39,7 @@ public class Town implements Serializable {
     private Integer couId;
 
     /**
-     * 乡镇名称
+     * 二级辖区名称
      */
     private String townName;
 

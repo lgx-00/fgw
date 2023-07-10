@@ -20,6 +20,8 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
+
 /**
  * <p>
  *  服务实现类
@@ -60,7 +62,7 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
         Integer depId = updateDepartmentVO.getDepId();
         Department department = query().eq("dep_id", depId).one();
         if (department == null){
-            return ResultResponse.fail("非法操作");
+            return ResultResponse.fail(ILLEGAL_OPERATE);
         }
         department.setDepName(updateDepartmentVO.getDepName());
         updateById(department);
@@ -102,7 +104,7 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
     public ResultResponse<?> deleteDepartment(Integer depId) {
         Department department = query().eq("dep_id", depId).one();
         if (department == null){
-            return ResultResponse.fail("非法操作");
+            return ResultResponse.fail(ILLEGAL_OPERATE);
         }
         removeById(depId);
         return ResultResponse.ok();

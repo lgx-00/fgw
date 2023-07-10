@@ -2,6 +2,7 @@ package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.pagehelper.PageInfo;
+import com.pxxy.dto.ProjectDTO;
 import com.pxxy.pojo.Project;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddProjectVO;
@@ -10,7 +11,7 @@ import com.pxxy.vo.UpdateProjectVO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Date;
+import java.util.List;
 
 /**
  * <p>
@@ -25,7 +26,7 @@ public interface ProjectService extends IService<Project> {
 
     ResultResponse<PageInfo<QueryProjectVO>> getAllProject(Integer pageNum);
 
-    ResultResponse<PageInfo<QueryProjectVO>> getVagueProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer proStatus, Integer projectStage);
+    ResultResponse<PageInfo<QueryProjectVO>> getVagueProject(Integer pageNum, ProjectDTO projectDTO);
 
     ResultResponse<?> addProject(@Validated AddProjectVO addProjectVO);
 
@@ -33,18 +34,19 @@ public interface ProjectService extends IService<Project> {
 
     ResultResponse<?> deleteProject(Integer proId);
 
-    ResultResponse<?> reportProject(Integer proId, Integer depId);
+    ResultResponse<?> reportProject(List<Integer> proIds, Integer depId);
 
     ResultResponse<?> importExcel(MultipartFile file);
 
-    ResultResponse<PageInfo<QueryProjectVO>> getExamineProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage);
+    ResultResponse<?> accept(List<Integer> proIds);
 
-    /**
-     * @Description: 调度库
-     * @Author: xrw
-     * @Date: 2023/7/1 17:04
-     * @Param: [pageNum, proName, beginTime, endTime, couId, townId, prcId, infId, projectStage]
-     * @return: com.pxxy.utils.ResultResponse
-     **/
-    ResultResponse<PageInfo<QueryProjectVO>> getDispatchProject(Integer pageNum, String proName, Date beginTime, Date endTime, Integer couId, Integer townId, Integer prcId, Integer infId, Integer projectStage);
+    ResultResponse<?> reject(List<Integer> proIds);
+
+    ResultResponse<?> markAsComplete(List<Integer> proIds);
+
+    void updateDispatchStatus();
+
+    ResultResponse<Integer> getDispatchingCount();
+
+    ResultResponse<QueryProjectVO> getProject(Integer proId);
 }

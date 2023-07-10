@@ -18,8 +18,8 @@ logging:
     com.pxxy: info
 
 fgw:
-  max-inactive-interval: 1800
-#
-#mybatis-plus:
-#  configuration:
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  max-inactive-interval: 86400
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

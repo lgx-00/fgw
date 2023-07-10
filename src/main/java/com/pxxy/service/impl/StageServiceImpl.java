@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
+
 /**
  * <p>
  *  服务实现类
@@ -35,7 +37,7 @@ public class StageServiceImpl extends ServiceImpl<StageMapper, Stage> implements
     public ResultResponse<?> updateStage(UpdateStageVO updateStageVO) {
         Stage stage = query().eq("stage_id", updateStageVO.getStageId()).one();
         if (stage == null) {
-            return ResultResponse.fail("非法操作");
+            return ResultResponse.fail(ILLEGAL_OPERATE);
         }
         stage.setStageName(updateStageVO.getStageName());
         updateById(stage);
@@ -56,7 +58,7 @@ public class StageServiceImpl extends ServiceImpl<StageMapper, Stage> implements
     public ResultResponse<?> deleteStage(Integer stageId) {
         Stage stage = query().eq("stage_id", stageId).one();
         if (stage == null) {
-            return ResultResponse.fail("非法操作");
+            return ResultResponse.fail(ILLEGAL_OPERATE);
         }
         removeById(stageId);
         return ResultResponse.ok();

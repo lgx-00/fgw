@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
  * <p>
- * 乡镇 Mapper 接口
+ * 二级辖区 Mapper 接口
  * </p>
  *
  * @author hs

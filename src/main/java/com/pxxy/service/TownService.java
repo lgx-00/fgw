@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
  * <p>
- * 乡镇 服务类
+ * 二级辖区 服务类
  * </p>
  *
  * @author hs

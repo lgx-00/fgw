@@ -36,7 +36,7 @@ public class ProjectExcelVO {
     @ExcelProperty(value = "辖区")
     private String couName;
 
-    @ExcelProperty(value = "乡镇")
+    @ExcelProperty(value = "二级辖区")
     private String townName;
 
     @ExcelProperty(value = "项目类型名称")

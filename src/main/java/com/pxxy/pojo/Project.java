@@ -46,7 +46,7 @@ public class Project implements Serializable {
     private Integer couId;
 
     /**
-     * 乡镇 ID
+     * 二级辖区 ID
      */
     private Integer townId;
 

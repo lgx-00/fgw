@@ -23,11 +23,11 @@ public class SummaryVO {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 乡镇名称
+     * 二级辖区名称
      */
-    @ExcelProperty("乡镇名称")
+    @ExcelProperty("二级辖区名称")
     @ColumnWidth(10)
-    @ApiModelProperty(value = "乡镇名称")
+    @ApiModelProperty(value = "二级辖区名称")
     private String townName;
 
     /**

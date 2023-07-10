@@ -12,12 +12,13 @@ import com.pxxy.pojo.*;
 import com.pxxy.service.*;
 import com.pxxy.utils.Md5Util;
 import com.pxxy.utils.PageUtil;
-import com.pxxy.utils.TokenUtil;
 import com.pxxy.utils.ResultResponse;
+import com.pxxy.utils.TokenUtil;
 import com.pxxy.vo.AddUserVO;
 import com.pxxy.vo.QueryUserVO;
 import com.pxxy.vo.RoleVO;
 import com.pxxy.vo.UpdateUserVO;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -61,6 +62,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
     private RolePermissionService rolePermissionService;
 
+    @Lazy
+    @Resource
+    private ProjectService projectService;
+
     private final Function<User, QueryUserVO> mapUserToVO = user -> {
         QueryUserVO queryUserVO = new QueryUserVO();
         BeanUtil.copyProperties(user, queryUserVO);
@@ -100,7 +105,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 根据用户名查询用户
         String uName = loginForm.getUName();
 
-        User user = query().eq("u_name", uName).one();
+        User user = query().eq("u_name", uName).ne("u_status", DELETED_STATUS).one();
 
         if (user == null) {
             return ResultResponse.fail("用户名或密码错误！");
@@ -125,9 +130,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 先判断用户状态
         switch (user.getUStatus()) {
-            // 是否被删除
-            case DELETED_STATUS:
-                return ResultResponse.fail("用户名或密码错误!");
             // 是否被禁用
             case USER_DISABLED_STATUS:
                 return ResultResponse.fail("用户已被禁用，请联系管理员解除!");
@@ -150,40 +152,44 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         mistakeTimes.put(USER_MISTAKE_TIMES_KEY + user.getUId(), USER_MISTAKE_DEFAULT_TIMES);
                     }
                     return ResultResponse.fail("用户名或密码错误！");
-                } else {
-                    //先判断用户是否拥有角色
-                    List<UserRole> userRoles = userRoleService.query().eq("u_id", user.getUId()).list();
-
-                    if (userRoles == null || userRoles.size() == 0) {
-                        return ResultResponse.fail("用户角色已被删除，请联系管理员！");
-                    }
-
-                    // 登录成功，更新用户登录时间
-                    user.setULoginTime(new Date());
-                    updateById(user);
-
-                    // *查询用户权限
-                    Map<String, PermissionDTO> permission = new HashMap<>();
-                    List<UserRole> userRoleList = userRoleService.query().eq("u_id", user.getUId()).list();
-
-                    // 角色id集合
-                    List<Integer> roleIds = userRoleList.stream().map(UserRole::getRId).collect(Collectors.toList());
-
-                    for (Integer roleId : roleIds) {
-                        List<RolePermission> rolePermissionList = rolePermissionService.query().eq("r_id", roleId).list();
-                        for (RolePermission rolePermission : rolePermissionList) {
-                            Permission p = permissionService.query().eq("p_id", rolePermission.getPId()).one();
-                            PermissionDTO permissionDTO = permission.getOrDefault(p.getPPath(), new PermissionDTO(p.getPPath(), p.getPName()));
-                            permissionDTO.setRpDetail(permissionDTO.getRpDetail() | rolePermission.getRpDetail());
-
-                            permission.put(p.getPPath(), permissionDTO);
-                        }
-                    }
-
-                    UserDTO dto = new UserDTO(user.getUId(), user.getUName(), permission);
-                    TokenUtil.Token xToken = TokenUtil.generate(dto);
-                    return ResultResponse.ok(xToken.token);
                 }
+                //先判断用户是否拥有角色
+                List<UserRole> userRoles = userRoleService.query().eq("u_id", user.getUId()).list();
+
+                if (userRoles == null || userRoles.size() == 0) {
+                    return ResultResponse.fail("用户角色已被删除，请联系管理员！");
+                }
+
+                // 登录成功，更新用户登录时间
+                user.setULoginTime(new Date());
+                updateById(user);
+
+                // *查询用户权限
+                Map<String, PermissionDTO> permission = new HashMap<>();
+                List<UserRole> userRoleList = userRoleService.query().eq("u_id", user.getUId()).list();
+
+                // 角色id集合
+                List<Integer> roleIds = userRoleList.stream().map(UserRole::getRId).collect(Collectors.toList());
+
+                for (Integer roleId : roleIds) {
+                    List<RolePermission> rolePermissionList = rolePermissionService
+                            .query().eq("r_id", roleId).list();
+                    for (RolePermission rolePermission : rolePermissionList) {
+                        Permission p = permissionService.query().eq("p_id", rolePermission.getPId()).one();
+                        PermissionDTO permissionDTO = permission
+                                .getOrDefault(p.getPPath(), new PermissionDTO(p.getPPath(), p.getPName()));
+                        permissionDTO.setRpDetail(permissionDTO.getRpDetail() | rolePermission.getRpDetail());
+
+                        permission.put(p.getPPath(), permissionDTO);
+                    }
+                }
+
+                // 将待调度的项目的状态更新为待调度
+                projectService.updateDispatchStatus();
+
+                UserDTO dto = new UserDTO(user.getUId(), user.getUName(), permission);
+                TokenUtil.Token xToken = TokenUtil.generate(dto);
+                return ResultResponse.ok(xToken.token);
             default:
                 return ResultResponse.fail("用户状态异常！");
         }

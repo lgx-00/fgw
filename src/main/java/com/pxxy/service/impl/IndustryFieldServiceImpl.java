@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.List;
 
+import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
+
 /**
  * <p>
  *  服务实现类
@@ -39,9 +41,10 @@ public class IndustryFieldServiceImpl extends ServiceImpl<IndustryFieldMapper, I
     public ResultResponse<?> updateIndustryField(UpdateIndustryFieldVO updateIndustryFieldVO) {
         IndustryField industryField = query().eq("inf_id", updateIndustryFieldVO.getInfId()).one();
         if (industryField == null) {
-            return ResultResponse.fail("非法操作");
+            return ResultResponse.fail(ILLEGAL_OPERATE);
         }
-        industryField.setInfName(updateIndustryFieldVO.getInfName());
+        industryField.setInfName(updateIndustryFieldVO.getInfName())
+                .setInfRemark(updateIndustryFieldVO.getInfRemark());
         IndustryFieldMapper.updateById(industryField);
         return ResultResponse.ok(industryField);
     }
@@ -59,7 +62,7 @@ public class IndustryFieldServiceImpl extends ServiceImpl<IndustryFieldMapper, I
             removeById(infId);
             return ResultResponse.ok();
         }
-        return ResultResponse.fail("非法操作");
+        return ResultResponse.fail(ILLEGAL_OPERATE);
     }
 }
 

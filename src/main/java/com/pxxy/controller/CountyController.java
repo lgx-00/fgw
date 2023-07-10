@@ -25,7 +25,7 @@ import java.util.List;
 @Validated
 @CrossOrigin
 @RestController
-@Api(tags = "乡镇")
+@Api(tags = "辖区")
 @RequestMapping("/basedata/county")
 public class CountyController {
     
@@ -33,25 +33,31 @@ public class CountyController {
     private CountyService countyService;
     
     @PostMapping
-    @ApiOperation("新增乡镇")
+    @ApiOperation("新增辖区")
     public ResultResponse<?> addCounty(@RequestBody @Validated AddCountyVO addCountyVO) {
         return countyService.addCounty(addCountyVO);
     }
 
     @PutMapping
-    @ApiOperation("修改乡镇")
+    @ApiOperation("修改辖区")
     public ResultResponse<?> updateCounty(@RequestBody @Validated UpdateCountyVO updateCountyVO) {
         return countyService.updateCounty(updateCountyVO);
     }
 
+    @GetMapping("/all")
+    @ApiOperation("查询所有辖区")
+    public ResultResponse<List<QueryCountyVO>> getAllCounties(){
+        return countyService.getAllCounties();
+    }
+
     @GetMapping
-    @ApiOperation("查询所有乡镇")
-    public ResultResponse<List<QueryCountyVO>> getAllCounty(){
-        return countyService.getAllCounty();
+    @ApiOperation("查询一个辖区")
+    public ResultResponse<QueryCountyVO> getCounty(Integer couId) {
+        return countyService.getCounty(couId);
     }
 
     @DeleteMapping
-    @ApiOperation("删除乡镇")
+    @ApiOperation("删除辖区")
     public ResultResponse<?> deleteCounty(@RequestParam Integer couId) {
         return countyService.deleteCounty(couId);
     }
