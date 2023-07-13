@@ -4,9 +4,11 @@ import com.pxxy.utils.ResultResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -46,8 +48,16 @@ public class GlobalExceptionHandler {
     @ResponseBody
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResultResponse<?> error(HttpMessageNotReadableException e) {
-        log.warn("参数错误：" + e);
-        return ResultResponse.fail("参数错误");
+        log.warn("请求参数无法识别：" + e);
+        return ResultResponse.fail("请求参数无法识别");
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResultResponse<?> error(MissingServletRequestParameterException e) {
+        log.warn("缺少必要参数", e);
+        return ResultResponse.fail("缺少必要参数");
     }
 
     /**
@@ -56,9 +66,21 @@ public class GlobalExceptionHandler {
      * @return
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResultResponse<?> methodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        BindingResult bindingResult = ex.getBindingResult();
+    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
+    public ResultResponse<?> methodArgumentNotValidException(Exception ex, HttpServletRequest request) {
+        BindingResult bindingResult = null;
+        if (ex instanceof MethodArgumentNotValidException) {
+            bindingResult = ((MethodArgumentNotValidException) ex).getBindingResult();
+        }
+        if (ex instanceof BindException) {
+            bindingResult = ((BindException) ex).getBindingResult();
+        }
+
+        if (bindingResult == null) {
+            log.warn("参数校验失败，错误信息：{}", ex.getMessage());
+            return ResultResponse.fail(ex.getMessage());
+        }
+
         List<ObjectError> errors = bindingResult.getAllErrors();
         if (errors.isEmpty()) {
             log.warn("参数校验失败，对象名称：{}", bindingResult.getObjectName());

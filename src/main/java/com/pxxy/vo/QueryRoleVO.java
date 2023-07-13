@@ -13,15 +13,15 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "返回给前端的角色信息")
+@ApiModel("返回给前端的角色信息")
 public class QueryRoleVO {
 
-    @ApiModelProperty(value = "角色ID")
+    @ApiModelProperty("角色ID")
     private Integer rId;
 
-    @ApiModelProperty(value = "角色名")
+    @ApiModelProperty("角色名")
     private String rName;
 
-    @ApiModelProperty(value = "权限")
+    @ApiModelProperty("权限")
     private List<String> permission = new ArrayList<>();
 }

@@ -18,12 +18,11 @@ import java.util.List;
  * @author hs
  * @since 2023-06-14
  */
-@Validated
 public interface CountyService extends IService<County> {
 
-    ResultResponse<?> addCounty(@Validated AddCountyVO addCountyVO);
+    ResultResponse<?> addCounty(AddCountyVO addCountyVO);
 
-    ResultResponse<?> updateCounty(@Validated UpdateCountyVO updateCountyVO);
+    ResultResponse<?> updateCounty(UpdateCountyVO updateCountyVO);
 
     ResultResponse<List<QueryCountyVO>> getAllCounties();
 

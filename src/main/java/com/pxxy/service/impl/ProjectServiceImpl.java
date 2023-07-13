@@ -3,6 +3,7 @@ package com.pxxy.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.exception.ExcelCommonException;
+import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.ISelect;
 import com.github.pagehelper.PageInfo;
@@ -17,10 +18,7 @@ import com.pxxy.service.*;
 import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
-import com.pxxy.vo.AddProjectVO;
-import com.pxxy.vo.ProjectExcelVO;
-import com.pxxy.vo.QueryProjectVO;
-import com.pxxy.vo.UpdateProjectVO;
+import com.pxxy.vo.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,16 +62,13 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     @Resource
     private UserService userService;
 
-    @Resource
-    private ProjectMapper projectMapper;
+    private Map<Integer, Department> departments;
+    private Map<Integer, County> counties;
+    private Map<Integer, Town> towns;
+    private Map<Integer, ProjectCategory> projectCategories;
+    private Map<Integer, IndustryField> industryFields;
 
-    private static Map<Integer, Department> departments;
-    private static Map<Integer, County> counties;
-    private static Map<Integer, Town> towns;
-    private static Map<Integer, ProjectCategory> projectCategories;
-    private static Map<Integer, IndustryField> industryFields;
-
-    private static final Function<Project, QueryProjectVO> mapProjectToVO = project -> {
+    private final Function<Project, QueryProjectVO> mapProjectToVO = project -> {
         QueryProjectVO queryProjectVO = new QueryProjectVO();
         BeanUtil.copyProperties(project, queryProjectVO);
         Town town = towns.get(project.getTownId());
@@ -123,9 +118,38 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 .stream().collect(Collectors.toMap(IndustryField::getInfId, i -> i));
     }
 
+    private void updateBaseData(String what, boolean findDeleted) {
+        switch (what) {
+            case "dep":
+                QueryChainWrapper<Department> query5 = departmentService.query();
+                departments = (findDeleted ? query5 : query5.ne("dep_status", DELETED_STATUS)).list()
+                        .stream().collect(Collectors.toMap(Department::getDepId, d -> d));
+                return;
+            case "cou":
+                QueryChainWrapper<County> query4 = countyService.query();
+                counties = (findDeleted ? query4 : query4.ne("cou_status", DELETED_STATUS)).list()
+                        .stream().collect(Collectors.toMap(County::getCouId, c -> c));
+                return;
+            case "town":
+                QueryChainWrapper<Town> query3 = townService.query();
+                towns = (findDeleted ? query3 : query3.ne("town_status", DELETED_STATUS)).list()
+                        .stream().collect(Collectors.toMap(Town::getTownId, t -> t));
+                return;
+            case "prc":
+                QueryChainWrapper<ProjectCategory> query2 = projectCategoryService.query();
+                projectCategories = (findDeleted ? query2 : query2.ne("prc_status", DELETED_STATUS)).list()
+                        .stream().collect(Collectors.toMap(ProjectCategory::getPrcId, p -> p));
+                return;
+            case "inf":
+                QueryChainWrapper<IndustryField> query1 = industryFieldService.query();
+                industryFields = (findDeleted ? query1 : query1.ne("inf_status", DELETED_STATUS)).list()
+                        .stream().collect(Collectors.toMap(IndustryField::getInfId, i -> i));
+        }
+    }
+
     @Override
     @Transactional
-    public ResultResponse<PageInfo<QueryProjectVO>> getAllProject(Integer pageNum) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getAllProject(Page page) {
         //先拿到用户信息
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
@@ -133,22 +157,22 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         updateBaseData();
 
         //管理员特殊通道
-        if (uId == 1) return ResultResponse.ok(PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE,
-                () -> this.query().ne("pro_status", DELETED_STATUS).list(), mapProjectToVO));
+        if (uId == 1) return ResultResponse.ok(PageUtil.selectPage(page, () ->
+                this.query().ne("pro_status", DELETED_STATUS).list(), mapProjectToVO));
 
         // 非管理员通道
         User u = userService.query().eq("u_id", uId).one();
         Integer depId = u.getDepId();
         Integer couId = u.getCouId();
 
-        PageInfo<QueryProjectVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE,
-                () -> projectMapper.getAllProjectByUser(depId, couId, uId), mapProjectToVO);
+        PageInfo<QueryProjectVO> pageInfo = PageUtil.selectPage(page, () ->
+                baseMapper.getAllProjectByUser(depId, couId, uId), mapProjectToVO);
         return ResultResponse.ok(pageInfo);
     }
 
     @Override
     @Transactional
-    public ResultResponse<PageInfo<QueryProjectVO>> getVagueProject(Integer pageNum, ProjectDTO dto) {
+    public ResultResponse<PageInfo<QueryProjectVO>> getVagueProject(Page page, ProjectDTO dto) {
         //先拿到用户信息
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
@@ -157,14 +181,14 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
         // 管理员特殊通道
         if (uId == 1) return ResultResponse.ok(PageUtil
-                .selectPage(pageNum, DEFAULT_PAGE_SIZE, getLambda(dto), mapProjectToVO));
+                .selectPage(page, getLambda(dto), mapProjectToVO));
 
         // 非管理员通道
         User u = userService.query().eq("u_id", uId).one();
         dto.setCouId(u.getCouId());
         dto.setDepId(u.getDepId());
-        return ResultResponse.ok(PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE, () ->
-                projectMapper.getVagueProjectByUser(dto), mapProjectToVO));
+        return ResultResponse.ok(PageUtil.selectPage(page, () ->
+                baseMapper.getVagueProjectByUser(dto), mapProjectToVO));
     }
 
     // 抽取查询方法为一个 Lambda 表达式
@@ -200,7 +224,8 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     @Override
     public ResultResponse<?> addProject(AddProjectVO vo) {
 
-        // TODO 检查 项目类型 和 行业领域 的编号是否存在
+        ResultResponse<?> ret = checkPrcAndInf(vo.getPrcId(), vo.getInfId(), false);
+        if (ret != null) return ret;
 
         if (checkCountyAndTownMatch(vo.getCouId(), vo.getTownId())) {
             return ResultResponse.fail(COUNTY_AND_TOWN_NOT_MATCH);
@@ -217,7 +242,8 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     @Override
     public ResultResponse<?> updateProject(UpdateProjectVO vo) {
 
-        // TODO 检查 项目类型 和 行业领域 的编号是否存在
+        ResultResponse<?> ret = checkPrcAndInf(vo.getPrcId(), vo.getInfId());
+        if (ret != null) return ret;
 
         if (checkCountyAndTownMatch(vo.getCouId(), vo.getTownId())) {
             return ResultResponse.fail(COUNTY_AND_TOWN_NOT_MATCH);
@@ -226,10 +252,31 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         if (project == null) {
             return ResultResponse.fail(ILLEGAL_OPERATE);
         }
+
+        if (!project.getProStatus().equals(FAILURE_TO_REPORT.val)) {
+            return ResultResponse.fail(ILLEGAL_UPDATING_PROJECT);
+        }
+
         BeanUtil.copyProperties(vo, project);
         project.setProMark(vo.getProMark());
         updateById(project);
         return ResultResponse.ok();
+    }
+
+    private ResultResponse<?> checkPrcAndInf(Integer prcId, Integer infId) {
+        return checkPrcAndInf(prcId, infId, true);
+    }
+
+    private ResultResponse<?> checkPrcAndInf(Integer prcId, Integer infId, boolean findDeleted) {
+        if (prcId != null && projectCategories != null && projectCategories.get(prcId) == null) {
+            updateBaseData("prc", findDeleted);
+            if (projectCategories.get(prcId) == null) return ResultResponse.fail(INVALID_PROJECT_CATEGORY_ID);
+        }
+        if (infId != null && industryFields != null && industryFields.get(infId) == null) {
+            updateBaseData("inf", findDeleted);
+            if (industryFields.get(infId) == null) return ResultResponse.fail(INVALID_INDUSTRY_FIELD_ID);
+        }
+        return null;
     }
 
     @Override
@@ -264,8 +311,11 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     private StringBuilder genMessage(List<Project> projectList, int size) {
         StringBuilder sb = new StringBuilder("项目“");
         StringJoiner sj = new StringJoiner("”、“");
-        projectList.subList(0, Math.min(size, 5)).forEach(p -> sj.add(p.getProName()));
+        projectList.subList(0, Math.min(size - 1, 4)).forEach(p -> sj.add(p.getProName()));
         sb.append(sj).append("”");
+        if (size > 1) {
+            sb.append("和“").append(projectList.get(Math.min(size - 1, 4)).getProName()).append("”");
+        }
         if (size > 5) {
             sb.append("等 ").append(size).append(" 个项目");
         }
@@ -287,39 +337,17 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                     .doReadSync();
             List<Project> projectList = new ArrayList<>();
             for (ProjectExcelVO projectExcelVO : projectExcelVOList) {
-                if (projectExcelVO.getProDate() == null) {
-                    errorMsgList.add("项目日期不能为空；");
-                }
-
-                if (projectExcelVO.getProName() == null) {
-                    errorMsgList.add("项目名称不能为空；");
-                }
-
-                if (projectExcelVO.getProLocation() == null) {
-                    errorMsgList.add("建设地点不能为空；");
-                }
-
-                if (projectExcelVO.getCouName() == null) {
-                    errorMsgList.add("辖区不能为空；");
-                }
-
-                if (projectExcelVO.getTownName() == null) {
-                    errorMsgList.add("二级辖区不能为空；");
-                }
-
-                if (projectExcelVO.getPrcName() == null) {
-                    errorMsgList.add("项目类型名称不能为空；");
-                }
-
-                if (projectExcelVO.getInfName() == null) {
-                    errorMsgList.add("行业领域名称不能为空；");
-                }
+                if (projectExcelVO.getProDate()     == null) errorMsgList.add("项目日期不能为空；");
+                if (projectExcelVO.getProName()     == null) errorMsgList.add("项目名称不能为空；");
+                if (projectExcelVO.getProLocation() == null) errorMsgList.add("建设地点不能为空；");
+                if (projectExcelVO.getCouName()     == null) errorMsgList.add("辖区不能为空；");
+                if (projectExcelVO.getTownName()    == null) errorMsgList.add("二级辖区不能为空；");
+                if (projectExcelVO.getPrcName()     == null) errorMsgList.add("项目类型名称不能为空；");
+                if (projectExcelVO.getInfName()     == null) errorMsgList.add("行业领域名称不能为空；");
             }
 
-            if (errorMsgList.size() != 0) {
+            if (errorMsgList.size() != 0)
                 return ResultResponse.fail(errorMsgList.stream().distinct().collect(Collectors.toList()).toString());
-            }
-
 
             for (ProjectExcelVO projectExcelVO : projectExcelVOList) {
                 Project project = new Project();
@@ -331,7 +359,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                         project.setDepId(department.getDepId());
                     } else {
                         //若为空
-                        errorMsgList.add("不存在科室名（" + departmentName + "）；");
+                        errorMsgList.add("不存在科室名“" + departmentName + "”；");
                     }
 
                 }
@@ -346,15 +374,15 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                         if (town.getCouId().equals(county.getCouId())) {
                             project.setTownId(town.getTownId());
                         } else {
-                            errorMsgList.add("【辖区】" + county.getCouName() + "不存在" + "【二级辖区】" + townName + "；");
+                            errorMsgList.add("辖区“" + county.getCouName() + "”与二级辖区“" + townName + "”不匹配；");
                         }
                     } else {
                         //若为空
-                        errorMsgList.add("不存在二级辖区名（" + townName + "）；");
+                        errorMsgList.add("不存在名称为“" + townName + "”的二级辖区；");
                     }
                 } else {
                     //若为空
-                    errorMsgList.add("不存在辖区名（" + couName + "）；");
+                    errorMsgList.add("不存在名称为“" + couName + "”的辖区；");
                 }
 
 
@@ -364,7 +392,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                     project.setPrcId(projectCategory.getPrcId());
                 } else {
                     //若为空
-                    errorMsgList.add("不存在项目类型名称（" + prcName + "）；");
+                    errorMsgList.add("不存在名称为“" + prcName + "”的项目类型；");
                 }
 
                 String infName = projectExcelVO.getInfName();
@@ -373,30 +401,27 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                     project.setInfId(industryField.getInfId());
                 } else {
                     //若为空
-                    errorMsgList.add("不存在行业领域名称（" + infName + "）；");
+                    errorMsgList.add("不存在名称为“" + infName + "”的行业领域；");
 
                 }
 
                 // 是否 0 1 转换
-                YesOrNoEnum[] yesOrNoEnums = YesOrNoEnum.values();
                 String proIsNew = projectExcelVO.getProIsNew();
                 if (proIsNew != null) {
-                    for (YesOrNoEnum i : yesOrNoEnums) {
-                        if (proIsNew.equals(i.name)) {
-                            project.setProIsNew(i.val);
-                        }
-                        //是否当年度新开工项目
+                    try {
+                        project.setProIsNew(YesOrNoEnum.from(proIsNew));
+                    } catch (IllegalArgumentException e) {
+                        // 是否当年度新开工项目
                         errorMsgList.add("是否当年度新开工项目【列】只能填是或否；");
                     }
                 }
 
                 String proIsProvincial = projectExcelVO.getProIsProvincial();
                 if (proIsProvincial != null) {
-                    for (YesOrNoEnum i : yesOrNoEnums) {
-                        if (proIsProvincial.equals(i.name)) {
-                            project.setProIsProvincial(i.val);
-                        }
-                        //是否省大中型项目
+                    try {
+                        project.setProIsNew(YesOrNoEnum.from(proIsProvincial));
+                    } catch (IllegalArgumentException e) {
+                        // 是否省大中型项目
                         errorMsgList.add("是否省大中型项目【列】只能填是或否；");
                     }
                 }
@@ -436,6 +461,9 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     private ResultResponse<?> checkPendingReview(List<Integer> proIds, String oper) {
         List<Project> projects = query().in("pro_id", proIds).list();
+        if (projects.size() < proIds.size()) {
+            return ResultResponse.fail(FAIL_MSG);
+        }
         List<Project> illegalList = filterNE(projects, PENDING_REVIEW);
         int size = illegalList.size();
         return size > 0 ? ResultResponse.fail(genMessage(illegalList, size)
@@ -443,16 +471,50 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Override
+    @Transactional
     public ResultResponse<?> accept(List<Integer> proIds) {
         ResultResponse<?> sb = checkPendingReview(proIds, "批准");
         if (sb != null) return sb;
         // TODO 批准要发送 WebSocket 通知
-        // TODO 批准要修改下次调度提醒时间
-        return update().in("pro_id", proIds)
-                .eq("pro_status", PENDING_REVIEW.val)
-                .set("pro_status", NORMAL.val).update()
+        updateBaseData("prc", true);
+        List<Project> projects = query().in("pro_id", proIds)
+                .eq("pro_status", PENDING_REVIEW.val).list();
+        updateNextUpdateTime(projects);
+        projects.forEach(p -> p.setProStatus(NORMAL.val));
+        return updateBatchById(projects)
                 ? ResultResponse.ok()
                 : ResultResponse.fail(FAIL_MSG);
+    }
+
+    private void updateNextUpdateTime(List<Project> projects) {
+        Calendar nextMonthCalendar = Calendar.getInstance();
+        nextMonthCalendar.add(Calendar.MONTH, 1);
+        nextMonthCalendar.set(Calendar.DAY_OF_MONTH, 1);
+        Date nextMonth = nextMonthCalendar.getTime();
+        Date now = new Date();
+
+        Calendar thisMonthCalendar = Calendar.getInstance();
+        int max1 = thisMonthCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        int max2 = nextMonthCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        for (Project project : projects) {
+            Date date = project.getProNextUpdate();
+            if (date == null || date.before(now)) {
+                Integer period = projectCategories.get(project.getPrcId()).getPrcPeriod();
+                if (period == null || period == 0) {
+                    project.setProNextUpdate(nextMonth);
+                    continue;
+                }
+                int min = Math.min(period / 100, period % 100);
+                thisMonthCalendar.set(Calendar.DAY_OF_MONTH, Math.min(min, max1));
+                Date time = thisMonthCalendar.getTime();
+                if (time.before(now)) {
+                    nextMonthCalendar.set(Calendar.DAY_OF_MONTH, Math.min(min, max2));
+                    project.setProNextUpdate(nextMonthCalendar.getTime());
+                    continue;
+                }
+                project.setProNextUpdate(time);
+            }
+        }
     }
 
     @Override
@@ -500,14 +562,18 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         projectDTO.setDepId(user.getDepId());
         projectDTO.setCouId(user.getCouId());
         projectDTO.setProStatus(TO_BE_SCHEDULED);
-        return ResultResponse.ok(projectMapper.getDispatchingCount(projectDTO));
+        return ResultResponse.ok(baseMapper.getDispatchingCount(projectDTO));
     }
 
     @Override
     @Transactional
     public ResultResponse<QueryProjectVO> getProject(Integer proId) {
+        Project project = getById(proId);
+        if (project == null) {
+            return ResultResponse.fail(FAIL_MSG);
+        }
         updateBaseData();
-        return ResultResponse.ok(mapProjectToVO.apply(getById(proId)));
+        return ResultResponse.ok(mapProjectToVO.apply(project));
     }
 
 }

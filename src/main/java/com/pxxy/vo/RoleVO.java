@@ -10,8 +10,8 @@ import lombok.Data;
  * @Description:
  */
 @Data
-@ApiModel(value = "选择角色")
+@ApiModel("选择角色")
 public class RoleVO {
-    @ApiModelProperty(value = "角色ID")
+    @ApiModelProperty("角色ID")
     private Integer rId;
 }

@@ -23,6 +23,8 @@ public class SystemConstant {
 
     // 默认分页大小
     public static final int         DEFAULT_PAGE_SIZE               =               10;
+    // 默认页数大小
+    public static final int         DEFAULT_PAGE_NUM               =                 1;
 
     public static final Date        INFINITY_DATE                   = new Date(7985664000000L);
     public static final Date        ZERO_DATE                       = new Date(0);

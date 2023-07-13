@@ -13,15 +13,15 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "返回给前端的科室信息")
+@ApiModel("返回给前端的科室信息")
 public class QueryDepartmentVO {
 
-    @ApiModelProperty(value = "科室ID")
+    @ApiModelProperty("科室ID")
     private Integer depId;
 
-    @ApiModelProperty(value = "科室名称")
+    @ApiModelProperty("科室名称")
     private String depName;
 
-    @ApiModelProperty(value = "项目类型")
+    @ApiModelProperty("项目类型")
     private List<String> projectCategoryName = new ArrayList<>();
 }

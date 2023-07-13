@@ -52,7 +52,7 @@ public class CountyController {
 
     @GetMapping
     @ApiOperation("查询一个辖区")
-    public ResultResponse<QueryCountyVO> getCounty(Integer couId) {
+    public ResultResponse<QueryCountyVO> getCounty(@RequestParam Integer couId) {
         return countyService.getCounty(couId);
     }
 

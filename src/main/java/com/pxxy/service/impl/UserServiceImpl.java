@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.dto.LoginFormDTO;
+import com.pxxy.vo.LoginVO;
 import com.pxxy.dto.PermissionDTO;
 import com.pxxy.dto.UserDTO;
 import com.pxxy.mapper.UserMapper;
@@ -14,10 +14,7 @@ import com.pxxy.utils.Md5Util;
 import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.TokenUtil;
-import com.pxxy.vo.AddUserVO;
-import com.pxxy.vo.QueryUserVO;
-import com.pxxy.vo.RoleVO;
-import com.pxxy.vo.UpdateUserVO;
+import com.pxxy.vo.*;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
@@ -84,10 +81,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 查询角色名
         List<String> roleNames = userRoleList.stream().map(userRole -> {
             Role role = roleService.query().eq("r_id", userRole.getRId()).one();
-            if (role == null) {
-                return null;
-            }
-            return role.getRName();
+            return role == null ? null : role.getRName();
         }).filter(Objects::nonNull).collect(Collectors.toList());
 
         queryUserVO.setRoleList(roleNames);
@@ -100,10 +94,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     static Map<String, Integer> mistakeTimes = new ConcurrentHashMap<>();
 
     @Override
-    public ResultResponse<String> login(LoginFormDTO loginForm) {
+    public ResultResponse<String> login(LoginVO loginVO) {
 
         // 根据用户名查询用户
-        String uName = loginForm.getUName();
+        String uName = loginVO.getUName();
 
         User user = query().eq("u_name", uName).ne("u_status", DELETED_STATUS).one();
 
@@ -112,7 +106,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         // 用户提交的密码给加密
-        String password = Md5Util.code(loginForm.getUPassword());
+        String password = Md5Util.code(loginVO.getUPassword());
 
         // 判断用户是否处于禁用时间中
         Date date = disableTimeMap.get(USER_DISABLED_TIME_KEY + user.getUId());
@@ -157,7 +151,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 List<UserRole> userRoles = userRoleService.query().eq("u_id", user.getUId()).list();
 
                 if (userRoles == null || userRoles.size() == 0) {
-                    return ResultResponse.fail("用户角色已被删除，请联系管理员！");
+                    return ResultResponse.fail("用户所属的角色已被删除，请联系管理员！");
                 }
 
                 // 登录成功，更新用户登录时间
@@ -279,17 +273,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public ResultResponse<PageInfo<QueryUserVO>> getAllUser(Integer pageNum) {
+    public ResultResponse<PageInfo<QueryUserVO>> getAllUser(Page page) {
         //  根据类型分页查询
-        PageInfo<QueryUserVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE,
+        PageInfo<QueryUserVO> pageInfo = PageUtil.selectPage(page,
                 () -> query().ne("u_status",DELETED_STATUS).list(), mapUserToVO);
         return ResultResponse.ok(pageInfo);
     }
 
     @Override
-    public ResultResponse<PageInfo<QueryUserVO>> getVagueUser(int pageNum, String uName) {
+    public ResultResponse<PageInfo<QueryUserVO>> getVagueUser(Page page, String uName) {
         //  根据类型分页查询
-        PageInfo<QueryUserVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE,
+        PageInfo<QueryUserVO> pageInfo = PageUtil.selectPage(page,
                 () -> query().like("u_name", uName)
                         .ne("u_status", DELETED_STATUS).list(), mapUserToVO);
         return ResultResponse.ok(pageInfo);

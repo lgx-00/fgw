@@ -29,10 +29,19 @@ public class TokenUtil {
 
     }
 
+    /**
+     * 令牌
+     */
     public static class Token {
 
+        /**
+         * 编号
+         */
         public final String token;
 
+        /**
+         * 过期时间
+         */
         private long deadTime;
 
         Token(String token) {
@@ -96,8 +105,9 @@ public class TokenUtil {
     }
 
     /**
-     * 校验 token 是否正确，并刷新 token 的过期时间
-     * @param token 待验证的 token
+     * 校验令牌是否正确，并刷新令牌的过期时间
+     *
+     * @param token 待验证的令牌
      * @return 是否正确
      */
     public synchronized static UserDTO getUser(String token) {
@@ -107,8 +117,9 @@ public class TokenUtil {
     }
 
     /**
-     * 生成一个 token，与用户相关联
-     * @return token
+     * 生成一个与用户相关联的令牌
+     *
+     * @return 生成的令牌
      */
     public synchronized static Token generate(UserDTO userDTO) {
         Token token = Token.generate();
@@ -116,8 +127,8 @@ public class TokenUtil {
         return token;
     }
 
-    public synchronized static void invalid(String token) {
-        TOKEN_MAPPER.remove(new Token(token));
+    public synchronized static UserDTO invalid(String token) {
+        return TOKEN_MAPPER.remove(new Token(token));
     }
 
 }

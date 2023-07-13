@@ -18,12 +18,11 @@ import java.util.List;
  * @author hs
  * @since 2023-06-14
  */
-@Validated
 public interface StageService extends IService<Stage> {
 
-    ResultResponse<?> addStage(@Validated AddStageVO addStageVO);
+    ResultResponse<?> addStage(AddStageVO addStageVO);
 
-    ResultResponse<?> updateStage(@Validated UpdateStageVO updateStageVO);
+    ResultResponse<?> updateStage(UpdateStageVO updateStageVO);
 
     ResultResponse<List<QueryStageVO>> getAllStage();
 

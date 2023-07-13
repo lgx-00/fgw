@@ -5,32 +5,40 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.validator.constraints.Length;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 import static com.pxxy.constant.ResponseMessage.ADD_FAILED;
+import static com.pxxy.constant.ResponseMessage.UPDATE_FAILED;
 
 /**
- * Class name: AddDispatchVO
+ * Class name: UpdateDispatchVO
  *
- * Create time: 2023/7/12 15:11
+ * Create time: 2023/7/12 15:18
  *
  * @author xw
  * @version 1.0
  */
 @Data
-@ApiModel("新增调度的数据模型")
+@ApiModel("更新调度数据模型")
 @EqualsAndHashCode(callSuper = true)
-public class AddDispatchVO extends DispatchVO implements Serializable {
+public class UpdateDispatchVO extends DispatchVO implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
-    @NotNull(message = ADD_FAILED)
+    /**
+     * 序号 主键，自增
+     */
+    @ApiModelProperty("调度编号")
+    @NotNull(message = UPDATE_FAILED)
+    private Integer disId;
+
+    @NotNull(message = UPDATE_FAILED)
     @ApiModelProperty("调度所属项目的编号")
     private Integer proId;
+
 
     /**
      * 累计完成投资 非空

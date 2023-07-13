@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 import com.pxxy.service.RoleService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddRoleVO;
+import com.pxxy.vo.Page;
 import com.pxxy.vo.QueryRoleVO;
 import com.pxxy.vo.UpdateRoleVO;
 import io.swagger.annotations.Api;
@@ -33,14 +34,14 @@ public class RoleController {
 
     @GetMapping("/all")
     @ApiOperation("分页查询所有角色")
-    public ResultResponse<PageInfo<QueryRoleVO>> getAllRole(@RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum){
-        return roleService.getAllRole(pageNum);
+    public ResultResponse<PageInfo<QueryRoleVO>> getAllRole(@ModelAttribute @Validated Page page) {
+        return roleService.getAllRole(page);
     }
 
     @GetMapping("/vague")
     @ApiOperation("模糊查询角色名")
-    public ResultResponse<PageInfo<QueryRoleVO>> getVagueRole(@RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum, @RequestParam String rName){
-        return roleService.getVagueRole(pageNum,rName);
+    public ResultResponse<PageInfo<QueryRoleVO>> getVagueRole(@ModelAttribute @Validated Page page, @RequestParam String rName) {
+        return roleService.getVagueRole(page, rName);
     }
 
     @PostMapping

@@ -14,22 +14,22 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "新增用户请求模型")
+@ApiModel("新增用户请求模型")
 public class AddUserVO {
-    @ApiModelProperty(value = "用户名")
+    @ApiModelProperty("用户名")
     @NotBlank(message = "用户名不能为空！")
     private String uName;
 
-    @ApiModelProperty(value = "密码")
+    @ApiModelProperty("密码")
     @NotBlank(message = "密码不能为空！")
     private String uPassword;
 
-    @ApiModelProperty(value = "科室id")
+    @ApiModelProperty("科室id")
     private Integer depId;
 
-    @ApiModelProperty(value = "辖区id")
+    @ApiModelProperty("辖区id")
     private Integer couId;
 
-    @ApiModelProperty(value = "勾选的角色，可多选")
+    @ApiModelProperty("勾选的角色，可多选")
     private List<RoleVO> roleList = new ArrayList<>();
 }

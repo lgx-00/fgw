@@ -14,6 +14,7 @@ import com.pxxy.service.RoleService;
 import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddRoleVO;
+import com.pxxy.vo.Page;
 import com.pxxy.vo.QueryRoleVO;
 import com.pxxy.vo.UpdateRoleVO;
 import org.springframework.stereotype.Service;
@@ -62,17 +63,16 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     };
 
     @Override
-    public ResultResponse<PageInfo<QueryRoleVO>> getAllRole(Integer pageNum) {
+    public ResultResponse<PageInfo<QueryRoleVO>> getAllRole(Page page) {
         //  根据类型分页查询
-        PageInfo<QueryRoleVO> pageInfo = PageUtil.selectPage(pageNum,
-                DEFAULT_PAGE_SIZE, this::query, mapRoleToVO);
+        PageInfo<QueryRoleVO> pageInfo = PageUtil.selectPage(page, this::query, mapRoleToVO);
         return ResultResponse.ok(pageInfo);
     }
 
     @Override
-    public ResultResponse<PageInfo<QueryRoleVO>> getVagueRole(Integer pageNum, String rName) {
+    public ResultResponse<PageInfo<QueryRoleVO>> getVagueRole(Page page, String rName) {
         // 根据类型分页查询
-        PageInfo<QueryRoleVO> pageInfo = PageUtil.selectPage(pageNum, DEFAULT_PAGE_SIZE,
+        PageInfo<QueryRoleVO> pageInfo = PageUtil.selectPage(page,
                 () -> query().like("r_name", rName).list(), mapRoleToVO);
         return ResultResponse.ok(pageInfo);
     }

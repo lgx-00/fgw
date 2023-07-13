@@ -18,12 +18,11 @@ import java.util.List;
  * @author hs
  * @since 2023-06-14
  */
-@Validated
 public interface ProjectCategoryService extends IService<ProjectCategory> {
 
-    ResultResponse<?> addProjectCategory(@Validated AddProjectCategoryVO addProjectCategoryVO);
+    ResultResponse<?> addProjectCategory(AddProjectCategoryVO addProjectCategoryVO);
 
-    ResultResponse<?> updateProjectCategory(@Validated UpdateProjectCategoryVO updateProjectCategoryVO);
+    ResultResponse<?> updateProjectCategory(UpdateProjectCategoryVO updateProjectCategoryVO);
 
     ResultResponse<List<QueryProjectCategoryVO>> getAllProjectCategory();
 

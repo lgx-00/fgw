@@ -35,7 +35,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         String xToken = request.getHeader("X-Token");
         UserDTO user = TokenUtil.getUser(xToken);
         if (user == null) {
-            log.info("未登录，请求 {} 已被拦截。", request.getRequestURI());
+            log.info("令牌无效，请求 {} 已被拦截。", request.getRequestURI());
             return fail(response);
         }
 
@@ -51,7 +51,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         response.setStatus(INVALID_TOKEN);
         response.setHeader("Content-Type", "application/json");
         response.setCharacterEncoding("utf-8");
-        response.getWriter().write(JSONUtil.toJsonStr(ResultResponse.fail(INVALID_TOKEN, "无效的 Token！")));
+        response.getWriter().write(JSONUtil.toJsonStr(ResultResponse.fail(INVALID_TOKEN, "无效的令牌！")));
 
         return false;
     }

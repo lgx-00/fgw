@@ -10,15 +10,15 @@ import lombok.Data;
  * @Description:
  */
 @Data
-@ApiModel(value = "返回给前端的项目类型信息")
+@ApiModel("返回给前端的项目类型信息")
 public class QueryProjectCategoryVO {
 
-    @ApiModelProperty(value = "项目类型ID")
+    @ApiModelProperty("项目类型ID")
     private Integer prcId;
 
-    @ApiModelProperty(value = "项目类型名称")
+    @ApiModelProperty("项目类型名称")
     private String prcName;
 
-    @ApiModelProperty(value = "允许调度时间")
+    @ApiModelProperty("允许调度时间")
     private Integer prcPeriod;
 }

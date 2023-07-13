@@ -19,51 +19,51 @@ import static com.pxxy.constant.SystemConstant.ZERO_DATE;
  */
 
 @Data
-@ApiModel(value = "查询项目模型")
+@ApiModel("查询项目模型")
 public class ProjectDTO {
 
-    @ApiModelProperty(value = "科室编号")
+    @ApiModelProperty("科室编号")
     private Integer depId;
 
-    @ApiModelProperty(value = "辖区编号")
+    @ApiModelProperty("辖区编号")
     private Integer couId;
 
-    @ApiModelProperty(value = "用户编号")
+    @ApiModelProperty("用户编号")
     private Integer uId;
 
-    @ApiModelProperty(value = "项目名称")
+    @ApiModelProperty("项目名称")
     private String proName;
 
-    @ApiModelProperty(value = "二级辖区编号")
+    @ApiModelProperty("二级辖区编号")
     private Integer townId;
 
-    @ApiModelProperty(value = "项目类别编号")
+    @ApiModelProperty("项目类别编号")
     private Integer prcId;
 
-    @ApiModelProperty(value = "行业领域编号")
+    @ApiModelProperty("行业领域编号")
     private Integer infId;
 
-    @ApiModelProperty(value = "项目状态")
+    @ApiModelProperty("项目状态")
     private Integer proStatus;
 
-    @ApiModelProperty(value = "从")
+    @ApiModelProperty("从")
     private Date beginTime;
 
-    @ApiModelProperty(value = "至")
+    @ApiModelProperty("至")
     private Date endTime;
 
-    @ApiModelProperty(value = "标记1")
+    @ApiModelProperty("标记1")
     private String proMark1;
 
-    @ApiModelProperty(value = "标记2")
+    @ApiModelProperty("标记2")
     private String proMark2;
 
-    @ApiModelProperty(value = "标记3")
+    @ApiModelProperty("标记3")
     private String proMark3;
 
     @Max(value = 3, message = "项目阶段为非法值！")
     @Min(value = 0, message = "项目阶段为非法值！")
-    private Integer projectStage;
+    private Integer projectStage = 0;
 
     public void setProName(String proName) {
         if (proName != null && proName.length() == 0) {

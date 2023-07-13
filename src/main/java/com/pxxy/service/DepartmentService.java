@@ -18,12 +18,11 @@ import java.util.List;
  * @author hs
  * @since 2023-06-14
  */
-@Validated
 public interface DepartmentService extends IService<Department> {
 
-    ResultResponse<?> addDepartment(@Validated AddDepartmentVO addDepartmentVO);
+    ResultResponse<?> addDepartment(AddDepartmentVO addDepartmentVO);
 
-    ResultResponse<?> updateDepartment(@Validated UpdateDepartmentVO updateDepartmentVO);
+    ResultResponse<?> updateDepartment(UpdateDepartmentVO updateDepartmentVO);
 
     ResultResponse<List<QueryDepartmentVO>> getAllDepartment();
 

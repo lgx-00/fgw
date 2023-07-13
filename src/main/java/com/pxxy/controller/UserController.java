@@ -6,6 +6,7 @@ import com.pxxy.service.UserService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
 import com.pxxy.vo.AddUserVO;
+import com.pxxy.vo.Page;
 import com.pxxy.vo.QueryUserVO;
 import com.pxxy.vo.UpdateUserVO;
 import io.swagger.annotations.Api;
@@ -59,14 +60,14 @@ public class UserController {
 
     @GetMapping("/all")
     @ApiOperation("分页查询所有用户")
-    public ResultResponse<PageInfo<QueryUserVO>> getAllUser(@RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum) {
-        return userService.getAllUser(pageNum);
+    public ResultResponse<PageInfo<QueryUserVO>> getAllUser(@ModelAttribute @Validated Page page) {
+        return userService.getAllUser(page);
     }
 
     @GetMapping("/vague")
     @ApiOperation("模糊查询用户")
-    public ResultResponse<PageInfo<QueryUserVO>> getVagueUser(@RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum, @RequestParam String uName) {
-        return userService.getVagueUser(pageNum,uName);
+    public ResultResponse<PageInfo<QueryUserVO>> getVagueUser(@ModelAttribute @Validated Page page, @RequestParam String uName) {
+        return userService.getVagueUser(page, uName);
     }
 }
 

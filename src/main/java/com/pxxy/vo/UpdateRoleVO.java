@@ -13,16 +13,16 @@ import java.util.Map;
  * @Description:
  */
 @Data
-@ApiModel(value = "修改角色请求模型")
+@ApiModel("修改角色请求模型")
 public class UpdateRoleVO {
 
-    @ApiModelProperty(value = "角色ID")
+    @ApiModelProperty("角色ID")
     private Integer rId;
 
-    @ApiModelProperty(value = "角色名")
+    @ApiModelProperty("角色名")
     @NotBlank(message = "修改角色名不能为空！")
     private String rName;
 
-    @ApiModelProperty(value = "权限 key是权限ID value是rp_detail")
+    @ApiModelProperty("权限 key是权限ID value是rp_detail")
     private Map<Integer, Integer> permissionMapper;
 }

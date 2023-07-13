@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.pxxy.constant.ResponseMessage.FAIL_MSG;
 import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
 import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
 
@@ -119,6 +120,9 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
     @Override
     public ResultResponse<QueryCountyVO> getCounty(Integer couId) {
         County county = getById(couId);
+        if (county == null) {
+            return ResultResponse.fail(FAIL_MSG);
+        }
         List<QueryTownVO> towns = townService.query().eq("cou_id", couId)
                 .ne("town_status", DELETED_STATUS).list().stream()
                 .map(mapTownToVO).collect(Collectors.toList());

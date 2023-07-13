@@ -14,13 +14,13 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "新增辖区请求模型")
+@ApiModel("新增辖区请求模型")
 public class AddCountyVO {
 
-    @ApiModelProperty(value = "辖区名称")
+    @ApiModelProperty("辖区名称")
     @NotBlank(message = "辖区名称不能为空！")
     private String couName;
 
-    @ApiModelProperty(value = "二级辖区")
+    @ApiModelProperty("二级辖区")
     private List<String> townNames = new ArrayList<>();
 }

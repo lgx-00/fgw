@@ -12,13 +12,13 @@ import javax.validation.constraints.NotBlank;
  * @Description:
  */
 @Data
-@ApiModel(value = "新增项目类型请求模型")
+@ApiModel("新增项目类型请求模型")
 public class AddProjectCategoryVO {
 
-    @ApiModelProperty(value = "项目类型名称")
+    @ApiModelProperty("项目类型名称")
     @NotBlank(message = "项目类型名称不能为空！")
     private String prcName;
 
-    @ApiModelProperty(value = "允许调度时间")
+    @ApiModelProperty("允许调度时间")
     private Integer prcPeriod;
 }

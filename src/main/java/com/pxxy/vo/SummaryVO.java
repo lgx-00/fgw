@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@ApiModel(value = "统计汇总")
+@ApiModel("统计汇总")
 @Accessors(chain = true)
 public class SummaryVO {
 
@@ -27,7 +27,7 @@ public class SummaryVO {
      */
     @ExcelProperty("二级辖区名称")
     @ColumnWidth(10)
-    @ApiModelProperty(value = "二级辖区名称")
+    @ApiModelProperty("二级辖区名称")
     private String townName;
 
     /**
@@ -35,7 +35,7 @@ public class SummaryVO {
      */
     @ExcelProperty("项目个数")
     @ColumnWidth(10)
-    @ApiModelProperty(value = "项目个数")
+    @ApiModelProperty("项目个数")
     private Integer projectNum;
 
     /**
@@ -43,7 +43,7 @@ public class SummaryVO {
      */
     @ExcelProperty("开工个数")
     @ColumnWidth(10)
-    @ApiModelProperty(value = "开工个数")
+    @ApiModelProperty("开工个数")
     private Integer projectWorkNum;
 
     /**
@@ -51,7 +51,7 @@ public class SummaryVO {
      */
     @ExcelProperty("开工率")
     @ColumnWidth(10)
-    @ApiModelProperty(value = "开工率")
+    @ApiModelProperty("开工率")
     private String ratio;
 
     /**
@@ -59,7 +59,7 @@ public class SummaryVO {
      */
     @ExcelProperty("总投资")
     @ColumnWidth(10)
-    @ApiModelProperty(value = "总投资")
+    @ApiModelProperty("总投资")
     private Integer proAllPlan;
 
     /**
@@ -67,7 +67,7 @@ public class SummaryVO {
      */
     @ExcelProperty("年计划投资")
     @ColumnWidth(10)
-    @ApiModelProperty(value = "年计划投资")
+    @ApiModelProperty("年计划投资")
     private Integer proPlanYear;
 
     /**
@@ -75,7 +75,7 @@ public class SummaryVO {
      */
     @ExcelProperty("今年完成投资")
     @ColumnWidth(10)
-    @ApiModelProperty(value = "今年完成投资")
+    @ApiModelProperty("今年完成投资")
     private Integer proPlanMonths;
 
     /**
@@ -83,7 +83,7 @@ public class SummaryVO {
      */
     @ExcelProperty("完成比例")
     @ColumnWidth(10)
-    @ApiModelProperty(value = "完成比例")
+    @ApiModelProperty("完成比例")
     private String proCompletionPercent;
 
     //存放子菜单目录

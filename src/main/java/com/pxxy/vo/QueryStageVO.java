@@ -12,13 +12,13 @@ import javax.validation.constraints.NotBlank;
  * @Description:
  */
 @Data
-@ApiModel(value = "返回给前端的工程进展阶段信息")
+@ApiModel("返回给前端的工程进展阶段信息")
 public class QueryStageVO {
 
-    @ApiModelProperty(value = "工程进展阶段ID")
+    @ApiModelProperty("工程进展阶段ID")
     private Integer stageId;
 
-    @ApiModelProperty(value = "工程进展阶段名称")
+    @ApiModelProperty("工程进展阶段名称")
     @NotBlank(message = "工程进展阶段名称不能为空！")
     private String stageName;
 }

@@ -3,12 +3,8 @@ package com.pxxy.service.impl;
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.pxxy.enums.ProjectStatusEnum;
-import com.pxxy.mapper.DispatchMapper;
-import com.pxxy.mapper.ProjectMapper;
-import com.pxxy.mapper.TownMapper;
-import com.pxxy.pojo.Dispatch;
-import com.pxxy.pojo.Project;
-import com.pxxy.pojo.User;
+import com.pxxy.mapper.*;
+import com.pxxy.pojo.*;
 import com.pxxy.service.SummaryService;
 import com.pxxy.service.UserService;
 import com.pxxy.utils.ResultResponse;
@@ -16,6 +12,7 @@ import com.pxxy.utils.UserHolder;
 import com.pxxy.vo.SummaryDetailsVO;
 import com.pxxy.vo.SummaryVO;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -50,7 +47,17 @@ public class SummaryServiceImpl implements SummaryService {
     @Resource
     private ProjectMapper projectMapper;
 
+    @Resource
+    private IndustryFieldMapper industryFieldMapper;
+
+    @Resource
+    private ProjectCategoryMapper projectCategoryMapper;
+
+    private static Map<Integer, String> infMap;
+    private static Map<Integer, String> prcMap;
+
     @Override
+    @Transactional
     public ResultResponse<List<SummaryVO>> getSummary(Date beginTime, Date endTime, Integer prcId, Integer infId) {
         //先拿到用户信息
         Integer uId = UserHolder.getUser().getUId();
@@ -109,6 +116,7 @@ public class SummaryServiceImpl implements SummaryService {
     }
 
     @Override
+    @Transactional
     public ResultResponse<List<SummaryDetailsVO>> detailsSummary(Date beginTime, Date endTime, Integer prcId, Integer infId) {
         //先拿到用户信息
         Integer uId = UserHolder.getUser().getUId();
@@ -220,12 +228,20 @@ public class SummaryServiceImpl implements SummaryService {
         }).collect(Collectors.toList());
     }
 
+    private void updateBaseDate() {
+        infMap = industryFieldMapper.selectList(new QueryWrapper<>())
+                .stream().collect(Collectors.toMap(IndustryField::getInfId, IndustryField::getInfName));
+        prcMap = projectCategoryMapper.selectList(new QueryWrapper<>())
+                .stream().collect(Collectors.toMap(ProjectCategory::getPrcId, ProjectCategory::getPrcName));
+    }
+
     private List<SummaryDetailsVO> groupSummaryDetails(List<Project> projects, List<Dispatch> dispatchList) {
         //对同一二级辖区的项目进行分组
         Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getTownId));
+        updateBaseDate();
 
         return listMap.keySet().stream().map(key -> {
-            ArrayList<SummaryDetailsVO> summaryDetailsVOArrayList = new ArrayList<>();
+            ArrayList<SummaryDetailsVO> list = new ArrayList<>();
             List<Project> projectList = listMap.get(key);     //此辖区下的项目集合
             for (Project project : projectList) {
                 SummaryDetailsVO summaryDetailsVO = new SummaryDetailsVO()
@@ -237,9 +253,12 @@ public class SummaryServiceImpl implements SummaryService {
                         .setProCompleteDate(project.getProDisComplete() == null ? null : project.getProDisComplete())
                         .setProAllPlan(project.getProDisTotal())
                         .setProPlanYear(project.getProPlanYear())
-                        .setProYear(project.getProDisYear());
+                        .setProYear(project.getProDisYear())
+                        .setInfName(infMap.get(project.getInfId()))
+                        .setPrcName(prcMap.get(project.getPrcId()));
                 if (project.getProPlanYear() != 0) {
-                    summaryDetailsVO.setProPlanCompletionPercent(calculatePercentage(project.getProDisYear(), project.getProPlanYear()));
+                    summaryDetailsVO.setProPlanCompletionPercent(calculatePercentage(project.getProDisYear(),
+                            project.getProPlanYear()));
                 } else {
                     summaryDetailsVO.setProPlanCompletionPercent("0%");
                 }
@@ -258,23 +277,25 @@ public class SummaryServiceImpl implements SummaryService {
                     summaryDetailsVO.setProPlanMonths(0);
                     summaryDetailsVO.setProPlanMonth(0);
                 }
-                summaryDetailsVOArrayList.add(summaryDetailsVO);
+                list.add(summaryDetailsVO);
             }
             //对辖区下面的项目进行统计
             SummaryDetailsVO summaryDetailsVO = new SummaryDetailsVO()
                     .setProName(townMapper.selectById(key).getTownName())
                     .setProjectNum(projectList.size())
-                    .setProAllPlan(summaryDetailsVOArrayList.stream().mapToInt(SummaryDetailsVO::getProAllPlan).sum())
-                    .setProPlanYear(summaryDetailsVOArrayList.stream().mapToInt(SummaryDetailsVO::getProYear).sum())
-                    .setProPlanMonths(summaryDetailsVOArrayList.stream().mapToInt(SummaryDetailsVO::getProPlanMonths).sum())
-                    .setProPlanMonth(summaryDetailsVOArrayList.stream().mapToInt(SummaryDetailsVO::getProPlanMonth).sum())
-                    .setProYear(summaryDetailsVOArrayList.stream().mapToInt(SummaryDetailsVO::getProYear).sum());
-            if (summaryDetailsVOArrayList.stream().mapToInt(SummaryDetailsVO::getProYear).sum() != 0) {
-                summaryDetailsVO.setProPlanCompletionPercent(calculatePercentage(summaryDetailsVOArrayList.stream().mapToInt(SummaryDetailsVO::getProYear).sum(), summaryDetailsVOArrayList.stream().mapToInt(SummaryDetailsVO::getProYear).sum()));
+                    .setProAllPlan(list.stream().mapToInt(SummaryDetailsVO::getProAllPlan).sum())
+                    .setProPlanYear(list.stream().mapToInt(SummaryDetailsVO::getProYear).sum())
+                    .setProPlanMonths(list.stream().mapToInt(SummaryDetailsVO::getProPlanMonths).sum())
+                    .setProPlanMonth(list.stream().mapToInt(SummaryDetailsVO::getProPlanMonth).sum())
+                    .setProYear(list.stream().mapToInt(SummaryDetailsVO::getProYear).sum());
+            if (list.stream().mapToInt(SummaryDetailsVO::getProYear).sum() != 0) {
+                summaryDetailsVO.setProPlanCompletionPercent(calculatePercentage(
+                        list.stream().mapToInt(SummaryDetailsVO::getProYear).sum(),
+                        list.stream().mapToInt(SummaryDetailsVO::getProYear).sum()));
             } else {
                 summaryDetailsVO.setProPlanCompletionPercent("0%");
             }
-            summaryDetailsVO.setChildren(summaryDetailsVOArrayList);
+            summaryDetailsVO.setChildren(list);
 
             return summaryDetailsVO;
         }).collect(Collectors.toList());

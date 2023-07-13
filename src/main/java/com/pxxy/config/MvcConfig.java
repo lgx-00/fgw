@@ -21,7 +21,8 @@ public class MvcConfig implements WebMvcConfigurer {
     //上面一行是静态资源路径
     //下面一行是接口访问路径
     private static final List<String> EXCLUDE_PATH = Arrays.asList("/", "css/**", "js/**", "img/**",
-            "json/**", "fonts/**","/*.html","/webjars/**","/swagger-resources/**", "/log/**","/summary/exportExcel");
+            "json/**", "fonts/**","/*.html","/webjars/**","/swagger-resources/**",
+            "/log/**", "/error", "/summary/exportExcel");
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -32,28 +33,5 @@ public class MvcConfig implements WebMvcConfigurer {
        // 权限拦截器
        registry.addInterceptor(new PermissionInterceptor()).excludePathPatterns(EXCLUDE_PATH).order(1);
     }
-
-
-//    /**
-//     * 跨域支持
-//     *
-//     * @param registry
-//     */
-//    @Override
-//    public void addCorsMappings(CorsRegistry registry) {
-//
-//        registry.addMapping("/**")
-//
-//                .allowedOrigins("*")
-//
-//                .allowCredentials(true)
-//
-//                .allowedMethods("GET", "POST", "DELETE", "PUT")
-//
-//                .allowedHeaders("*")
-//
-//                .maxAge(3600 * 24);
-//
-//    }
 
 }

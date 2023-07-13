@@ -15,12 +15,14 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "新增科室请求模型")
+@ApiModel("新增科室请求模型")
 public class AddDepartmentVO {
-    @ApiModelProperty(value = "科室名")
+
+    @ApiModelProperty("科室名")
     @NotBlank(message = "科室名称不能为空！")
     private String depName;
-    @ApiModelProperty(value = "项目类别ID")
+
+    @ApiModelProperty("项目类别ID")
     @NotEmpty(message = "项目类别不能为空！")
     private List<Integer> projectCategory;
 

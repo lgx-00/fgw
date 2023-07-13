@@ -17,7 +17,6 @@ import java.util.List;
  * @author: xrw
  * @date:  12:32
  */
-@Validated
 public interface IndustryFieldService extends IService<IndustryField> {
 
     /**
@@ -27,7 +26,7 @@ public interface IndustryFieldService extends IService<IndustryField> {
      * @param: [AddIndustryFieldVO]
      * @return: com.pxxy.utils.ResultResponse
      **/
-    ResultResponse<?> addIndustryField(@Validated AddIndustryFieldVO addIndustryFieldVO);
+    ResultResponse<?> addIndustryField(AddIndustryFieldVO addIndustryFieldVO);
 
     /**
      * @description: 修改行业
@@ -36,7 +35,7 @@ public interface IndustryFieldService extends IService<IndustryField> {
      * @param: [UpdateIndustryFieldVO]
      * @return: com.pxxy.utils.ResultResponse
      **/
-    ResultResponse<?> updateIndustryField(@Validated UpdateIndustryFieldVO updateIndustryFieldVO);
+    ResultResponse<?> updateIndustryField(UpdateIndustryFieldVO updateIndustryFieldVO);
 
     /**
      * @description: 查询所有行业

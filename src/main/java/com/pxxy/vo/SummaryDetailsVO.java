@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@ApiModel(value = "统计汇总详情")
+@ApiModel("统计汇总详情")
 @Accessors(chain = true)
 public class SummaryDetailsVO {
 
@@ -24,74 +24,86 @@ public class SummaryDetailsVO {
     /**
      * 项目名称
      */
-    @ApiModelProperty(value = "项目名称")
+    @ApiModelProperty("项目名称")
     private String proName;
 
     /*
      * 项目个数
      **/
-    @ApiModelProperty(value = "项目个数")
+    @ApiModelProperty("项目个数")
     private Integer projectNum;
 
     /**
      * 建设地点 非空
      */
-    @ApiModelProperty(value = "建设地点")
+    @ApiModelProperty("建设地点")
     private String proLocation;
 
     /**
      * 项目内容
      */
-    @ApiModelProperty(value = "项目内容")
+    @ApiModelProperty("项目内容")
     private String proContent;
 
     /**
      * 开工年月
      */
-    @ApiModelProperty(value = "开工年月")
+    @ApiModelProperty("开工年月")
     private Date proStartDate;
 
     /**
      * 完工年月
      */
-    @ApiModelProperty(value = "完工年月")
+    @ApiModelProperty("完工年月")
     private Date proCompleteDate;
 
     /**
      * 总投资
      */
-    @ApiModelProperty(value = "总投资")
+    @ApiModelProperty("总投资")
     private Integer proAllPlan;
 
     /**
      * 年计划完成投资
      */
-    @ApiModelProperty(value = "年计划完成投资")
+    @ApiModelProperty("年计划完成投资")
     private Integer proPlanYear;
 
     /**
      * 这月之前完成投资
      */
-    @ApiModelProperty(value = "这月之前完成投资")
+    @ApiModelProperty("这月之前完成投资")
     private Integer proPlanMonths;
 
     /**
      * 本月完成投资
      */
-    @ApiModelProperty(value = "本月完成投资")
+    @ApiModelProperty("本月完成投资")
     private Integer proPlanMonth;
 
     /**
      * 今年已完成投资
      */
-    @ApiModelProperty(value = "今年已完成投资")
+    @ApiModelProperty("今年已完成投资")
     private Integer proYear;
 
     /**
      * 年计划完成投资比例% 百分比值的 100 倍
      */
-    @ApiModelProperty(value = "年计划完成投资比例")
+    @ApiModelProperty("年计划完成投资比例")
     private String proPlanCompletionPercent;
+
+    /**
+     * 行业领域
+     */
+    @ApiModelProperty("行业领域名称")
+    private String infName;
+
+    /**
+     * 项目类型
+     */
+    @ApiModelProperty("项目类型名称")
+    private String prcName;
 
     //存放子菜单目录
     private List<SummaryDetailsVO> children;

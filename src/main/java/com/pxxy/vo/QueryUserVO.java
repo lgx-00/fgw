@@ -13,21 +13,21 @@ import java.util.List;
  * @Description:
  */
 @Data
-@ApiModel(value = "返回给前端的用户信息")
+@ApiModel("返回给前端的用户信息")
 public class QueryUserVO {
 
-    @ApiModelProperty(value = "用户ID")
+    @ApiModelProperty("用户ID")
     private Integer uId;
 
-    @ApiModelProperty(value = "用户名")
+    @ApiModelProperty("用户名")
     private String uName;
 
-    @ApiModelProperty(value = "所属科室")
+    @ApiModelProperty("所属科室")
     private String depName;
 
-    @ApiModelProperty(value = "辖区")
+    @ApiModelProperty("辖区")
     private String couName;
 
-    @ApiModelProperty(value = "角色")
+    @ApiModelProperty("角色")
     private List<String> roleList = new ArrayList<>();
 }
