@@ -43,7 +43,7 @@ public class ProjectDTO {
     @ApiModelProperty("行业领域编号")
     private Integer infId;
 
-    @ApiModelProperty("项目状态")
+    @ApiModelProperty("项目状态, 0未上报 1正常 2待审核 3未锁定 4待调度 5已删除 6已完工")
     private Integer proStatus;
 
     @ApiModelProperty("从")
@@ -63,6 +63,7 @@ public class ProjectDTO {
 
     @Max(value = 3, message = "项目阶段为非法值！")
     @Min(value = 0, message = "项目阶段为非法值！")
+    @ApiModelProperty("项目阶段，0所有阶段 1未开工 2在建 3已完工")
     private Integer projectStage = 0;
 
     public void setProName(String proName) {

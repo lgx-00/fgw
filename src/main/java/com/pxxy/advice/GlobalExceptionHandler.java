@@ -1,4 +1,4 @@
-package com.pxxy.exception;
+package com.pxxy.advice;
 
 import com.pxxy.utils.ResultResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -82,13 +82,17 @@ public class GlobalExceptionHandler {
         }
 
         List<ObjectError> errors = bindingResult.getAllErrors();
+        Object target = bindingResult.getTarget();
+        String className = target != null ? target.getClass().getSimpleName() : null;
         if (errors.isEmpty()) {
-            log.warn("参数校验失败，对象名称：{}", bindingResult.getObjectName());
+            log.warn("参数校验失败，对象名称：{}，对象类型：{}",
+                    bindingResult.getObjectName(), className);
             return ResultResponse.fail("参数错误");
         }
         ObjectError objectError = errors.get(0);
         String messages = objectError.getDefaultMessage();
-        log.warn("参数校验失败，对象名称：{}，错误信息：{}", bindingResult.getObjectName(), messages);
+        log.warn("参数校验失败，对象名称：{}，对象类型：{}，错误信息：{}",
+                bindingResult.getObjectName(), className, messages);
         return ResultResponse.fail(messages);
     }
 

@@ -65,7 +65,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     @Override
     public ResultResponse<PageInfo<QueryRoleVO>> getAllRole(Page page) {
         //  根据类型分页查询
-        PageInfo<QueryRoleVO> pageInfo = PageUtil.selectPage(page, this::query, mapRoleToVO);
+        PageInfo<QueryRoleVO> pageInfo = PageUtil.selectPage(page, () -> query().list(), mapRoleToVO);
         return ResultResponse.ok(pageInfo);
     }
 

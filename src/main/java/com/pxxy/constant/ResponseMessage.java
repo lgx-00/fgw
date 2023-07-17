@@ -27,10 +27,16 @@ public class ResponseMessage {
     public static final String INVALID_INDUSTRY_FIELD_ID = "无效的行业领域编号";
 
     // 调度相关的错误信息
-    public static final String LOCK_FAILED = "锁定失败";
-    public static final String UNLOCK_FAILED = "解锁失败";
-    public static final String CANNOT_MAKE_DIR = "无法创建文件";
-    public static final String NO_APPENDIX = "该调度无附件可下载";
-    public static final String APPENDIX_NOT_AVAILABLE = "该附件已失效";
+    public static final String LOCK_FAILED = "锁定失败！";
+    public static final String UNLOCK_FAILED = "解锁失败！";
+    public static final String CANNOT_MAKE_DIR = "无法创建文件！";
+    public static final String NO_APPENDIX = "该调度无附件可下载！";
+    public static final String APPENDIX_NOT_AVAILABLE = "该附件已失效！";
+    public static final String CANNOT_DELETE_LOCKED_DISPATCH = "不能删除已锁定的调度！";
+    public static final String CANNOT_UPDATE_LOCKED_DISPATCH = "不能修改已锁定的调度！";
+    public static final String PARAMETER_CHECK_FAILED = "数值计算结果错误！";
+    public static final String ADD_OUT_OF_TIME = "当前不在允许添加调度的时间段！";
+    public static final String NO_PERMISSION = "你没有操作此项目的调度的权限！";
+    public static final String ONLY_UNLOCK_LAST_DISPATCH = "只能解锁最后一次调度！";
 
 }

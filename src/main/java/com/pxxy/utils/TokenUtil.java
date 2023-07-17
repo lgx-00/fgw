@@ -63,6 +63,8 @@ public class TokenUtil {
             this.deadTime = System.currentTimeMillis() + maxInactiveInterval;
         }
 
+        void kill() { this.deadTime = 0; }
+
         boolean isDead() {
             return deadTime < System.currentTimeMillis();
         }
@@ -110,9 +112,11 @@ public class TokenUtil {
      * @param token 待验证的令牌
      * @return 是否正确
      */
-    public synchronized static UserDTO getUser(String token) {
+    public static UserDTO getUser(String token) {
         Token t = new Token(token);
-        updateMapper(t);
+        synchronized (TokenUtil.class) {
+            updateMapper(t);
+        }
         return TOKEN_MAPPER.get(t);
     }
 
@@ -121,14 +125,28 @@ public class TokenUtil {
      *
      * @return 生成的令牌
      */
-    public synchronized static Token generate(UserDTO userDTO) {
+    public static Token generate(UserDTO userDTO) {
         Token token = Token.generate();
-        TOKEN_MAPPER.put(token, userDTO);
+        synchronized (TokenUtil.class) {
+            TOKEN_MAPPER.put(token, userDTO);
+        }
         return token;
     }
 
-    public synchronized static UserDTO invalid(String token) {
-        return TOKEN_MAPPER.remove(new Token(token));
+    public static UserDTO invalid(String token) {
+        synchronized (TokenUtil.class) {
+            return TOKEN_MAPPER.remove(new Token(token));
+        }
+    }
+
+    public static void invalid(UserDTO user) {
+        synchronized (TokenUtil.class) {
+            TOKEN_MAPPER.forEach((k, v) -> {
+                if (user.equals(v)) {
+                    k.kill();
+                }
+            });
+        }
     }
 
 }

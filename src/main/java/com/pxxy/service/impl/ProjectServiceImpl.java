@@ -486,6 +486,19 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 : ResultResponse.fail(FAIL_MSG);
     }
 
+    @Override
+    public ResultResponse<?> reject(List<Integer> proIds) {
+        ResultResponse<?> sb = checkPendingReview(proIds, "驳回");
+        if (sb != null) return sb;
+        // TODO 驳回要发送 WebSocket 通知
+        return update().in("pro_id", proIds)
+                .eq("pro_status", PENDING_REVIEW.val)
+                .set("pro_status", FAILURE_TO_REPORT.val)
+                .set("dep_id", null).update()
+                ? ResultResponse.ok()
+                : ResultResponse.fail(FAIL_MSG);
+    }
+
     private void updateNextUpdateTime(List<Project> projects) {
         Calendar nextMonthCalendar = Calendar.getInstance();
         nextMonthCalendar.add(Calendar.MONTH, 1);
@@ -515,19 +528,6 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 project.setProNextUpdate(time);
             }
         }
-    }
-
-    @Override
-    public ResultResponse<?> reject(List<Integer> proIds) {
-        ResultResponse<?> sb = checkPendingReview(proIds, "驳回");
-        if (sb != null) return sb;
-        // TODO 驳回要发送 WebSocket 通知
-        return update().in("pro_id", proIds)
-                .eq("pro_status", PENDING_REVIEW.val)
-                .set("pro_status", FAILURE_TO_REPORT.val)
-                .set("dep_id", null).update()
-                ? ResultResponse.ok()
-                : ResultResponse.fail(FAIL_MSG);
     }
 
     private static final List<Integer> status = Arrays.asList(NORMAL.val,
@@ -574,6 +574,11 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         }
         updateBaseData();
         return ResultResponse.ok(mapProjectToVO.apply(project));
+    }
+
+    @Override
+    public void clearDispatch() {
+        update().set("pro_dis_year", 0).set("pro_dis_year_percent", 0).update();
     }
 
 }

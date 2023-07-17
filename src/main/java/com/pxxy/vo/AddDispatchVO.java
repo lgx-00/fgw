@@ -2,10 +2,11 @@ package com.pxxy.vo;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -22,6 +23,8 @@ import static com.pxxy.constant.ResponseMessage.ADD_FAILED;
  * @version 1.0
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @ApiModel("新增调度的数据模型")
 @EqualsAndHashCode(callSuper = true)
 public class AddDispatchVO extends DispatchVO implements Serializable {
@@ -140,5 +143,8 @@ public class AddDispatchVO extends DispatchVO implements Serializable {
     @ApiModelProperty("备注")
     @Length(max = 255, message = "备注不能超过 255 个字符！")
     private String disRemark;
+
+    @ApiModelProperty(hidden = true)
+    private int prcPeriod;
 
 }

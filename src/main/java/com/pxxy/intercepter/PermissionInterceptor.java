@@ -9,6 +9,7 @@ import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,13 +36,14 @@ public class PermissionInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        log.info("进入权限拦截器，请求路径为：{}，请求方法为：{}", req.getServletPath(), req.getMethod());
+        log.info("【权限拦截器】远程主机地址：{}，请求路径为：{}，请求方法为：{}",
+                req.getRemoteAddr(), req.getServletPath(), req.getMethod());
 
         UserDTO user = TokenUtil.getUser(req.getHeader("X-Token"));
 
         // 管理员的后门
         if (user.getUId().equals(1)) {
-            log.info("离开权限拦截器，管理员直接放行。");
+            log.info("【权限拦截器】离开权限拦截器，管理员直接放行。");
             return true;
         }
 
@@ -64,10 +66,11 @@ public class PermissionInterceptor implements HandlerInterceptor {
         if (!perm) {
             resp.setCharacterEncoding("UTF-8");
             resp.setStatus(PERMISSION_NOT_ENOUGH);
+            resp.setContentType(MediaType.APPLICATION_JSON_VALUE);
             resp.getWriter().write(JSONUtil.toJsonStr(ResultResponse.fail(PERMISSION_NOT_ENOUGH, method.msg)));
-            log.info("离开权限拦截器，请求被拦截。");
+            log.info("【权限拦截器】离开权限拦截器，请求被拦截。");
         } else {
-            log.info("离开权限拦截器，请求顺利通过。");
+            log.info("【权限拦截器】离开权限拦截器，请求顺利通过。");
         }
         return perm;
     }

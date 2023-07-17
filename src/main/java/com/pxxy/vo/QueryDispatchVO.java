@@ -1,9 +1,10 @@
 package com.pxxy.vo;
 
+import com.pxxy.enums.DispatchStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.Date;
+import java.util.*;
 
 /**
  * 查询调度的实体类
@@ -13,6 +14,18 @@ import java.util.Date;
  */
 @Data
 public class QueryDispatchVO {
+
+    /**
+     * 调度编号
+     */
+    @ApiModelProperty("调度编号")
+    private Integer disId;
+
+    /**
+     * 项目编号
+     */
+    @ApiModelProperty("项目编号")
+    private Integer proId;
 
     /**
      * 添加时间
@@ -124,5 +137,27 @@ public class QueryDispatchVO {
     @ApiModelProperty("备注")
     private String disRemark;
 
+    @ApiModelProperty("项目状态")
+    private String disStatus;
+
+    public void setDisStatus(Integer disStatus) {
+        for (DispatchStatusEnum value : DispatchStatusEnum.values()) {
+            if (Objects.equals(value.val, disStatus)) {
+                this.disStatus = value.name;
+                return;
+            }
+        }
+        this.disStatus = null;
+    }
+
+    /**
+     * 是否有附件
+     */
+    @ApiModelProperty("是否有附件")
+    private boolean hasAppendix;
+
+    public void setDisAppendix(String disAppendix) {
+        this.hasAppendix = disAppendix != null;
+    }
 
 }

@@ -197,7 +197,7 @@ public class QueryProjectVO {
     /**
      * 当前状态 非空，状态有：0正常、1未上报、2待审核、4待调度、5已删除
      */
-    @ApiModelProperty("当前状态")
+    @ApiModelProperty("当前状态, 0未上报 1正常 2待审核 3未锁定 4待调度 5已删除 6已完工")
     private String proStatusContent;
 
 

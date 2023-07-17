@@ -49,4 +49,6 @@ public interface ProjectService extends IService<Project> {
     ResultResponse<Integer> getDispatchingCount();
 
     ResultResponse<QueryProjectVO> getProject(Integer proId);
+
+    void clearDispatch();
 }

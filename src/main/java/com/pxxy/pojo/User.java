@@ -47,7 +47,7 @@ public class User implements Serializable {
     private Integer depId;
 
     /**
-     * 用户所属县区id
+     * 用户所属辖区编号
      */
     private Integer couId;
 

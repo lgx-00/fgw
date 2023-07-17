@@ -35,7 +35,8 @@ public class LoginInterceptor implements HandlerInterceptor {
         String xToken = request.getHeader("X-Token");
         UserDTO user = TokenUtil.getUser(xToken);
         if (user == null) {
-            log.info("令牌无效，请求 {} 已被拦截。", request.getRequestURI());
+            log.info("【身份验证拦截器】令牌无效，来自 {} 的请求 {} 已被拦截。",
+                    request.getRemoteAddr(), request.getRequestURI());
             return fail(response);
         }
 

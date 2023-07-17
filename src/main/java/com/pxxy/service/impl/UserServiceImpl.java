@@ -1,6 +1,7 @@
 package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
@@ -28,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
 import static com.pxxy.constant.SystemConstant.*;
 
 /**
@@ -110,9 +112,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 判断用户是否处于禁用时间中
         Date date = disableTimeMap.get(USER_DISABLED_TIME_KEY + user.getUId());
+        Date now = new Date();
         if (date != null) {
             // 当前时间减去当时禁用时间
-            long time = new Date().getTime() - date.getTime();
+            long time = now.getTime() - date.getTime();
             if (time / 1000 / 60 >= USER_DEFAULT_DISABLE_TIME) {
                 disableTimeMap.remove(USER_DISABLED_TIME_KEY + user.getUId());
                 user.setUStatus(DEFAULT_STATUS);
@@ -141,7 +144,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         user.setUStatus(USER_DISABLED_STATUS);
                         updateById(user);
                         // 将最后一次输入错误的时间存入Map
-                        disableTimeMap.put(USER_DISABLED_TIME_KEY + user.getUId(), new Date());
+                        disableTimeMap.put(USER_DISABLED_TIME_KEY + user.getUId(), now);
                         // 错误次数置零
                         mistakeTimes.put(USER_MISTAKE_TIMES_KEY + user.getUId(), USER_MISTAKE_DEFAULT_TIMES);
                     }
@@ -154,8 +157,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     return ResultResponse.fail("用户所属的角色已被删除，请联系管理员！");
                 }
 
+                // 检查是否过年了
+                checkIfNewYear(now);
+
                 // 登录成功，更新用户登录时间
-                user.setULoginTime(new Date());
+                user.setULoginTime(now);
                 updateById(user);
 
                 // *查询用户权限
@@ -181,11 +187,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 // 将待调度的项目的状态更新为待调度
                 projectService.updateDispatchStatus();
 
-                UserDTO dto = new UserDTO(user.getUId(), user.getUName(), permission);
+                UserDTO dto = new UserDTO(user.getUId(), user.getUName(), user.getDepId(), permission);
                 TokenUtil.Token xToken = TokenUtil.generate(dto);
                 return ResultResponse.ok(xToken.token);
             default:
                 return ResultResponse.fail("用户状态异常！");
+        }
+    }
+
+    private void checkIfNewYear(Date now) {
+        // TODO: 2023/7/17 未测试
+        User one = query().select("max(u_login_time) u_login_time").one();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(one.getULoginTime());
+        int lastLoginYear = calendar.get(Calendar.YEAR);
+        calendar.setTime(now);
+        int thisYear = calendar.get(Calendar.YEAR);
+        if (thisYear > lastLoginYear) {
+            projectService.clearDispatch();
         }
     }
 
@@ -237,6 +256,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = query().eq("u_id", userId).one();
         user.setUStatus(DELETED_STATUS);
         updateById(user);
+
+        // 强制下线删除的用户
+        TokenUtil.invalid(new UserDTO(userId));
+
         return ResultResponse.ok();
     }
 
@@ -245,7 +268,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public ResultResponse<?> modifyUser(UpdateUserVO updateUserVO) {
 
         if (updateUserVO.getRoleList() == null || updateUserVO.getRoleList().size() == 0) {
-            return ResultResponse.fail("非法操作！");
+            return ResultResponse.fail(ILLEGAL_OPERATE);
         }
 
         Integer uid = updateUserVO.getUId();
@@ -269,6 +292,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return userRole;
         }).collect(Collectors.toList());
         userRoleService.saveBatch(userRoleList);
+
+        // 强制下线修改的用户
+        TokenUtil.invalid(new UserDTO(uid));
+
         return ResultResponse.ok();
     }
 

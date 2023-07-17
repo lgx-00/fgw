@@ -1,4 +1,4 @@
-package com.pxxy.exception;
+package com.pxxy.exceptions;
 
 /**
  * Class name: FileException

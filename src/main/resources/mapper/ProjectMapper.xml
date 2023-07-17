@@ -26,7 +26,6 @@
         <result column="pro_is_new" property="proIsNew"/>
         <result column="pro_is_provincial" property="proIsProvincial"/>
         <result column="pro_next_update" property="proNextUpdate"/>
-        <result column="pro_dis_date_range" property="proDisDateRange"/>
         <result column="pro_type" property="proType"/>
         <result column="pro_arrange" property="proArrange"/>
         <result column="pro_guarantee" property="proGuarantee"/>
@@ -39,14 +38,13 @@
         <result column="u_id" property="uId"/>
         <result column="pro_last_dis" property="proLastDis"/>
         <result column="pro_status" property="proStatus"/>
-        <result column="pro_check_dep" property="proCheckDep"/>
         <result column="pro_mark" property="proMark"/>
         <result column="pro_remark" property="proRemark"/>
     </resultMap>
 
     <!--通用查询结果列 -->
     <sql id="Base_Column_List">
-        pro_id, pro_date, dep_id, cou_id, town_id, prc_id, inf_id, pro_code, pro_in_code, pro_name, pro_content, pro_location, pro_start, pro_complete, pro_plan, pro_plan_year, pro_legal_person, pro_dis_start, pro_dis_complete, pro_is_new, pro_is_provincial, pro_next_update, pro_dis_date_range, pro_type, pro_arrange, pro_guarantee, pro_dis_total, pro_dis_year, pro_dis_total_percent, pro_dis_year_percent, pro_dis_progress, pro_add_time, u_id, pro_last_dis, pro_status, pro_check_dep, pro_mark, pro_remark
+        pro_id, pro_date, dep_id, cou_id, town_id, prc_id, inf_id, pro_code, pro_in_code, pro_name, pro_content, pro_location, pro_start, pro_complete, pro_plan, pro_plan_year, pro_legal_person, pro_dis_start, pro_dis_complete, pro_is_new, pro_is_provincial, pro_next_update, pro_type, pro_arrange, pro_guarantee, pro_dis_total, pro_dis_year, pro_dis_total_percent, pro_dis_year_percent, pro_dis_progress, pro_add_time, u_id, pro_last_dis, pro_status, pro_mark, pro_remark
     </sql>
 
     <!--union all是不去重 union 是去重-->

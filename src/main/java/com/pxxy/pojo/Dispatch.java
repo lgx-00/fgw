@@ -127,7 +127,6 @@ public class Dispatch implements Serializable {
     /**
      * 状态 非空，状态有：0 正常、5 已删除
      */
-    @TableLogic(value = DEFAULT_STATUS + "",delval = DELETED_STATUS + "")
     private Integer disStatus;
 
     /**

@@ -17,14 +17,18 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+#yml配置
 logging:
+  config: classpath:logback-spring.xml
   level:
-    com.pxxy: info
+    root: info
 
 fgw:
+  log:
+    max-length: 300
   max-inactive-interval: 86400
-  file-path: ./appendix
-
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  file-path: /Users/xw/Desktop/appendix
+#
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

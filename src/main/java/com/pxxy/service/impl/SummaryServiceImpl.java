@@ -189,8 +189,9 @@ public class SummaryServiceImpl implements SummaryService {
     }
 
     private List<SummaryVO> groupSummary(List<Project> projects) {
+        // TODO: 2023/7/14 根据辖区分组
         //对同一二级辖区的项目进行分组
-        Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getTownId));
+        Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getCouId));
         return listMap.keySet().stream().map(key -> {
             SummaryVO summaryVO = new SummaryVO();
             summaryVO.setTownName(townMapper.selectById(key).getTownName());
@@ -236,8 +237,9 @@ public class SummaryServiceImpl implements SummaryService {
     }
 
     private List<SummaryDetailsVO> groupSummaryDetails(List<Project> projects, List<Dispatch> dispatchList) {
-        //对同一二级辖区的项目进行分组
-        Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getTownId));
+        // TODO: 2023/7/14 根据辖区分组
+        //对同一辖区的项目进行分组
+        Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getCouId));
         updateBaseDate();
 
         return listMap.keySet().stream().map(key -> {

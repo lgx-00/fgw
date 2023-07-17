@@ -1,6 +1,5 @@
 package com.pxxy.service;
 
-import cn.hutool.core.io.resource.InputStreamResource;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.pagehelper.PageInfo;
 import com.pxxy.pojo.Dispatch;
@@ -9,9 +8,8 @@ import com.pxxy.vo.AddDispatchVO;
 import com.pxxy.vo.Page;
 import com.pxxy.vo.QueryDispatchVO;
 import com.pxxy.vo.UpdateDispatchVO;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
-
-import java.util.List;
 
 /**
  * <p>

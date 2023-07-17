@@ -1,9 +1,12 @@
 package com.pxxy.pojo;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -18,8 +21,9 @@ import java.util.Date;
  * @since 2023-06-14
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
 @Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
 public class Project implements Serializable {
 
     private static final long serialVersionUID=1L;
@@ -48,6 +52,7 @@ public class Project implements Serializable {
     /**
      * 二级辖区 ID
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private Integer townId;
 
     /**
@@ -136,11 +141,6 @@ public class Project implements Serializable {
     private Date proNextUpdate;
 
     /**
-     * 项目允许调度的日期范围，一个4位数，前两位是起始日期，后两位是最终日期。如果是0表示总是允许调度，没有时间限制。
-     */
-    private Integer proDisDateRange;
-
-    /**
      * 投资类别
      */
     private String proType;
@@ -198,11 +198,6 @@ public class Project implements Serializable {
     private Integer proStatus;
 
     /**
-     * 负责调度该项目的科室
-     */
-    private Integer proCheckDep;
-
-    /**
      * 标记
      */
     private String proMark;
@@ -212,5 +207,20 @@ public class Project implements Serializable {
      */
     private String proRemark;
 
+    public Project(
+        Integer proId,
+        Integer proDisTotal,
+        Integer proDisYear,
+        Integer proDisTotalPercent,
+        Integer proDisYearPercent,
+        String proDisProgress
+    ) {
+        this.proId = proId;
+        this.proDisTotal = proDisTotal;
+        this.proDisYear = proDisYear;
+        this.proDisTotalPercent = proDisTotalPercent;
+        this.proDisYearPercent = proDisYearPercent;
+        this.proDisProgress = proDisProgress;
+    }
 
 }
