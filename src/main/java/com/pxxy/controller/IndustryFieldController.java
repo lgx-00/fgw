@@ -47,7 +47,7 @@ public class IndustryFieldController {
     @GetMapping
     @ApiOperation("查询所有行业")
     public ResultResponse<List<IndustryField>> selectIndustryField(){
-        return IndustryFieldService.selectIndustryField();
+        return IndustryFieldService.getAll();
     }
 
     @DeleteMapping

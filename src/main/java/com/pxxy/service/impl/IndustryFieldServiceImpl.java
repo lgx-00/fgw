@@ -1,6 +1,7 @@
 package com.pxxy.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.IndustryFieldMapper;
 import com.pxxy.pojo.IndustryField;
 import com.pxxy.service.IndustryFieldService;
@@ -9,7 +10,6 @@ import com.pxxy.vo.AddIndustryFieldVO;
 import com.pxxy.vo.UpdateIndustryFieldVO;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
@@ -22,18 +22,16 @@ import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
  * @author xrw
  * @since 2023-06-14
  */
+@Cached
 @Service
 public class IndustryFieldServiceImpl extends ServiceImpl<IndustryFieldMapper, IndustryField> implements IndustryFieldService {
-
-    @Resource
-    private IndustryFieldMapper IndustryFieldMapper;
 
     @Override
     public ResultResponse<?> addIndustryField(AddIndustryFieldVO addIndustryFieldVO) {
         IndustryField industryField = new IndustryField()
                 .setInfName(addIndustryFieldVO.getInfName())
                 .setInfRemark(addIndustryFieldVO.getInfRemark());
-        IndustryFieldMapper.insert(industryField);
+        baseMapper.insert(industryField);
         return ResultResponse.ok(industryField);
     }
 
@@ -45,13 +43,13 @@ public class IndustryFieldServiceImpl extends ServiceImpl<IndustryFieldMapper, I
         }
         industryField.setInfName(updateIndustryFieldVO.getInfName())
                 .setInfRemark(updateIndustryFieldVO.getInfRemark());
-        IndustryFieldMapper.updateById(industryField);
+        baseMapper.updateById(industryField);
         return ResultResponse.ok(industryField);
     }
 
     @Override
-    public ResultResponse<List<IndustryField>> selectIndustryField() {
-        List<IndustryField> industryFields = IndustryFieldMapper.selectList(null);
+    public ResultResponse<List<IndustryField>> getAll() {
+        List<IndustryField> industryFields = baseMapper.selectList(null);
         return ResultResponse.ok(industryFields);
     }
 
@@ -63,6 +61,11 @@ public class IndustryFieldServiceImpl extends ServiceImpl<IndustryFieldMapper, I
             return ResultResponse.ok();
         }
         return ResultResponse.fail(ILLEGAL_OPERATE);
+    }
+
+    @Override
+    public List<IndustryField> all() {
+        return query().list();
     }
 }
 

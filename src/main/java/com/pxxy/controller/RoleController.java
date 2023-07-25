@@ -2,6 +2,8 @@ package com.pxxy.controller;
 
 
 import com.github.pagehelper.PageInfo;
+import com.pxxy.pojo.Permission;
+import com.pxxy.service.PermissionService;
 import com.pxxy.service.RoleService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddRoleVO;
@@ -14,6 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * <p>
@@ -29,8 +32,12 @@ import javax.annotation.Resource;
 @RequestMapping("/sys/role")
 @Api(tags = "角色")
 public class RoleController {
+
     @Resource
     private RoleService roleService;
+
+    @Resource
+    private PermissionService permService;
 
     @GetMapping("/all")
     @ApiOperation("分页查询所有角色")
@@ -42,6 +49,12 @@ public class RoleController {
     @ApiOperation("模糊查询角色名")
     public ResultResponse<PageInfo<QueryRoleVO>> getVagueRole(@ModelAttribute @Validated Page page, @RequestParam String rName) {
         return roleService.getVagueRole(page, rName);
+    }
+
+    @GetMapping("/perm")
+    @ApiOperation("查询所有权限")
+    public ResultResponse<List<Permission>> getPerm() {
+        return permService.getPerm();
     }
 
     @PostMapping

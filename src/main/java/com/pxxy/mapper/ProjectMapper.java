@@ -22,4 +22,7 @@ public interface ProjectMapper extends BaseMapper<Project> {
     List<Project> getVagueProjectByUser(ProjectDTO dto);
 
     Integer getDispatchingCount(ProjectDTO dto);
+
+    List<Project> getAllDispatchProjectByUser(Integer depId, Integer couId, Integer uId);
+
 }

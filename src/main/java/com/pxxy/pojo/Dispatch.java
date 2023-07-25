@@ -2,16 +2,14 @@ package com.pxxy.pojo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.Date;
-
-import static com.pxxy.constant.SystemConstant.DEFAULT_STATUS;
-import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
 
 /**
  * <p>
@@ -22,8 +20,10 @@ import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
  * @since 2023-06-14
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
+@AllArgsConstructor
 @Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
 public class Dispatch implements Serializable {
 
     private static final long serialVersionUID=1L;
@@ -139,4 +139,12 @@ public class Dispatch implements Serializable {
      */
     private String disAppendix;
 
+    public Dispatch(Integer disId, Integer disTotal, Integer disPlanYear, Integer disYear, Integer disTotalPercent, Integer disYearPercent) {
+        this.disId = disId;
+        this.disTotal = disTotal;
+        this.disPlanYear = disPlanYear;
+        this.disYear = disYear;
+        this.disTotalPercent = disTotalPercent;
+        this.disYearPercent = disYearPercent;
+    }
 }

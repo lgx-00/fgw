@@ -31,7 +31,7 @@ public class AddDispatchVO extends DispatchVO implements Serializable {
 
     private static final long serialVersionUID=1L;
 
-    @NotNull(message = ADD_FAILED)
+    @NotNull(message = ADD_FAILED + "，缺少必要参数")
     @ApiModelProperty("调度所属项目的编号")
     private Integer proId;
 

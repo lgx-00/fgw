@@ -157,7 +157,7 @@ public class QueryDispatchVO {
     private boolean hasAppendix;
 
     public void setDisAppendix(String disAppendix) {
-        this.hasAppendix = disAppendix != null;
+        this.hasAppendix = disAppendix != null && !"".equals(disAppendix);
     }
 
 }

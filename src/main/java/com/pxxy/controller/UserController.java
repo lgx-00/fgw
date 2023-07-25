@@ -55,7 +55,7 @@ public class UserController {
     @PutMapping
     @ApiOperation("修改用户")
     public ResultResponse<?> modifyUser(@RequestBody @Validated UpdateUserVO updateUserVO) {
-        return userService.modifyUser(updateUserVO);
+        return userService.updateUser(updateUserVO);
     }
 
     @GetMapping("/all")

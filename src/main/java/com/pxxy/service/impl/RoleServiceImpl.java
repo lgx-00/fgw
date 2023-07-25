@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
+import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.RoleMapper;
 import com.pxxy.pojo.Permission;
 import com.pxxy.pojo.Role;
@@ -28,7 +29,6 @@ import java.util.stream.Collectors;
 
 import static com.pxxy.constant.ResponseMessage.ADD_FAILED;
 import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
-import static com.pxxy.constant.SystemConstant.DEFAULT_PAGE_SIZE;
 
 /**
  * <p>
@@ -39,6 +39,7 @@ import static com.pxxy.constant.SystemConstant.DEFAULT_PAGE_SIZE;
  * @since 2023-06-14
  */
 @Service
+@Cached(parent = {PermissionServiceImpl.class})
 public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements RoleService {
 
     @Resource

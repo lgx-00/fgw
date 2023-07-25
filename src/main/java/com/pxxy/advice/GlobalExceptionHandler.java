@@ -1,5 +1,6 @@
 package com.pxxy.advice;
 
+import com.pxxy.exceptions.ReportException;
 import com.pxxy.utils.ResultResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.List;
@@ -22,11 +22,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @description 全局异常捕获器
+ * 全局异常捕获器
  * @author hs
- * @date 2023/4/15 21:51
- * @params
- * @return
+ * 2023/4/15 21:51
  */
 @Slf4j
 @RestControllerAdvice
@@ -60,14 +58,21 @@ public class GlobalExceptionHandler {
         return ResultResponse.fail("缺少必要参数");
     }
 
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ReportException.class)
+    public ResultResponse<?> error(ReportException e) {
+        ResultResponse<Object> ret = ResultResponse.fail(e.getMessage());
+        log.info("【返回结果】 {}", ret);
+        return ret;
+    }
+
     /**
      * spring 封装的参数验证异常， 在controller中没有写BindingResult(实际开发不常用)参数时，会进入
-     * @param ex
-     * @return
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
-    public ResultResponse<?> methodArgumentNotValidException(Exception ex, HttpServletRequest request) {
+    public ResultResponse<?> methodArgumentNotValidException(Exception ex) {
         BindingResult bindingResult = null;
         if (ex instanceof MethodArgumentNotValidException) {
             bindingResult = ((MethodArgumentNotValidException) ex).getBindingResult();

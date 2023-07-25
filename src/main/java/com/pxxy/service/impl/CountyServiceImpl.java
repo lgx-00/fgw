@@ -1,8 +1,10 @@
 package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import cn.hutool.core.stream.SimpleCollector;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.CountyMapper;
 import com.pxxy.pojo.County;
 import com.pxxy.pojo.Town;
@@ -17,10 +19,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.stream.CollectorUtil.CH_ID;
 import static com.pxxy.constant.ResponseMessage.FAIL_MSG;
 import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
 import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
@@ -34,17 +39,14 @@ import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
  * @since 2023-06-14
  */
 @Service
+@Cached(parent = TownService.class)
 public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> implements CountyService {
 
     @Resource
     private TownService townService;
 
-    private static final Function<Town, QueryTownVO> mapTownToVO = t -> {
-        QueryTownVO vo = new QueryTownVO();
-        vo.setTownId(t.getTownId());
-        vo.setTownName(t.getTownName());
-        return vo;
-    };
+    private static final Function<Town, QueryTownVO> mapTownToVO =
+            t -> new QueryTownVO(t.getTownId(), t.getTownName());
 
     @Override
     @Transactional
@@ -53,11 +55,9 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
         county.setCouName(addCountyVO.getCouName());
         save(county);
 
-        List<String> townNames = addCountyVO.getTownNames();
-        for (String s:townNames) {
-            Town town = new Town().setCouId(county.getCouId()).setTownName(s);
-            townService.save(town);
-        }
+        List<Town> towns = addCountyVO.getTownNames().stream()
+                .map(name -> new Town(county.getCouId(), name)).collect(Collectors.toList());
+        townService.saveBatch(towns);
         return ResultResponse.ok();
     }
 
@@ -75,16 +75,12 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
         updateById(county);
 
         // 先删除
-        LambdaQueryWrapper<Town> townLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        townLambdaQueryWrapper.eq(Town::getCouId,couId);
-        townService.remove(townLambdaQueryWrapper);
+        townService.remove(new QueryWrapper<Town>().eq("cou_id", couId));
 
         // 再加入
-        List<String> townNames = updateCountyVO.getTownNames();
-        for (String s:townNames) {
-            Town town = new Town().setCouId(couId).setTownName(s);
-            townService.save(town);
-        }
+        List<Town> towns = updateCountyVO.getTownNames().stream()
+                .map(name -> new Town().setCouId(couId).setTownName(name)).collect(Collectors.toList());
+        townService.saveBatch(towns);
 
         return ResultResponse.ok();
     }
@@ -92,19 +88,16 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
     @Override
     public ResultResponse<List<QueryCountyVO>> getAllCounties() {
         List<County> countyList = query().list();
-        List<QueryCountyVO> queryCountyVOS = countyList.stream().map(county -> {
-            QueryCountyVO queryCountyVO = new QueryCountyVO();
-            BeanUtil.copyProperties(county, queryCountyVO);
-            List<QueryTownVO> towns = townService.query()
-                    .eq("cou_id", county.getCouId())
-                    .list()
-                    .stream()
-                    .map(mapTownToVO)
-                    .collect(Collectors.toList());
-            queryCountyVO.setTowns(towns);
-            return queryCountyVO;
-        }).collect(Collectors.toList());
-        return ResultResponse.ok(queryCountyVOS);
+
+        List<Integer> couIds = countyList.stream().map(County::getCouId).collect(Collectors.toList());
+        Map<Integer, List<QueryTownVO>> couIdMapTowns = townService.query().in("cou_id", couIds).list()
+                .stream().collect(Collectors.groupingBy(Town::getCouId, new SimpleCollector<>(
+                        ArrayList::new, (list, town) -> list.add(mapTownToVO.apply(town)), null, CH_ID)));
+
+        List<QueryCountyVO> counties = countyList.stream()
+                .map(c -> new QueryCountyVO(c.getCouId(), c.getCouName(), couIdMapTowns.get(c.getCouId())))
+                .collect(Collectors.toList());
+        return ResultResponse.ok(counties);
     }
 
     @Override
@@ -130,6 +123,11 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
         BeanUtil.copyProperties(county, vo);
         vo.setTowns(towns);
         return ResultResponse.ok(vo);
+    }
+
+    @Override
+    public List<County> all() {
+        return query().list();
     }
 
 }

@@ -66,42 +66,32 @@ public class DispatchController {
         return dispatchService.download(disId, proId);
     }
 
-    private static final String notes =
-            "使用 swagger 请求会失败，可以使用以下方式测试发送请求。\n" +
-            "window.ondrop = e => {\n" +
-            "  var s = '{\"disTotal\":300,\"disPlanYear\":3000,\"disYear\":300,\"disTotal" +
-                    "Percent\":500,\"disYearPercent\":1000,\"disProgress\":\"主要形象进度" +
-                    "\",\"stageId\":1,\"disInvest\":300,\"disApply\":300,\"disSituation" +
-                    "\":\"工程进展状况\",\"disToDep\":\"报送单位\",\"disSource\":\"项目来源" +
-                    "\",\"disGuarantee\":\"包保责任领导\",\"disFiled\":\"所属行业领域\",\"d" +
-                    "isIssue\":\"存在问题\",\"disRemark\":\"备注\",\"proId\":1360}'\n" +
-            "  var fd = new FormData();\n" +
-            "  fd.append('vo', new Blob([s], {type:'application/json'}));\n" +
-            "  fd.append('disAppendix', e.dataTransfer.files[0]);\n" +
-            "  axios.post('/project/dispatch', fd,\n" +
-            "             {headers:{'X-Token':'J691b4cpSA91QjQ0j30Uvyw6sHOdaOJ1'}})\n" +
-            "    .then(a => console.log(a.data))\n" +
-            "    .catch(e => console.error(e.response.data))\n" +
-            "}";
-
     @PostMapping
-    @ApiOperation(value = "新增调度", notes = notes)
-    public ResultResponse<?> add(
-            @RequestPart("vo") @Validated AddDispatchVO vo,
-            @RequestPart(value = "disAppendix", required = false) MultipartFile disAppendix
-    ) {
-        vo.setDisAppendix(disAppendix);
+    @ApiOperation(value = "新增调度")
+    public ResultResponse<?> add(@RequestBody @Validated AddDispatchVO vo) {
         return dispatchService.add(vo);
     }
 
-    @ApiOperation(value = "修改调度", notes = "使用 swagger 请求会失败，可以使用类似新增调度的方式测试发送请求。")
-    @PutMapping(consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResultResponse<?> update(
-            @RequestPart("vo") @Validated UpdateDispatchVO vo,
-            @RequestPart(value = "disAppendix", required = false) MultipartFile disAppendix
-    ) {
-        vo.setDisAppendix(disAppendix);
+    @PostMapping("upload")
+    @ApiOperation(value = "直接上传附件")
+    public ResultResponse<String> upload(MultipartFile disAppendix) {
+        return dispatchService.upload(disAppendix);
+    }
+
+    @PutMapping
+    @ApiOperation(value = "修改调度")
+    public ResultResponse<?> update(@RequestBody @Validated UpdateDispatchVO vo) {
         return dispatchService.update(vo);
+    }
+
+    @PutMapping("/{proId}/{disId}")
+    @ApiOperation(value = "根据项目编号和调度编号上传附件")
+    public ResultResponse<?> upload(
+            @PathVariable @ApiParam("项目编号") Integer proId,
+            @PathVariable @ApiParam("调度编号") Integer disId,
+            MultipartFile disAppendix
+    ) {
+        return dispatchService.upload(disAppendix, proId, disId);
     }
 
     @PutMapping("/{proId}/lock")

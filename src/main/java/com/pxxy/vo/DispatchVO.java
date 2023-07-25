@@ -2,11 +2,7 @@ package com.pxxy.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.hibernate.validator.constraints.Length;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -25,7 +21,7 @@ public class DispatchVO implements Serializable {
     /**
      * 附件
      */
-    @ApiModelProperty(hidden = true)
-    private MultipartFile disAppendix;
+    @ApiModelProperty("附件")
+    private String disAppendix;
 
 }

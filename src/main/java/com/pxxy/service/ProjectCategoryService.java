@@ -1,6 +1,7 @@
 package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.pxxy.advice.annotations.Cached;
 import com.pxxy.pojo.ProjectCategory;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddProjectCategoryVO;
@@ -27,4 +28,6 @@ public interface ProjectCategoryService extends IService<ProjectCategory> {
     ResultResponse<List<QueryProjectCategoryVO>> getAllProjectCategory();
 
     ResultResponse<?> deleteProjectCategory(Integer prcId);
+
+    List<ProjectCategory> all();
 }

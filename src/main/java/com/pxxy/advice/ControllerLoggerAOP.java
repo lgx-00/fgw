@@ -35,7 +35,11 @@ public class ControllerLoggerAOP {
             ret = joinPoint.proceed();
         } catch (Throwable e) {
             LocalTime endTime = LocalTime.now();
-            log.error("【出现异常】 执行耗时 {}", Duration.between(startTime, endTime), e);
+            if ("com.pxxy.exceptions".equals(e.getClass().getPackage().getName())) {
+                log.error("【出现异常】 异常类型：{}，执行耗时 {}", e.getClass(), Duration.between(startTime, endTime));
+            } else {
+                log.error("【出现异常】 执行耗时 {}", Duration.between(startTime, endTime), e);
+            }
             throw e;
         }
         LocalTime endTime = LocalTime.now();

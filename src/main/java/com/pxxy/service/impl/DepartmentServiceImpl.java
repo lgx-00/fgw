@@ -1,11 +1,14 @@
 package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.stream.SimpleCollector;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.DepartmentMapper;
 import com.pxxy.pojo.DepPrc;
 import com.pxxy.pojo.Department;
+import com.pxxy.pojo.ProjectCategory;
 import com.pxxy.service.DepPrcService;
 import com.pxxy.service.DepartmentService;
 import com.pxxy.service.ProjectCategoryService;
@@ -17,9 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.stream.CollectorUtil.CH_ID;
 import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
 
 /**
@@ -31,13 +37,14 @@ import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
  * @since 2023-06-14
  */
 @Service
+@Cached(parent = ProjectCategoryService.class)
 public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Department> implements DepartmentService {
 
     @Resource
     private DepPrcService depPrcService;
 
     @Resource
-    private ProjectCategoryService projectCategoryService;
+    private ProjectCategoryService prcService;
 
     @Override
     @Transactional
@@ -85,19 +92,30 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
 
     @Override
     public ResultResponse<List<QueryDepartmentVO>> getAllDepartment() {
+
+        // get all departments and the middle entities for the following operation
         List<Department> departmentList = query().list();
-        List<QueryDepartmentVO> queryDepartmentVOS = departmentList.stream().map(department -> {
+        List<Integer> depIds = departmentList.stream().map(Department::getDepId).collect(Collectors.toList());
+        List<DepPrc> depPrcList = depPrcService.query().in("dep_id", depIds).list();
+
+        // get project category mapper ( id -> name )
+        List<Integer> prcIds = depPrcList.stream().map(DepPrc::getPrcId).distinct().collect(Collectors.toList());
+        Map<Integer, String> prcMapper = prcService.query().in("prc_id", prcIds).list().stream()
+                .collect(Collectors.toMap(ProjectCategory::getPrcId, ProjectCategory::getPrcName));
+
+        // get department id and project category mapper ( depId -> list of prcName )
+        Map<Integer, List<String>> depIdMapPrcNames = depPrcList.stream()
+                .collect(Collectors.groupingBy(DepPrc::getDepId, new SimpleCollector<>(ArrayList::new,
+                        (list, dp) -> list.add(prcMapper.get(dp.getPrcId())), null, CH_ID)));
+
+        List<QueryDepartmentVO> voList = departmentList.stream().map(d -> {
             QueryDepartmentVO queryDepartmentVO = new QueryDepartmentVO();
-            BeanUtil.copyProperties(department,queryDepartmentVO);
-            List<DepPrc> depPrcList = depPrcService.query().eq("dep_id", department.getDepId()).list();
-            List<String> projectCategoryName = depPrcList.stream().map(depPrc ->
-                    projectCategoryService.query().eq("prc_id", depPrc.getPrcId())
-                            .one().getPrcName()).collect(Collectors.toList());
-            queryDepartmentVO.setProjectCategoryName(projectCategoryName);
+            BeanUtil.copyProperties(d, queryDepartmentVO);
+            queryDepartmentVO.setProjectCategoryName(depIdMapPrcNames.get(d.getDepId()));
             return queryDepartmentVO;
         }).collect(Collectors.toList());
 
-        return ResultResponse.ok(queryDepartmentVOS);
+        return ResultResponse.ok(voList);
     }
 
     @Override
@@ -108,5 +126,10 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
         }
         removeById(depId);
         return ResultResponse.ok();
+    }
+
+    @Override
+    public List<Department> all() {
+        return query().list();
     }
 }

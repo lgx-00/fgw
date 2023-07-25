@@ -8,7 +8,6 @@ import com.pxxy.vo.AddRoleVO;
 import com.pxxy.vo.Page;
 import com.pxxy.vo.QueryRoleVO;
 import com.pxxy.vo.UpdateRoleVO;
-import org.springframework.validation.annotation.Validated;
 
 /**
  * <p>
@@ -29,4 +28,5 @@ public interface RoleService extends IService<Role> {
     ResultResponse<?> deleteRole(Integer roleId);
 
     ResultResponse<?> updateRole(UpdateRoleVO roleVO);
+
 }

@@ -10,6 +10,7 @@ import com.pxxy.vo.QueryDispatchVO;
 import com.pxxy.vo.UpdateDispatchVO;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -91,4 +92,22 @@ public interface DispatchService extends IService<Dispatch> {
      * @return 响应结果
      */
     ResultResponse<?> del(Integer disId, Integer proId);
+
+    /**
+     * 上传附件
+     *
+     * @param disAppendix 附件
+     * @param proId 项目编号
+     * @param disId 上传到的调度的编号
+     * @return 响应结果
+     */
+    ResultResponse<?> upload(MultipartFile disAppendix, Integer proId, Integer disId);
+
+    /**
+     * 上传附件
+     *
+     * @param disAppendix 附件
+     * @return 文件名
+     */
+    ResultResponse<String> upload(MultipartFile disAppendix);
 }

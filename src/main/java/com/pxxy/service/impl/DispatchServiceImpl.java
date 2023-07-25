@@ -14,7 +14,10 @@ import com.pxxy.mapper.DispatchMapper;
 import com.pxxy.pojo.Dispatch;
 import com.pxxy.pojo.Project;
 import com.pxxy.pojo.Stage;
-import com.pxxy.service.*;
+import com.pxxy.service.DispatchService;
+import com.pxxy.service.ProjectCategoryService;
+import com.pxxy.service.ProjectService;
+import com.pxxy.service.StageService;
 import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
@@ -26,6 +29,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -64,19 +68,22 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
 
     private final ProjectChecker projectChecker = new ProjectChecker();
 
-    private Map<Integer, Stage> mapper;
+    private Map<Integer, Stage> stageMap;
 
     private final Function<Dispatch, QueryDispatchVO> mapDispatchToVO = d -> {
         QueryDispatchVO vo = new QueryDispatchVO();
         BeanUtil.copyProperties(d, vo);
-        vo.setStage(Optional.ofNullable(mapper.get(d.getStageId()))
+        vo.setStage(Optional.ofNullable(stageMap.get(d.getStageId()))
                 .orElse(new Stage()).getStageName());
         vo.setDisAppendix(d.getDisAppendix());
         vo.setDisStatus(d.getDisStatus());
         return vo;
     };
 
+    private final Set<String> unusedFileName = new HashSet<>();
+
     @Override
+    @Transactional
     public ResultResponse<PageInfo<QueryDispatchVO>> getAllDispatch(Page page, Integer proId) {
         CheckType check = projectChecker.of(proId).check(CheckType.PERMISSION);
         if (check != null) {
@@ -89,6 +96,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
     }
 
     @Override
+    @Transactional
     public ResultResponse<QueryDispatchVO> get(Integer disId, Integer proId) {
         CheckType check = projectChecker.of(proId).check(CheckType.PERMISSION);
         if (check != null) {
@@ -132,6 +140,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
     }
 
     @Override
+    @Transactional
     public ResultResponse<?> add(AddDispatchVO vo) {
         CheckType check = projectChecker.of(vo)
                 .check(CheckType.PERMISSION, CheckType.ADD_TIME, CheckType.NUMBER);
@@ -139,35 +148,24 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             return ResultResponse.fail(check.msg);
         }
 
-        // TODO: 2023/7/17 将最后一个调度设置成锁定
         Dispatch dis;
         try {
             dis = parsePojo(vo);
         } catch (FileException e) {
             return ResultResponse.fail(e.getMessage());
         }
-        if (save(dis)) {
-
-            // 更新项目中的冗余字段
-            Project project = new Project(vo.getProId(), dis.getDisTotal(), dis.getDisYear(),
-                    dis.getDisTotalPercent(), dis.getDisYearPercent(), dis.getDisProgress());
-            project.setProStatus(ProjectStatusEnum.UNLOCKED.val);
-            // 下次调度提醒日期
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.MONTH, 1);
-            int day = Math.min(calendar.getActualMaximum(Calendar.DAY_OF_MONTH), vo.getPrcPeriod() / 100);
-            calendar.set(Calendar.DAY_OF_MONTH, day);
-            project.setProNextUpdate(calendar.getTime());
-            projectService.updateById(project);
-
+        if (baseMapper.insert(dis) == 1) {
+            updateProject(vo, dis);
+            baseMapper.lockLastDispatch(dis.getDisId(), dis.getProId());
             return ResultResponse.ok();
         }
         return ResultResponse.fail(ADD_FAILED);
     }
 
     @Override
+    @Transactional
     public ResultResponse<?> update(UpdateDispatchVO vo) {
-        CheckType check = projectChecker.of(vo)
+        CheckType check = projectChecker.of(vo).of(vo.getProId(), vo.getDisId())
                 .check(CheckType.PERMISSION, CheckType.NUMBER);
         if (check != null) {
             return ResultResponse.fail(check.msg);
@@ -182,6 +180,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
     }
 
     @Override
+    @Transactional
     public ResultResponse<?> lock(Integer disId, Integer proId) {
         CheckType check = projectChecker.of(proId).check(CheckType.PERMISSION);
         if (check != null) {
@@ -198,6 +197,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
     }
 
     @Override
+    @Transactional
     public ResultResponse<?> unlock(Integer disId, Integer proId) {
         CheckType check = projectChecker.of(proId, disId).check(CheckType.PERMISSION, CheckType.UNLOCK_LAST);
         if (check != null) {
@@ -215,6 +215,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
     }
 
     @Override
+    @Transactional
     public ResultResponse<?> del(Integer disId, Integer proId) {
         CheckType check = projectChecker.of(proId).check(CheckType.PERMISSION);
         if (check != null) {
@@ -236,6 +237,49 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             return ResultResponse.ok();
         }
         return ResultResponse.fail(DELETE_FAILED);
+    }
+
+    @Override
+    public ResultResponse<?> upload(MultipartFile disAppendix, Integer proId, Integer disId) {
+        CheckType check = projectChecker.of(proId, disId).check(CheckType.PERMISSION);
+        if (check != null) {
+            return ResultResponse.fail(check.msg);
+        }
+
+        Dispatch dis = query().select("dis_appendix", "dis_status")
+                .eq("dis_id", disId).one();
+        if (dis.getDisStatus().equals(LOCKED.val)) {
+            return ResultResponse.fail(CANNOT_UPDATE_LOCKED_DISPATCH);
+        }
+
+        String fileName = uploadFile(disAppendix);
+        if (fileName == null) {
+            return ResultResponse.fail(UPLOAD_FAILED);
+        }
+
+        if (update().eq("dis_id", disId).set("dis_appendix", fileName).update()) {
+            if (dis.getDisAppendix() != null && !new File(filePath, dis.getDisAppendix()).delete()) {
+                log.warn("文件 {}/{} 删除失败。", filePath, fileName);
+            }
+            return ResultResponse.ok();
+        }
+
+        if (!new File(filePath, fileName).delete()) {
+            log.warn("文件 {}/{} 删除失败。", filePath, fileName);
+        }
+        return ResultResponse.fail(UPLOAD_FAILED);
+
+    }
+
+    // TODO: 2023/7/24 及时删除文件
+    @Override
+    public ResultResponse<String> upload(MultipartFile disAppendix) {
+        String fileName = uploadFile(disAppendix);
+        if (fileName != null) {
+            unusedFileName.add(fileName);
+            return ResultResponse.ok(fileName);
+        }
+        return ResultResponse.fail(UPLOAD_FAILED);
     }
 
     private enum CheckType {
@@ -278,39 +322,36 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         /**
          * 数值校验，百分比计算是否正确
          */
-        NUMBER(PARAMETER_CHECK_FAILED, "pro_plan_year", "pro_plan", "pro_dis_total", "pro_dis_year") {
+        NUMBER(PARAMETER_CHECK_FAILED, "pro_plan_year", "pro_plan") {
             @Override
             boolean check(ProjectCheckDTO pro) {
-                Integer pt = pro.getProPlan();
-                Integer py = Optional.ofNullable(pro.getDisPlanYear()).orElse(pro.getProPlanYear());
-                Integer t0 = pro.getProDisTotal();
-                Integer y0 = pro.getProDisYear();
-                Integer t = pro.getDisTotal();
-                Integer y = pro.getDisYear();
-                Integer i = pro.getDisInvest();
-                Integer tp = pro.getDisTotalPercent();
-                Integer yp = pro.getDisYearPercent();
+                AddDispatchVO dis = pro.getNewDispatch();
+                Dispatch dis0 = pro.getOldDispatch();
+                int pt = pro.getProPlan();
+                int py = Optional.ofNullable(dis.getDisPlanYear()).orElse(pro.getProPlanYear());
+                int t = dis.getDisTotal();
+                int y = dis.getDisYear();
+                int i = dis.getDisInvest();
+                int tp = dis.getDisTotalPercent();
+                int yp = dis.getDisYearPercent();
+                if (dis0 != null) {
+                    int t0 = dis0.getDisTotal();
+                    int y0 = Optional.ofNullable(dis0.getDisYear()).orElse(0);
 
-                if (t - t0 != i) {
-                    return false;
-                }
-                if (y0 != null && y0 != 0) {
-                    if (y - y0 != i) {
-                        return false;
-                    }
-                    if (Math.abs(y * 100 / py) - yp > 1) {
+                    if (!((t - t0 == i) && (y0 == 0 || y - y0 == i))) {
                         return false;
                     }
                 }
-                return Math.abs(t * 100 / pt) - tp <= 1;
-
+                return (py == 0 || Math.abs(y * 100 / py) - yp <= 1)
+                    && (pt == 0 || Math.abs(t * 100 / pt) - tp <= 1);
             }
+
         },
 
         UNLOCK_LAST(ONLY_UNLOCK_LAST_DISPATCH) {
             @Override
             boolean check(ProjectCheckDTO pro) {
-                return false;
+                return pro.isLastDis();
             }
         },
 
@@ -361,31 +402,36 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             return this;
         }
 
+        private void clear() {
+            proId = 0;
+            disId = 0;
+            dispatchVO = null;
+        }
+
         CheckType check(CheckType ... checkTypes) {
             if (checkTypes.length == 0) return null;
-            if (checkTypes.length > 3 || Arrays.stream(checkTypes).distinct().count() < checkTypes.length)
+            if (checkTypes.length > 4 || Arrays.stream(checkTypes).distinct().count() < checkTypes.length)
                 throw new IllegalArgumentException("Checking type must be not duplicate!");
 
             ProjectCheckDTO dto = new ProjectCheckDTO();
             if (disId != 0) {
+                // 调度编号不为 0 则查询是否为最后一次调度
                 Dispatch dispatch = query().select("max(dis_id) as dis_id").eq("pro_id", proId).one();
-                if (!dispatch.getDisId().equals(disId)) {
-                    return CheckType.UNLOCK_LAST;
-                }
+                dto.setLastDis(dispatch != null && Objects.equals(disId, dispatch.getDisId()));
             }
-            String[] selects = new String[8];
-            int ind = 0;
+            List<String> selects = new ArrayList<>(8);
             for (CheckType checkType : checkTypes) {
-                for (String s : checkType.select) {
-                    selects[ind++] = s;
-                }
+                selects.addAll(Arrays.asList(checkType.select));
                 if (checkType.equals(CheckType.NUMBER)) {
                     Objects.requireNonNull(dispatchVO, "The Dispatch vo for" +
                             " number check must be not null!");
-                    BeanUtil.copyProperties(dispatchVO, dto);
+                    Dispatch lastDispatch = baseMapper.getLastDispatch(disId == 0 ? Integer.MAX_VALUE : disId, proId);
+                    Dispatch dis = Optional.ofNullable(lastDispatch).orElse(new Dispatch());
+                    dto.setNewDispatch(dispatchVO);
+                    dto.setOldDispatch(dis);
                 }
             }
-            Project project = projectService.query().select(selects).eq("pro_id", proId).one();
+            Project project = projectService.query().select(selects.toArray(new String[0])).eq("pro_id", proId).one();
             if (project == null) return CheckType.ERROR;
 
             BeanUtil.copyProperties(project, dto);
@@ -397,9 +443,11 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
 
             for (CheckType checkType : checkTypes) {
                 if (!checkType.check(dto)) {
+                    clear();
                     return checkType;
                 }
             }
+            clear();
             return null;
 
         }
@@ -414,36 +462,49 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         if (dis.getDisStatus().equals(LOCKED.val)) {
             return ResultResponse.fail(CANNOT_UPDATE_LOCKED_DISPATCH);
         }
-        String appendix = dispatch.getDisAppendix();
-        // 删除之前上传的文件
-        if (appendix != null && dis.getDisAppendix() != null) {
-            //noinspection ResultOfMethodCallIgnored
-            new File(filePath, dis.getDisAppendix()).delete();
-        }
+        String appendix = dis.getDisAppendix();
         if (updateById(dispatch)) {
-
-            // 更新项目中的冗余字段
-            Project project = new Project(dispatch.getProId(), dispatch.getDisTotal(),
-                    dispatch.getDisYear(), dispatch.getDisTotalPercent(),
-                    dispatch.getDisYearPercent(), dispatch.getDisProgress());
-            projectService.updateById(project);
-
+            updateProject(dispatch);
+            unusedFileName.remove(dispatch.getDisAppendix());
+            // 删除之前上传的文件，判断条件：新的附件和旧的附件均不为空
+            if (dispatch.getDisAppendix() != null && appendix != null) {
+                if (!new File(filePath, appendix).delete())
+                log.warn("文件 {}/{} 删除失败。", filePath, appendix);
+            }
             return ResultResponse.ok();
         }
         return ResultResponse.fail(UPDATE_FAILED);
     }
 
+    private void updateProject(Dispatch dispatch) {
+        // 更新项目中的冗余字段
+        Project project = new Project(dispatch.getProId(), dispatch.getDisTotal(),
+                dispatch.getDisYear(), dispatch.getDisTotalPercent(),
+                dispatch.getDisYearPercent(), dispatch.getDisProgress());
+        projectService.updateById(project);
+    }
+
+    private void updateProject(AddDispatchVO vo, Dispatch dis) {
+        // 更新项目中的冗余字段
+        Project project = new Project(vo.getProId(), dis.getDisTotal(), dis.getDisYear(),
+                dis.getDisTotalPercent(), dis.getDisYearPercent(), dis.getDisProgress());
+        project.setProStatus(ProjectStatusEnum.UNLOCKED.val);
+        // 下次调度提醒日期
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MONTH, 1);
+        int day = Math.min(calendar.getActualMaximum(Calendar.DAY_OF_MONTH), vo.getPrcPeriod() / 100);
+        calendar.set(Calendar.DAY_OF_MONTH, day);
+        project.setProNextUpdate(calendar.getTime());
+        projectService.updateById(project);
+    }
+
     private <VO extends DispatchVO> Dispatch parsePojo(VO vo) throws FileException {
-        checkExists(true);
-        String newFileName = null;
-        MultipartFile appendix = vo.getDisAppendix();
-        if (appendix != null && (newFileName = uploadFile(appendix)) == null) {
-            throw new FileException(UPLOAD_FAILED);
+        if (!unusedFileName.contains(vo.getDisAppendix())) {
+            throw new FileException(APPENDIX_NOT_AVAILABLE);
         }
         Dispatch dis = new Dispatch();
         BeanUtil.copyProperties(vo, dis);
         dis.setUId(UserHolder.getUser().getUId());
-        dis.setDisAppendix(newFileName);
         return dis;
     }
 
@@ -512,7 +573,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
 
     private void updateBaseData() {
         QueryChainWrapper<Stage> query = stageService.query();
-        mapper = query.ne("stage_status", DELETED_STATUS)
+        stageMap = query.ne("stage_status", DELETED_STATUS)
                 .list().stream().collect(Collectors.toMap(Stage::getStageId, s -> s));
     }
 }

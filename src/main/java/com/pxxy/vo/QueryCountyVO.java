@@ -2,7 +2,9 @@ package com.pxxy.vo;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,8 @@ import java.util.List;
  * @Description:
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @ApiModel("返回给前端的辖区信息")
 public class QueryCountyVO {
 

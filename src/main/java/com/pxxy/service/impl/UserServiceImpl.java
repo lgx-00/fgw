@@ -1,11 +1,10 @@
 package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.vo.LoginVO;
+import com.pxxy.advice.annotations.Cached;
 import com.pxxy.dto.PermissionDTO;
 import com.pxxy.dto.UserDTO;
 import com.pxxy.mapper.UserMapper;
@@ -29,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.pxxy.constant.ResponseMessage.CANNOT_DELETE_SUPER_USER;
 import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
 import static com.pxxy.constant.SystemConstant.*;
 
@@ -41,6 +41,7 @@ import static com.pxxy.constant.SystemConstant.*;
  * @since 2023-06-13
  */
 @Service
+@Cached(parent = {RoleServiceImpl.class, DepartmentServiceImpl.class, CountyServiceImpl.class, PermissionServiceImpl.class})
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Resource
@@ -253,6 +254,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public ResultResponse<?> deleteUser(Integer userId) {
+
+        if (userId == 1) {
+            return ResultResponse.fail(CANNOT_DELETE_SUPER_USER);
+        }
+
         User user = query().eq("u_id", userId).one();
         user.setUStatus(DELETED_STATUS);
         updateById(user);
@@ -265,7 +271,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public ResultResponse<?> modifyUser(UpdateUserVO updateUserVO) {
+    public ResultResponse<?> updateUser(UpdateUserVO updateUserVO) {
 
         if (updateUserVO.getRoleList() == null || updateUserVO.getRoleList().size() == 0) {
             return ResultResponse.fail(ILLEGAL_OPERATE);

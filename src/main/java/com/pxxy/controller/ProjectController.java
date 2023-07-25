@@ -33,16 +33,22 @@ import static com.pxxy.constant.ResponseMessage.FAIL_MSG;
 @CrossOrigin
 @RestController
 @Api(tags = "项目")
-@RequestMapping("/project/storage")
+@RequestMapping("/project")
 public class ProjectController {
 
     @Resource
     private ProjectService projectService;
 
-    @GetMapping("/all")
+    @GetMapping("/storage/all")
     @ApiOperation("分页查询所有项目")
     public ResultResponse<PageInfo<QueryProjectVO>> getAllProject(@ModelAttribute @Validated Page page) {
         return projectService.getAllProject(page);
+    }
+
+    @GetMapping("/dispatch/all")
+    @ApiOperation("分页查询所有调度库项目")
+    public ResultResponse<PageInfo<QueryProjectVO>> getAllDispatchProject(@ModelAttribute @Validated Page page) {
+        return projectService.getAllDispatchProject(page);
     }
 
     @GetMapping("/vague")
@@ -74,6 +80,12 @@ public class ProjectController {
     @ApiOperation("上报项目")
     public ResultResponse<?> reportProject(@RequestParam List<Integer> proIds, Integer depId) {
         return projectService.reportProject(proIds, depId);
+    }
+
+    @PutMapping("/report/more")
+    @ApiOperation("上报项目到多个科室")
+    public ResultResponse<?> reportProject(@RequestParam List<Integer> proIds, @RequestParam List<Integer> depIds) {
+        return projectService.reportProject(proIds, depIds);
     }
 
     @PostMapping("/import")

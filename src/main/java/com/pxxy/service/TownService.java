@@ -1,7 +1,9 @@
 package com.pxxy.service;
 
-import com.pxxy.pojo.Town;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.pxxy.pojo.Town;
+
+import java.util.List;
 
 /**
  * <p>
@@ -12,5 +14,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2023-06-14
  */
 public interface TownService extends IService<Town> {
+
+    List<Town> all();
 
 }

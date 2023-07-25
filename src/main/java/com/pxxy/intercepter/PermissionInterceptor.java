@@ -36,7 +36,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        log.info("【权限拦截器】远程主机地址：{}，请求路径为：{}，请求方法为：{}",
+        log.info("【权限拦截器】远程主机地址：{}，请求路径：{}，请求方法：{}",
                 req.getRemoteAddr(), req.getServletPath(), req.getMethod());
 
         UserDTO user = TokenUtil.getUser(req.getHeader("X-Token"));

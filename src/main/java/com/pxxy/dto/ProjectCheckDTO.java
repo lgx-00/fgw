@@ -1,5 +1,7 @@
 package com.pxxy.dto;
 
+import com.pxxy.pojo.Dispatch;
+import com.pxxy.vo.AddDispatchVO;
 import lombok.Data;
 
 /**
@@ -15,8 +17,6 @@ public class ProjectCheckDTO {
 
     private Integer proId;
 
-    private Integer disId;
-
     private Integer depId;
 
     private Integer uId;
@@ -24,11 +24,6 @@ public class ProjectCheckDTO {
     private Integer prcPeriod;
 
     private Integer proStatus;
-
-    /**
-     * 已下达投资
-     */
-    private Integer disInvest;
 
     /**
      * 计划总投资
@@ -50,29 +45,9 @@ public class ProjectCheckDTO {
      */
     private Integer proDisYear;
 
-    /**
-     * 本次调度的年计划投资
-     */
-    private Integer disPlanYear;
+    private boolean lastDis;
 
-    /**
-     * 本次调度的已完成投资
-     */
-    private Integer disYear;
+    private AddDispatchVO newDispatch;
 
-    /**
-     * 累计完成投资
-     */
-    private Integer disTotal;
-
-    /**
-     * 累积投资完成率% 百分比值的 100 倍
-     */
-    private Integer disTotalPercent;
-
-    /**
-     * 今年投资完成率% 百分比值的 100 倍
-     */
-    private Integer disYearPercent;
-
+    private Dispatch oldDispatch;
 }

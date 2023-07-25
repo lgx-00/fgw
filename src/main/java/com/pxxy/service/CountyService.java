@@ -6,7 +6,6 @@ import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddCountyVO;
 import com.pxxy.vo.QueryCountyVO;
 import com.pxxy.vo.UpdateCountyVO;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
@@ -29,4 +28,6 @@ public interface CountyService extends IService<County> {
     ResultResponse<?> deleteCounty(Integer couId);
 
     ResultResponse<QueryCountyVO> getCounty(Integer couId);
+
+    List<County> all();
 }

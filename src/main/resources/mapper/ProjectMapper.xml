@@ -77,6 +77,35 @@
     </select>
 
     <!--union all是不去重 union 是去重-->
+    <select id="getAllDispatchProjectByUser" resultType="com.pxxy.pojo.Project">
+        SELECT * FROM project WHERE pro_id IN
+        (
+
+        <if test="depId != null">
+            SELECT pro_id FROM project
+            WHERE dep_id = #{depId} AND pro_status IN (1,3,4)
+        </if>
+
+        <if test="couId != null">
+            <if test="depId != null">
+                UNION
+            </if>
+            SELECT pro_id FROM project
+            WHERE cou_id = #{couId} AND pro_status IN (1,3,4)
+        </if>
+
+        <if test="uId != null">
+            <if test="couId != null or depId != null">
+                UNION
+            </if>
+            SELECT pro_id FROM project
+            WHERE u_id = #{uId} AND pro_status IN (1,3,4)
+        </if>
+
+        )
+    </select>
+
+    <!--union all是不去重 union 是去重-->
     <select id="getVagueProjectByUser" resultType="com.pxxy.pojo.Project">
         SELECT * FROM
         (

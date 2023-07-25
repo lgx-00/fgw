@@ -2,6 +2,7 @@ package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.StageMapper;
 import com.pxxy.pojo.Stage;
 import com.pxxy.service.StageService;
@@ -24,6 +25,7 @@ import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
  * @author hs
  * @since 2023-06-14
  */
+@Cached
 @Service
 public class StageServiceImpl extends ServiceImpl<StageMapper, Stage> implements StageService {
 

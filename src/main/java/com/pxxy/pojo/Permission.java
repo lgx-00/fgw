@@ -18,8 +18,8 @@ import java.io.Serializable;
  * @since 2023-06-14
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
 public class Permission implements Serializable {
 
     private static final long serialVersionUID=1L;
@@ -39,17 +39,24 @@ public class Permission implements Serializable {
      * 菜单名
      */
     private String pName;
+
+    /**
+     * 状态
+     */
+    private Integer pStatus;
+
     // 一级标题
     @TableField(exist = false)
     private String title;
+
     // 二级标题
     @TableField(exist = false)
     private String name;
 
     public void setPName(String pName) {
         this.pName = pName;
-        if (pName != null && pName.contains("，")) {
-            String[] strings = pName.split("，");
+        if (pName != null && pName.contains("/")) {
+            String[] strings = pName.split("/");
             title = strings[0];
             name = strings[1];
         }

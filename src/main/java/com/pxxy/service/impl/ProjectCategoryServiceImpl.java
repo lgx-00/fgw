@@ -2,6 +2,7 @@ package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.ProjectCategoryMapper;
 import com.pxxy.pojo.ProjectCategory;
 import com.pxxy.service.ProjectCategoryService;
@@ -24,6 +25,7 @@ import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
  * @author hs
  * @since 2023-06-14
  */
+@Cached
 @Service
 public class ProjectCategoryServiceImpl extends ServiceImpl<ProjectCategoryMapper, ProjectCategory> implements ProjectCategoryService {
 
@@ -67,5 +69,10 @@ public class ProjectCategoryServiceImpl extends ServiceImpl<ProjectCategoryMappe
         }
         removeById(prcId);
         return ResultResponse.ok();
+    }
+
+    @Override
+    public List<ProjectCategory> all() {
+        return query().list();
     }
 }

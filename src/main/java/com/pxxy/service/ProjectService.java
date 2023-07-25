@@ -2,6 +2,7 @@ package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.pagehelper.PageInfo;
+import com.pxxy.advice.annotations.Cached;
 import com.pxxy.dto.ProjectDTO;
 import com.pxxy.pojo.Project;
 import com.pxxy.utils.ResultResponse;
@@ -26,6 +27,8 @@ public interface ProjectService extends IService<Project> {
 
     ResultResponse<PageInfo<QueryProjectVO>> getAllProject(Page page);
 
+    ResultResponse<PageInfo<QueryProjectVO>> getAllDispatchProject(Page page);
+
     ResultResponse<PageInfo<QueryProjectVO>> getVagueProject(Page page, ProjectDTO projectDTO);
 
     ResultResponse<?> addProject(AddProjectVO addProjectVO);
@@ -35,6 +38,8 @@ public interface ProjectService extends IService<Project> {
     ResultResponse<?> deleteProject(Integer proId);
 
     ResultResponse<?> reportProject(List<Integer> proIds, Integer depId);
+
+    ResultResponse<?> reportProject(List<Integer> proIds, List<Integer> depIds);
 
     ResultResponse<?> importExcel(MultipartFile file);
 

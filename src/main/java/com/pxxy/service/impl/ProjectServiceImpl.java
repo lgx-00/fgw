@@ -3,7 +3,6 @@ package com.pxxy.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.exception.ExcelCommonException;
-import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.ISelect;
 import com.github.pagehelper.PageInfo;
@@ -12,6 +11,7 @@ import com.pxxy.dto.UserDTO;
 import com.pxxy.enums.ProjectStageEnum;
 import com.pxxy.enums.ProjectStatusEnum;
 import com.pxxy.enums.YesOrNoEnum;
+import com.pxxy.exceptions.ReportException;
 import com.pxxy.mapper.ProjectMapper;
 import com.pxxy.pojo.*;
 import com.pxxy.service.*;
@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.pxxy.constant.ResponseMessage.*;
 import static com.pxxy.constant.SystemConstant.*;
@@ -45,7 +46,10 @@ import static com.pxxy.enums.ProjectStatusEnum.*;
 public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> implements ProjectService {
 
     @Resource
-    private DepartmentService departmentService;
+    private DepartmentService depService;
+
+    @Resource
+    private DepPrcService depPrcService;
 
     @Resource
     private CountyService countyService;
@@ -54,10 +58,10 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     private TownService townService;
 
     @Resource
-    private ProjectCategoryService projectCategoryService;
+    private ProjectCategoryService prcService;
 
     @Resource
-    private IndustryFieldService industryFieldService;
+    private IndustryFieldService infService;
 
     @Resource
     private UserService userService;
@@ -106,44 +110,44 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     };
 
     private void updateBaseData() {
-        departments = departmentService.query().list()
-                .stream().collect(Collectors.toMap(Department::getDepId, d -> d));
-        counties = countyService.query().list()
-                .stream().collect(Collectors.toMap(County::getCouId, c -> c));
-        towns = townService.query().list()
-                .stream().collect(Collectors.toMap(Town::getTownId, t -> t));
-        projectCategories = projectCategoryService.query().list()
-                .stream().collect(Collectors.toMap(ProjectCategory::getPrcId, p -> p));
-        industryFields = industryFieldService.query().list()
-                .stream().collect(Collectors.toMap(IndustryField::getInfId, i -> i));
+        departments = depService.all().stream().collect(Collectors.toMap(Department::getDepId, d -> d));
+        counties = countyService.all().stream().collect(Collectors.toMap(County::getCouId, c -> c));
+        towns = townService.all().stream().collect(Collectors.toMap(Town::getTownId, t -> t));
+        projectCategories = prcService.all().stream().collect(Collectors.toMap(ProjectCategory::getPrcId, p -> p));
+        industryFields = infService.all().stream().collect(Collectors.toMap(IndustryField::getInfId, i -> i));
     }
 
     private void updateBaseData(String what, boolean findDeleted) {
         switch (what) {
             case "dep":
-                QueryChainWrapper<Department> query5 = departmentService.query();
-                departments = (findDeleted ? query5 : query5.ne("dep_status", DELETED_STATUS)).list()
-                        .stream().collect(Collectors.toMap(Department::getDepId, d -> d));
+                Stream<Department> departments = depService.all().stream();
+                this.departments = (findDeleted ? departments : departments
+                        .filter(d -> DELETED_STATUS != d.getDepStatus()))
+                        .collect(Collectors.toMap(Department::getDepId, d -> d));
                 return;
             case "cou":
-                QueryChainWrapper<County> query4 = countyService.query();
-                counties = (findDeleted ? query4 : query4.ne("cou_status", DELETED_STATUS)).list()
-                        .stream().collect(Collectors.toMap(County::getCouId, c -> c));
+                Stream<County> counties = countyService.all().stream();
+                this.counties = (findDeleted ? counties : counties
+                        .filter(c -> DELETED_STATUS != c.getCouStatus()))
+                        .collect(Collectors.toMap(County::getCouId, c -> c));
                 return;
             case "town":
-                QueryChainWrapper<Town> query3 = townService.query();
-                towns = (findDeleted ? query3 : query3.ne("town_status", DELETED_STATUS)).list()
-                        .stream().collect(Collectors.toMap(Town::getTownId, t -> t));
+                Stream<Town> towns = townService.all().stream();
+                this.towns = (findDeleted ? towns : towns
+                        .filter(t -> DELETED_STATUS != t.getTownStatus()))
+                        .collect(Collectors.toMap(Town::getTownId, t -> t));
                 return;
             case "prc":
-                QueryChainWrapper<ProjectCategory> query2 = projectCategoryService.query();
-                projectCategories = (findDeleted ? query2 : query2.ne("prc_status", DELETED_STATUS)).list()
-                        .stream().collect(Collectors.toMap(ProjectCategory::getPrcId, p -> p));
+                Stream<ProjectCategory> pcs = prcService.all().stream();
+                projectCategories = (findDeleted ? pcs : pcs
+                        .filter(p -> DELETED_STATUS != p.getPrcStatus()))
+                        .collect(Collectors.toMap(ProjectCategory::getPrcId, p -> p));
                 return;
             case "inf":
-                QueryChainWrapper<IndustryField> query1 = industryFieldService.query();
-                industryFields = (findDeleted ? query1 : query1.ne("inf_status", DELETED_STATUS)).list()
-                        .stream().collect(Collectors.toMap(IndustryField::getInfId, i -> i));
+                Stream<IndustryField> ifs = infService.all().stream();
+                industryFields = (findDeleted ? ifs : ifs
+                        .filter(i -> DELETED_STATUS != i.getInfStatus()))
+                        .collect(Collectors.toMap(IndustryField::getInfId, i -> i));
         }
     }
 
@@ -168,6 +172,27 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         PageInfo<QueryProjectVO> pageInfo = PageUtil.selectPage(page, () ->
                 baseMapper.getAllProjectByUser(depId, couId, uId), mapProjectToVO);
         return ResultResponse.ok(pageInfo);
+    }
+
+    @Override
+    public ResultResponse<PageInfo<QueryProjectVO>> getAllDispatchProject(Page page) {
+        //先拿到用户信息
+        UserDTO user = UserHolder.getUser();
+        Integer uId = user.getUId();
+
+        updateBaseData();
+
+        //管理员特殊通道
+        if (uId == 1) return ResultResponse.ok(PageUtil.selectPage(page, () ->
+                query().in("pro_status", Arrays.asList(1, 3, 4)).list(), mapProjectToVO));
+
+        // 非管理员通道
+        User u = userService.query().eq("u_id", uId).one();
+        Integer depId = u.getDepId();
+        Integer couId = u.getCouId();
+
+        return ResultResponse.ok(PageUtil.selectPage(page,
+                () -> baseMapper.getAllDispatchProjectByUser(depId, couId, uId), mapProjectToVO));
     }
 
     @Override
@@ -281,11 +306,13 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Override
     public ResultResponse<?> deleteProject(Integer proId) {
-        if (query().eq("pro_id", proId).ne("pro_status", DELETED_STATUS).one() == null) {
-            return ResultResponse.fail(DELETE_FAILED);
+        if (query().eq("pro_id", proId).eq("pro_status", FAILURE_TO_REPORT.val).one() == null) {
+            return ResultResponse.fail(CANNOT_DELETE_REPORTED_PROJECT);
         }
-        removeById(proId);
-        return ResultResponse.ok();
+        if (update().eq("pro_id", proId).set("pro_status", DELETED.val).update()) {
+            return ResultResponse.ok();
+        }
+        return ResultResponse.fail(DELETE_FAILED);
     }
 
     private static List<Project> filterNE(List<Project> list, ProjectStatusEnum status) {
@@ -295,21 +322,72 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Override
     public ResultResponse<?> reportProject(List<Integer> proIds, Integer depId) {
-        List<Project> projects = query().in("pro_id", proIds).list();
-        List<Project> projectList = filterNE(projects, FAILURE_TO_REPORT);
-        int size = projectList.size();
-        if (size > 0) {
-            // 说明项目已上报
-            return ResultResponse.fail(genMessage(projectList, size)
-                    .append("已上报，不能再次上报！").toString());
+        List<Project> projects = getProjects(proIds);
+        if (projects.size() == 0) {
+             return ResultResponse.fail(FAIL_MSG);
         }
-        projects.forEach(p -> p.setDepId(depId).setProStatus(PENDING_REVIEW.val));
+        List<Integer> prcIds = depPrcService.query().eq("dep_id", depId)
+                .list().stream().map(DepPrc::getPrcId).collect(Collectors.toList());
+        if (projects.stream().allMatch(p -> prcIds.contains(p.getPrcId()))) {
+            projects.forEach(p -> p.setDepId(depId).setProStatus(PENDING_REVIEW.val));
+            updateBatchById(projects);
+            return ResultResponse.ok();
+        }
+        return ResultResponse.fail(REPORT_FAILED);
+    }
+
+    @Override
+    public ResultResponse<?> reportProject(List<Integer> proIds, List<Integer> depIds) {
+        if (proIds.size() != depIds.size()) return ResultResponse.fail(FAIL_MSG);
+        List<Project> projects = getProjects(proIds);
+        if (projects.size() == 0) {
+            return ResultResponse.fail(FAIL_MSG);
+        }
+
+        ResultResponse<?> resp = testPerm(proIds, depIds, projects);
+        if (resp != null) return resp;
         updateBatchById(projects);
         return ResultResponse.ok();
     }
 
+    private List<Project> getProjects(List<Integer> proIds) throws ReportException {
+        List<Project> projects = query().select("pro_id", "prc_id",
+                "pro_name", "pro_status").in("pro_id", proIds).list();
+        // 检查上报的科室是否具有管理该类型的项目的权限
+        List<Project> illegalList = filterNE(projects, FAILURE_TO_REPORT);
+        int size = illegalList.size();
+        if (size > 0) {
+            // 说明项目已上报
+            StringBuilder msg = genMessage(illegalList, size).append("已上报，不能再次上报！");
+            throw new ReportException(msg.toString());
+        }
+        return projects;
+    }
+
+    private ResultResponse<?> testPerm(List<Integer> proIds, List<Integer> depIds, List<Project> projects) {
+        // 检查上报的科室是否具有管理该类型的项目的权限
+        Map<Integer, List<Integer>> depIdMapPrcIds = depIds.stream().distinct()
+                .collect(Collectors.toMap(id -> id, id -> depPrcService.query().eq("dep_id", id)
+                        .list().stream().map(DepPrc::getPrcId).collect(Collectors.toList())));
+        // 逐个项目进行检查，不通过直接返回失败消息
+        for (int i = proIds.size() - 1; i >= 0; i--) {
+            int depId = depIds.get(i);
+            List<Integer> prcIds = depIdMapPrcIds.get(depId);
+            Project project = projects.get(i);
+            if (!prcIds.contains(project.getPrcId())) {
+                // 检查不通过
+                return ResultResponse.fail(REPORT_FAILED);
+            }
+            project.setDepId(depId);
+        }
+        return null;
+    }
+
     private StringBuilder genMessage(List<Project> projectList, int size) {
         StringBuilder sb = new StringBuilder("项目“");
+        if (size == 1) {
+            return sb.append(projectList.get(0).getProName()).append("”");
+        }
         StringJoiner sj = new StringJoiner("”、“");
         projectList.subList(0, Math.min(size - 1, 4)).forEach(p -> sj.add(p.getProName()));
         sb.append(sj).append("”");
@@ -354,7 +432,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 BeanUtil.copyProperties(projectExcelVO, project);
                 String departmentName = projectExcelVO.getDepartmentName();
                 if (departmentName != null) {
-                    Department department = departmentService.query().eq("dep_name", departmentName).one();
+                    Department department = depService.query().eq("dep_name", departmentName).one();
                     if (department != null) {
                         project.setDepId(department.getDepId());
                     } else {
@@ -387,7 +465,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
 
                 String prcName = projectExcelVO.getPrcName();
-                ProjectCategory projectCategory = projectCategoryService.query().eq("prc_name", prcName).one();
+                ProjectCategory projectCategory = prcService.query().eq("prc_name", prcName).one();
                 if (projectCategory != null) {
                     project.setPrcId(projectCategory.getPrcId());
                 } else {
@@ -396,7 +474,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 }
 
                 String infName = projectExcelVO.getInfName();
-                IndustryField industryField = industryFieldService.query().eq("inf_name", infName).one();
+                IndustryField industryField = infService.query().eq("inf_name", infName).one();
                 if (industryField != null) {
                     project.setInfId(industryField.getInfId());
                 } else {
@@ -460,7 +538,8 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     private ResultResponse<?> checkPendingReview(List<Integer> proIds, String oper) {
-        List<Project> projects = query().in("pro_id", proIds).list();
+        List<Project> projects = query().select("pro_id", "pro_name", "pro_status")
+                .in("pro_id", proIds).list();
         if (projects.size() < proIds.size()) {
             return ResultResponse.fail(FAIL_MSG);
         }

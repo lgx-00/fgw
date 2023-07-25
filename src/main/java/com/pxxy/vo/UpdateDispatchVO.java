@@ -29,11 +29,15 @@ public class UpdateDispatchVO extends AddDispatchVO implements Serializable {
      * 序号 主键，自增
      */
     @ApiModelProperty("调度编号")
-    @NotNull(message = UPDATE_FAILED)
+    @NotNull(message = UPDATE_FAILED + "，缺少必要参数")
     private Integer disId;
 
-    @NotNull(message = UPDATE_FAILED)
+    @NotNull(message = UPDATE_FAILED + "，缺少必要参数")
     @ApiModelProperty("调度所属项目的编号")
     private Integer proId;
+
+    UpdateDispatchVO() {
+        super.setProId(0);
+    }
 
 }

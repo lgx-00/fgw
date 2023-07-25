@@ -22,13 +22,15 @@ logging:
   config: classpath:logback-spring.xml
   level:
     root: info
+  file:
+    path: /mysoft/fgw/log
 
 fgw:
   log:
     max-length: 300
   max-inactive-interval: 86400
-  file-path: /Users/xw/Desktop/appendix
-#
+  file-path: /mysoft/fgw/appendix
+
 #mybatis-plus:
 #  configuration:
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

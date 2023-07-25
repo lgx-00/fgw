@@ -5,7 +5,6 @@ import com.pxxy.pojo.IndustryField;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddIndustryFieldVO;
 import com.pxxy.vo.UpdateIndustryFieldVO;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
@@ -44,7 +43,7 @@ public interface IndustryFieldService extends IService<IndustryField> {
      * @param: []
      * @return: com.pxxy.utils.ResultResponse
      **/
-    ResultResponse<List<IndustryField>> selectIndustryField();
+    ResultResponse<List<IndustryField>> getAll();
 
     /**
      * @description: 删除行业领域
@@ -55,5 +54,6 @@ public interface IndustryFieldService extends IService<IndustryField> {
      **/
     ResultResponse<?> deleteIndustryField(Integer infId);
 
+    List<IndustryField> all();
 
 }
