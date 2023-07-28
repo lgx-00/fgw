@@ -3,12 +3,12 @@ package com.pxxy.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.stream.SimpleCollector;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.DepartmentMapper;
 import com.pxxy.pojo.DepPrc;
 import com.pxxy.pojo.Department;
 import com.pxxy.pojo.ProjectCategory;
+import com.pxxy.service.BaseService;
 import com.pxxy.service.DepPrcService;
 import com.pxxy.service.DepartmentService;
 import com.pxxy.service.ProjectCategoryService;
@@ -37,8 +37,8 @@ import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
  * @since 2023-06-14
  */
 @Service
-@Cached(parent = ProjectCategoryService.class)
-public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Department> implements DepartmentService {
+@Cached(parent = ProjectCategoryServiceImpl.class)
+public class DepartmentServiceImpl extends BaseService<DepartmentMapper, Department> implements DepartmentService {
 
     @Resource
     private DepPrcService depPrcService;

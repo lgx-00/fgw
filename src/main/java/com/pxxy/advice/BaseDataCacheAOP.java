@@ -2,12 +2,14 @@ package com.pxxy.advice;
 
 import com.pxxy.advice.annotations.Cached;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 基础数据缓存切面类
@@ -20,73 +22,89 @@ import java.util.Map;
  * @version 1.0
  */
 @Slf4j
-//@Aspect
+@Aspect
 @Component
 public class BaseDataCacheAOP {
 
-    private final Map<String, Object> cacheMapper = new HashMap<>();
+    private final CacheMapper cacheMapper = new CacheMapper();
 
-    @Around("@within(com.pxxy.advice.annotations.Cached)" +
-            " && (execution(public * com.pxxy.service.*.get*(..))" +
-            " || execution(public * com.pxxy.service.*.all(..)))")
+    @Around("(@within(com.pxxy.advice.annotations.Cached)" +
+            " && (execution(public * com.pxxy.service.*.get*())" +
+            " || execution(public * com.pxxy.service.*.all())))" +
+            " || execution(public * com.pxxy.service.BaseService.query())")
     public Object get(ProceedingJoinPoint pjp) throws Throwable {
         String name = pjp.getSignature().getName();
-        String declaringTypeName = pjp.getSignature().getDeclaringTypeName();
 
-/*
-        Object ret = cacheMapper.get(signature);
-        if (ret == null) {
-            ret = pjp.proceed();
-            cacheMapper.put(signature, ret);
+        // 忽略没有 Cached 注解的类
+        Class<?> targetClass = pjp.getTarget().getClass();
+        Cached cached = targetClass.getAnnotation(Cached.class);
+        if (cached == null) {
+            return pjp.proceed();
         }
 
-        Cached cached = pjp.getTarget().getClass().getAnnotation(Cached.class);
-        for (Class<?> parent : cached.parent()) {
-            if (cacheMapper.containsKey(parentSignature)) {
+        // 执行 query 方法视为开始对该类缓存
+        String declaringTypeName = targetClass.getName();
+        if (name.equals("query")) {
+            if (cacheMapper.get(declaringTypeName) == null) {
+                cacheMapper.put(declaringTypeName, new Cache());
+            }
+            return pjp.proceed();
+        }
 
+        // 获取类自己的缓存
+        Cache cache = cacheMapper.get(declaringTypeName);
+        if (cache == null) {
+            // 若缓存为空则创建
+            cache = new Cache();
+            cacheMapper.put(declaringTypeName, cache);
+            Object ret = pjp.proceed();
+            cache.put(name, ret);
+            return ret;
+        }
+
+        // 检查缓存的上游依赖缓存是否存在
+        for (Class<?> parent : cached.parent()) {
+            Cache parentCache = cacheMapper.get(parent.getTypeName());
+            if (parentCache == null) {
+                // 上游依赖缓存不存在，抛弃旧缓存，创建新缓存
+                cache = new Cache();
+                cacheMapper.put(declaringTypeName, cache);
+                Object ret = pjp.proceed();
+                cache.put(name, ret);
+                return ret;
             }
         }
 
-        return ret;*/
-        return null;
-    }
-
-    @Around("@within(com.pxxy.advice.annotations.Cached)" +
-            " && (execution(public * com.pxxy.service.*.add*(..))" +
-            " || execution(public * com.pxxy.service.*.update*(..))" +
-            " || execution(public * com.pxxy.service.*.delete*(..)))")
-    public Object set(ProceedingJoinPoint pjp) throws Throwable {
-        Cached cached = pjp.getTarget().getClass().getAnnotation(Cached.class);
-        String key = pjp.getSignature().toShortString();
-
-        for (Class<?> parent : cached.parent()) {
-            parent.toString();
-        }
-
-        Object ret = cacheMapper.get(key);
+        // 从缓存中获取数据
+        Object ret = cache.get(name);
         if (ret == null) {
+            // 未命中缓存
             ret = pjp.proceed();
-            cacheMapper.put(key, ret);
+            cache.put(name, ret);
+        } else {
+            log.info("【缓存切面】 执行方法 {}.{}() 时命中缓存，使用缓存数据。", declaringTypeName, name);
         }
-
         return ret;
     }
 
+    @After("@within(com.pxxy.advice.annotations.Cached)" +
+            " && (execution(public * com.pxxy.service.*.add*(..))" +
+            " || execution(public * com.pxxy.service.*.update*(..))" +
+            " || execution(public * com.pxxy.service.*.delete*(..)))")
+    public void set(JoinPoint jp) {
+        // 修改了数据意味着缓存过期了，移除过期的缓存
+        if (cacheMapper.remove(jp.getSignature().getDeclaringTypeName()) != null) {
+            log.info("【缓存切面】 缓存失效，原因：执行方法 {}.{}(..)。", jp.getSignature().getDeclaringTypeName(),
+                    jp.getSignature().getName());
+        }
+    }
+
     public void flushCache() {
-        // TODO: 2023/7/20 执行刷新缓存的操作
-        log.info("缓存已刷新");
+        cacheMapper.clear();
+        log.info("【缓存切面】 缓存已刷新。");
     }
 
 }
 
-class CacheMapper extends HashMap<String, Cache> {
-
-}
-
-class Cache extends HashMap<String, Object> {
-
-    boolean valid() {
-        return false;
-    }
-
-}
+class CacheMapper extends HashMap<String, Cache> {}
+class Cache extends HashMap<String, Object> {}

@@ -1,9 +1,9 @@
 package com.pxxy.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.IndustryFieldMapper;
 import com.pxxy.pojo.IndustryField;
+import com.pxxy.service.BaseService;
 import com.pxxy.service.IndustryFieldService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddIndustryFieldVO;
@@ -24,7 +24,7 @@ import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
  */
 @Cached
 @Service
-public class IndustryFieldServiceImpl extends ServiceImpl<IndustryFieldMapper, IndustryField> implements IndustryFieldService {
+public class IndustryFieldServiceImpl extends BaseService<IndustryFieldMapper, IndustryField> implements IndustryFieldService {
 
     @Override
     public ResultResponse<?> addIndustryField(AddIndustryFieldVO addIndustryFieldVO) {

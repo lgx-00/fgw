@@ -1,10 +1,10 @@
 package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.ProjectCategoryMapper;
 import com.pxxy.pojo.ProjectCategory;
+import com.pxxy.service.BaseService;
 import com.pxxy.service.ProjectCategoryService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.vo.AddProjectCategoryVO;
@@ -27,7 +27,7 @@ import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
  */
 @Cached
 @Service
-public class ProjectCategoryServiceImpl extends ServiceImpl<ProjectCategoryMapper, ProjectCategory> implements ProjectCategoryService {
+public class ProjectCategoryServiceImpl extends BaseService<ProjectCategoryMapper, ProjectCategory> implements ProjectCategoryService {
 
     @Override
     public ResultResponse<?> addProjectCategory(AddProjectCategoryVO addProjectCategoryVO) {

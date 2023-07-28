@@ -1,10 +1,10 @@
 package com.pxxy.service.impl;
 
 import com.pxxy.advice.annotations.Cached;
-import com.pxxy.pojo.Town;
 import com.pxxy.mapper.TownMapper;
+import com.pxxy.pojo.Town;
+import com.pxxy.service.BaseService;
 import com.pxxy.service.TownService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.List;
  */
 @Cached
 @Service
-public class TownServiceImpl extends ServiceImpl<TownMapper, Town> implements TownService {
+public class TownServiceImpl extends BaseService<TownMapper, Town> implements TownService {
 
     @Override
     public List<Town> all() {

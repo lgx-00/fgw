@@ -3,11 +3,11 @@ package com.pxxy.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.stream.SimpleCollector;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.CountyMapper;
 import com.pxxy.pojo.County;
 import com.pxxy.pojo.Town;
+import com.pxxy.service.BaseService;
 import com.pxxy.service.CountyService;
 import com.pxxy.service.TownService;
 import com.pxxy.utils.ResultResponse;
@@ -39,8 +39,8 @@ import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
  * @since 2023-06-14
  */
 @Service
-@Cached(parent = TownService.class)
-public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> implements CountyService {
+@Cached(parent = TownServiceImpl.class)
+public class CountyServiceImpl extends BaseService<CountyMapper, County> implements CountyService {
 
     @Resource
     private TownService townService;
@@ -103,7 +103,7 @@ public class CountyServiceImpl extends ServiceImpl<CountyMapper, County> impleme
     @Override
     public ResultResponse<?> deleteCounty(Integer couId) {
         County county = query().eq("cou_id", couId).one();
-        if (county == null){
+        if (county == null) {
             return ResultResponse.fail(ILLEGAL_OPERATE);
         }
         removeById(couId);

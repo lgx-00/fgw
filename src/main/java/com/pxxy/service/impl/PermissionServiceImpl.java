@@ -1,10 +1,10 @@
 package com.pxxy.service.impl;
 
 import com.pxxy.advice.annotations.Cached;
-import com.pxxy.pojo.Permission;
 import com.pxxy.mapper.PermissionMapper;
+import com.pxxy.pojo.Permission;
+import com.pxxy.service.BaseService;
 import com.pxxy.service.PermissionService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.utils.ResultResponse;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
  */
 @Cached
 @Service
-public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permission> implements PermissionService {
+public class PermissionServiceImpl extends BaseService<PermissionMapper, Permission> implements PermissionService {
 
     @Override
     public ResultResponse<List<Permission>> getPerm() {

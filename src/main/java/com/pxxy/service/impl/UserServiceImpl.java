@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.advice.annotations.Cached;
 import com.pxxy.dto.PermissionDTO;
 import com.pxxy.dto.UserDTO;
 import com.pxxy.mapper.UserMapper;
@@ -41,7 +40,6 @@ import static com.pxxy.constant.SystemConstant.*;
  * @since 2023-06-13
  */
 @Service
-@Cached(parent = {RoleServiceImpl.class, DepartmentServiceImpl.class, CountyServiceImpl.class, PermissionServiceImpl.class})
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Resource
