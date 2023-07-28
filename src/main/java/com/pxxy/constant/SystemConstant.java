@@ -29,4 +29,8 @@ public class SystemConstant {
     public static final Date        INFINITY_DATE                   = new Date(7985664000000L);
     public static final Date        ZERO_DATE                       = new Date(0);
 
+
+    public static final String USER_DATA$UPLOAD_FILE_NAME = "upload-file-name";
+    public static final String USER_DATA$REMOVE_HANDLERS = "remove-handlers";
+
 }

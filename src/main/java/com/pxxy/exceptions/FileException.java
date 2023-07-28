@@ -8,9 +8,10 @@ package com.pxxy.exceptions;
  * @author xw
  * @version 1.0
  */
-public class FileException extends Exception {
+public class FileException extends BaseRuntimeException {
 
     public FileException(String msg) {
         super(msg);
     }
+
 }

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TokenUtil {
 
@@ -49,7 +50,7 @@ public class TokenUtil {
         }
 
         static Token generate() {
-            updateMapper();
+            updateMapper().forEach(UserHolder::handleRemoveUser);
             Token candidate;
             do {
                 candidate = new Token(RandomUtil.randomString(BASE_STRING, LENGTH));
@@ -83,17 +84,18 @@ public class TokenUtil {
         }
     }
 
-    private static void updateMapper() {
+    private static List<UserDTO> updateMapper() {
         List<Token> tokens = new ArrayList<>(TOKEN_MAPPER.size());
         TOKEN_MAPPER.keySet().forEach(token -> {
             if (token.isDead()) {
                 tokens.add(token);
             }
         });
-        tokens.forEach(TOKEN_MAPPER::remove);
+        return tokens.stream().map(TOKEN_MAPPER::remove)
+                .collect(Collectors.toList());
     }
 
-    private static void updateMapper(Token token) {
+    private static List<UserDTO> updateMapper(Token token) {
         List<Token> tokens = new ArrayList<>(TOKEN_MAPPER.size());
         TOKEN_MAPPER.keySet().forEach(t -> {
             if (t.isDead()) {
@@ -103,7 +105,8 @@ public class TokenUtil {
                 t.refresh();
             }
         });
-        tokens.forEach(TOKEN_MAPPER::remove);
+        return tokens.stream().map(TOKEN_MAPPER::remove)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -115,7 +118,7 @@ public class TokenUtil {
     public static UserDTO getUser(String token) {
         Token t = new Token(token);
         synchronized (TokenUtil.class) {
-            updateMapper(t);
+            updateMapper(t).forEach(UserHolder::handleRemoveUser);
         }
         return TOKEN_MAPPER.get(t);
     }
@@ -133,13 +136,13 @@ public class TokenUtil {
         return token;
     }
 
-    public static UserDTO invalid(String token) {
+    public static UserDTO invalidate(String token) {
         synchronized (TokenUtil.class) {
             return TOKEN_MAPPER.remove(new Token(token));
         }
     }
 
-    public static void invalid(UserDTO user) {
+    public static void invalidate(UserDTO user) {
         synchronized (TokenUtil.class) {
             TOKEN_MAPPER.forEach((k, v) -> {
                 if (user.equals(v)) {

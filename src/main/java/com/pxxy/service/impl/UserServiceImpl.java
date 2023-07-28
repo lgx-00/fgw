@@ -188,7 +188,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 // 将待调度的项目的状态更新为待调度
                 projectService.updateDispatchStatus();
 
-                UserDTO dto = new UserDTO(user.getUId(), user.getUName(), user.getDepId(), permission);
+                UserDTO dto = new UserDTO(user.getUId(), user.getUName(), user.getDepId(), permissions);
+                UserHolder.saveUser(dto);
                 TokenUtil.Token xToken = TokenUtil.generate(dto);
                 return ResultResponse.ok(xToken.token);
             default:
@@ -264,7 +265,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         updateById(user);
 
         // 强制下线删除的用户
-        TokenUtil.invalid(new UserDTO(userId));
+        TokenUtil.invalidate(new UserDTO(userId));
 
         return ResultResponse.ok();
     }
@@ -300,7 +301,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userRoleService.saveBatch(userRoleList);
 
         // 强制下线修改的用户
-        TokenUtil.invalid(new UserDTO(uid));
+        TokenUtil.invalidate(new UserDTO(uid));
 
         return ResultResponse.ok();
     }

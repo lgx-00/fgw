@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -47,6 +48,7 @@ public class AddDispatchVO extends DispatchVO implements Serializable {
      */
     @ApiModelProperty("今年计划投资")
     @NotNull(message = "今年计划投资不能为空！")
+    @Min(value = 1, message = "今年计划投资必须为一个正整数")
     private Integer disPlanYear;
 
     /**
@@ -54,18 +56,21 @@ public class AddDispatchVO extends DispatchVO implements Serializable {
      */
     @ApiModelProperty("今年已完成投资")
     @NotNull(message = "今年已完成投资不能为空！")
+    @Min(value = 1, message = "今年已完成投资必须为一个正整数")
     private Integer disYear;
 
     /**
      * 累积投资完成率% 百分比值的 100 倍
      */
     @ApiModelProperty("累积投资完成率%")
+    @Min(value = 0, message = "累积投资完成率必须为一个非负数")
     private Integer disTotalPercent;
 
     /**
      * 今年投资完成率% 百分比值的 100 倍
      */
     @ApiModelProperty("今年投资完成率%")
+    @Min(value = 0, message = "今年投资完成率必须为一个非负数")
     private Integer disYearPercent;
 
     /**
@@ -81,18 +86,21 @@ public class AddDispatchVO extends DispatchVO implements Serializable {
      * 建设阶段
      */
     @ApiModelProperty("建设阶段")
+    @Min(value = 1, message = "建设阶段不合法")
     private Integer stageId;
 
     /**
      * 已下达投资
      */
     @ApiModelProperty("已下达投资")
+    @Min(value = 1, message = "已下达投资必须为一个正整数")
     private Integer disInvest;
 
     /**
      * 本次申请投资
      */
     @ApiModelProperty("本次申请投资")
+    @Min(value = 1, message = "本次申请投资必须为一个正整数")
     private Integer disApply;
 
     /**

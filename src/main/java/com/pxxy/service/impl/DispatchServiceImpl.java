@@ -9,6 +9,7 @@ import com.github.pagehelper.PageInfo;
 import com.pxxy.dto.ProjectCheckDTO;
 import com.pxxy.dto.UserDTO;
 import com.pxxy.enums.ProjectStatusEnum;
+import com.pxxy.exceptions.DBException;
 import com.pxxy.exceptions.FileException;
 import com.pxxy.mapper.DispatchMapper;
 import com.pxxy.pojo.Dispatch;
@@ -35,11 +36,12 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.io.*;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.pxxy.constant.ResponseMessage.*;
-import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
+import static com.pxxy.constant.SystemConstant.*;
 import static com.pxxy.enums.DispatchStatusEnum.*;
 
 /**
@@ -80,8 +82,6 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         return vo;
     };
 
-    private final Set<String> unusedFileName = new HashSet<>();
-
     @Override
     @Transactional
     public ResultResponse<PageInfo<QueryDispatchVO>> getAllDispatch(Page page, Integer proId) {
@@ -91,8 +91,8 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         }
 
         updateBaseData();
-        return ResultResponse.ok(PageUtil.selectPage(page,
-                () -> query().eq("pro_id", proId).ne("dis_status", DELETED_STATUS).list(), mapDispatchToVO));
+        return ResultResponse.ok(PageUtil.selectPage(page, () -> query().eq("pro_id", proId)
+                .ne("dis_status", DELETED_STATUS).orderByDesc("dis_id").list(), mapDispatchToVO));
     }
 
     @Override
@@ -148,18 +148,13 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             return ResultResponse.fail(check.msg);
         }
 
-        Dispatch dis;
-        try {
-            dis = parsePojo(vo);
-        } catch (FileException e) {
-            return ResultResponse.fail(e.getMessage());
-        }
-        if (baseMapper.insert(dis) == 1) {
-            updateProject(vo, dis);
+        Dispatch dis = parsePojo(vo);
+        if (baseMapper.insert(dis) == 1 && updateProject(vo, dis)) {
             baseMapper.lockLastDispatch(dis.getDisId(), dis.getProId());
+            UserHolder.removeData(USER_DATA$UPLOAD_FILE_NAME);
             return ResultResponse.ok();
         }
-        return ResultResponse.fail(ADD_FAILED);
+        throw new DBException(ADD_FAILED);
     }
 
     @Override
@@ -171,12 +166,8 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             return ResultResponse.fail(check.msg);
         }
 
-        try {
-            Dispatch dispatch = parsePojo(vo);
-            return update0(dispatch);
-        } catch (FileException e) {
-            return ResultResponse.fail(e.getMessage());
-        }
+        Dispatch dispatch = parsePojo(vo);
+        return update0(dispatch);
     }
 
     @Override
@@ -258,7 +249,8 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         }
 
         if (update().eq("dis_id", disId).set("dis_appendix", fileName).update()) {
-            if (dis.getDisAppendix() != null && !new File(filePath, dis.getDisAppendix()).delete()) {
+            String oldAppendix = dis.getDisAppendix();
+            if (oldAppendix != null) if (!new File(filePath, oldAppendix).delete()) {
                 log.warn("文件 {}/{} 删除失败。", filePath, fileName);
             }
             return ResultResponse.ok();
@@ -271,12 +263,26 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
 
     }
 
-    // TODO: 2023/7/24 及时删除文件
     @Override
     public ResultResponse<String> upload(MultipartFile disAppendix) {
         String fileName = uploadFile(disAppendix);
         if (fileName != null) {
-            unusedFileName.add(fileName);
+            String oldFileName = (String) UserHolder.putData(USER_DATA$UPLOAD_FILE_NAME, fileName);
+            if (oldFileName != null) if (!new File(filePath, oldFileName).delete()) {
+                log.warn("文件 {}/{} 删除失败。", filePath, oldFileName);
+            }
+            @SuppressWarnings("unchecked")
+            List<Consumer<UserDTO>> handlers = (List<Consumer<UserDTO>>) UserHolder.getData(USER_DATA$REMOVE_HANDLERS);
+            if (handlers == null) {
+                handlers = new ArrayList<>();
+                UserHolder.putData(USER_DATA$REMOVE_HANDLERS, handlers);
+            }
+            handlers.add(user -> {
+                String fileToDelete = (String) UserHolder.getData(USER_DATA$UPLOAD_FILE_NAME, user);
+                if (fileToDelete != null) if (!new File(filePath, fileToDelete).delete()) {
+                    log.warn("文件 {}/{} 删除失败。", filePath, fileToDelete);
+                }
+            });
             return ResultResponse.ok(fileName);
         }
         return ResultResponse.fail(UPLOAD_FAILED);
@@ -326,22 +332,33 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             @Override
             boolean check(ProjectCheckDTO pro) {
                 AddDispatchVO dis = pro.getNewDispatch();
+
+                int t = dis.getDisTotal();
+                int y = dis.getDisYear();
+                if (y > t) {
+                    // 年投资额不能超过总投资额
+                    return false;
+                }
+
+                // 本次下达投资
+                int i = dis.getDisInvest();
+
                 Dispatch dis0 = pro.getOldDispatch();
                 int pt = pro.getProPlan();
                 int py = Optional.ofNullable(dis.getDisPlanYear()).orElse(pro.getProPlanYear());
-                int t = dis.getDisTotal();
-                int y = dis.getDisYear();
-                int i = dis.getDisInvest();
                 int tp = dis.getDisTotalPercent();
                 int yp = dis.getDisYearPercent();
-                if (dis0 != null) {
-                    int t0 = dis0.getDisTotal();
+
+                if (dis0 != null) {  // 是否存在上次投资
+                    int t0 = Optional.ofNullable(dis0.getDisTotal()).orElse(0);
                     int y0 = Optional.ofNullable(dis0.getDisYear()).orElse(0);
 
                     if (!((t - t0 == i) && (y0 == 0 || y - y0 == i))) {
+                        // 上次的投资额与本次的投资额的差必须与本次下达投资额相等
                         return false;
                     }
                 }
+                // 百分比值的计算必须正确
                 return (py == 0 || Math.abs(y * 100 / py) - yp <= 1)
                     && (pt == 0 || Math.abs(t * 100 / pt) - tp <= 1);
             }
@@ -426,9 +443,8 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
                     Objects.requireNonNull(dispatchVO, "The Dispatch vo for" +
                             " number check must be not null!");
                     Dispatch lastDispatch = baseMapper.getLastDispatch(disId == 0 ? Integer.MAX_VALUE : disId, proId);
-                    Dispatch dis = Optional.ofNullable(lastDispatch).orElse(new Dispatch());
                     dto.setNewDispatch(dispatchVO);
-                    dto.setOldDispatch(dis);
+                    dto.setOldDispatch(lastDispatch);
                 }
             }
             Project project = projectService.query().select(selects.toArray(new String[0])).eq("pro_id", proId).one();
@@ -462,14 +478,15 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         if (dis.getDisStatus().equals(LOCKED.val)) {
             return ResultResponse.fail(CANNOT_UPDATE_LOCKED_DISPATCH);
         }
-        String appendix = dis.getDisAppendix();
+        String oldAppendix = dis.getDisAppendix();
+        String newAppendix = dispatch.getDisAppendix();
         if (updateById(dispatch)) {
             updateProject(dispatch);
-            unusedFileName.remove(dispatch.getDisAppendix());
+            UserHolder.removeData(USER_DATA$UPLOAD_FILE_NAME);
             // 删除之前上传的文件，判断条件：新的附件和旧的附件均不为空
-            if (dispatch.getDisAppendix() != null && appendix != null) {
-                if (!new File(filePath, appendix).delete())
-                log.warn("文件 {}/{} 删除失败。", filePath, appendix);
+            if (newAppendix != null && oldAppendix != null) {
+                if (!new File(filePath, oldAppendix).delete())
+                log.warn("文件 {}/{} 删除失败。", filePath, oldAppendix);
             }
             return ResultResponse.ok();
         }
@@ -484,7 +501,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         projectService.updateById(project);
     }
 
-    private void updateProject(AddDispatchVO vo, Dispatch dis) {
+    private boolean updateProject(AddDispatchVO vo, Dispatch dis) {
         // 更新项目中的冗余字段
         Project project = new Project(vo.getProId(), dis.getDisTotal(), dis.getDisYear(),
                 dis.getDisTotalPercent(), dis.getDisYearPercent(), dis.getDisProgress());
@@ -495,16 +512,18 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         int day = Math.min(calendar.getActualMaximum(Calendar.DAY_OF_MONTH), vo.getPrcPeriod() / 100);
         calendar.set(Calendar.DAY_OF_MONTH, day);
         project.setProNextUpdate(calendar.getTime());
-        projectService.updateById(project);
+        return projectService.updateById(project);
     }
 
     private <VO extends DispatchVO> Dispatch parsePojo(VO vo) throws FileException {
-        if (!unusedFileName.contains(vo.getDisAppendix())) {
+        String uploadFileName = (String) UserHolder.getData(USER_DATA$UPLOAD_FILE_NAME);
+        if (uploadFileName == null || !uploadFileName.equals(vo.getDisAppendix())) {
             throw new FileException(APPENDIX_NOT_AVAILABLE);
         }
         Dispatch dis = new Dispatch();
         BeanUtil.copyProperties(vo, dis);
         dis.setUId(UserHolder.getUser().getUId());
+        dis.setDisAppendix(uploadFileName);
         return dis;
     }
 
@@ -515,6 +534,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
      * @return 保存的文件的新文件名
      */
     private String uploadFile(MultipartFile file) {
+        checkExists(true);
 
         String newName = UUID.randomUUID().toString().replaceAll("-", "");
         String extName = "." + FileUtil.extName(file.getOriginalFilename());

@@ -12,13 +12,14 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+
+import static com.pxxy.constant.ResponseMessage.FAIL_MSG;
 
 /**
  * <p>
@@ -74,7 +75,10 @@ public class DispatchController {
 
     @PostMapping("upload")
     @ApiOperation(value = "直接上传附件")
-    public ResultResponse<String> upload(MultipartFile disAppendix) {
+    public ResultResponse<String> upload(@RequestPart MultipartFile disAppendix) {
+        if (disAppendix == null || disAppendix.isEmpty()) {
+            return ResultResponse.fail(FAIL_MSG);
+        }
         return dispatchService.upload(disAppendix);
     }
 
@@ -89,8 +93,11 @@ public class DispatchController {
     public ResultResponse<?> upload(
             @PathVariable @ApiParam("项目编号") Integer proId,
             @PathVariable @ApiParam("调度编号") Integer disId,
-            MultipartFile disAppendix
+            @RequestPart MultipartFile disAppendix
     ) {
+        if (disAppendix == null || disAppendix.isEmpty()) {
+            return ResultResponse.fail(FAIL_MSG);
+        }
         return dispatchService.upload(disAppendix, proId, disId);
     }
 

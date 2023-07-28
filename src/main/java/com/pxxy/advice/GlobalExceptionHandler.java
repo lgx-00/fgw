@@ -1,5 +1,6 @@
 package com.pxxy.advice;
 
+import com.pxxy.exceptions.BaseRuntimeException;
 import com.pxxy.exceptions.ReportException;
 import com.pxxy.utils.ResultResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResultResponse<?> error(HttpMessageNotReadableException e) {
-        log.warn("请求参数无法识别：" + e);
+        log.warn("请求参数无法识别", e);
         return ResultResponse.fail("请求参数无法识别");
     }
 
@@ -62,6 +63,15 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ReportException.class)
     public ResultResponse<?> error(ReportException e) {
+        ResultResponse<Object> ret = ResultResponse.fail(e.getMessage());
+        log.info("【返回结果】 {}", ret);
+        return ret;
+    }
+
+    @ResponseBody
+    @ExceptionHandler(BaseRuntimeException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResultResponse<?> error(BaseRuntimeException e) {
         ResultResponse<Object> ret = ResultResponse.fail(e.getMessage());
         log.info("【返回结果】 {}", ret);
         return ret;
@@ -92,12 +102,15 @@ public class GlobalExceptionHandler {
         if (errors.isEmpty()) {
             log.warn("参数校验失败，对象名称：{}，对象类型：{}",
                     bindingResult.getObjectName(), className);
-            return ResultResponse.fail("参数错误");
+            return ResultResponse.fail("部分参数不合法");
         }
         ObjectError objectError = errors.get(0);
         String messages = objectError.getDefaultMessage();
         log.warn("参数校验失败，对象名称：{}，对象类型：{}，错误信息：{}",
                 bindingResult.getObjectName(), className, messages);
+        if (messages != null && messages.length() > 50) {
+            return ResultResponse.fail("部分参数不合法");
+        }
         return ResultResponse.fail(messages);
     }
 

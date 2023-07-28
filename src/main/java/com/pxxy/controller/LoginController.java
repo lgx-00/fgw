@@ -1,6 +1,7 @@
 package com.pxxy.controller;
 
 import com.pxxy.dto.UserDTO;
+import com.pxxy.utils.UserHolder;
 import com.pxxy.vo.LoginVO;
 import com.pxxy.service.UserService;
 import com.pxxy.utils.TokenUtil;
@@ -12,7 +13,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 
 import static com.pxxy.constant.ResponseMessage.FAIL_MSG;
 
@@ -39,17 +39,11 @@ public class LoginController {
 
     @ResponseBody
     @PostMapping("/out")
-    @ApiOperation("退出登录")
+    @ApiOperation("用户注销")
     public ResultResponse<?> logout(@RequestHeader("X-Token") String token) {
-        //实现登出功能
-        UserDTO userDTO = TokenUtil.invalid(token);
+        UserDTO userDTO = TokenUtil.invalidate(token);
+        UserHolder.saveUser(userDTO);
         return userDTO != null ? ResultResponse.ok() : ResultResponse.fail(FAIL_MSG);
-    }
-
-    @GetMapping("/test")
-    @ApiOperation("测试导出")
-    public String test() {
-        return "fetch";
     }
 
 }
