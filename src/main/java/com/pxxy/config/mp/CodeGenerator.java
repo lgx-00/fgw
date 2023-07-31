@@ -18,13 +18,10 @@ import java.util.ArrayList;
 import java.util.Scanner;
  
 public class CodeGenerator {
- 
- 
+
     public static String scanner(String tip) {
         Scanner scanner = new Scanner(System.in);
-        StringBuilder help = new StringBuilder();
-        help.append("请输入" + tip + "：");
-        System.out.println(help.toString());
+        System.out.println("请输入" + tip + "：");
         if (scanner.hasNext()) {
             String ipt = scanner.next();
             if (StringUtils.isNotBlank(ipt)) {
@@ -33,11 +30,7 @@ public class CodeGenerator {
         }
         throw new MybatisPlusException("请输入正确的" + tip + "！");
     }
- 
- 
- 
- 
- 
+
     public static void main(String[] args) {
         // 代码生成器
         AutoGenerator mpg = new AutoGenerator();
