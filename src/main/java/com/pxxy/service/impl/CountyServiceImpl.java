@@ -19,9 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -95,7 +93,8 @@ public class CountyServiceImpl extends BaseService<CountyMapper, County> impleme
                         ArrayList::new, (list, town) -> list.add(mapTownToVO.apply(town)), null, CH_ID)));
 
         List<QueryCountyVO> counties = countyList.stream()
-                .map(c -> new QueryCountyVO(c.getCouId(), c.getCouName(), couIdMapTowns.get(c.getCouId())))
+                .map(c -> new QueryCountyVO(c.getCouId(), c.getCouName(),
+                        Optional.ofNullable(couIdMapTowns.get(c.getCouId())).orElse(Collections.emptyList())))
                 .collect(Collectors.toList());
         return ResultResponse.ok(counties);
     }
