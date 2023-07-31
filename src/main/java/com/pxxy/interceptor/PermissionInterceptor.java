@@ -1,4 +1,4 @@
-package com.pxxy.intercepter;
+package com.pxxy.interceptor;
 
 import cn.hutool.json.JSONUtil;
 import com.pxxy.dto.PermissionDTO;
@@ -32,7 +32,6 @@ public class PermissionInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest req, HttpServletResponse resp, Object handler) throws Exception {
         //拦截器取到请求先进行判断，如果是OPTIONS请求，则放行
         if("OPTIONS".equalsIgnoreCase(req.getMethod())) {
-            log.info("Method:OPTIONS");
             return true;
         }
 

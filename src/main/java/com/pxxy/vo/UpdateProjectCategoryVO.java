@@ -3,8 +3,10 @@ package com.pxxy.vo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 
 /**
  * @Author: hesen
@@ -15,13 +17,16 @@ import javax.validation.constraints.NotBlank;
 @ApiModel("修改项目类型请求模型")
 public class UpdateProjectCategoryVO {
 
-    @ApiModelProperty("项目类型ID")
+    @ApiModelProperty("项目类型编号")
     private Integer prcId;
 
     @ApiModelProperty("项目类型名称")
-    @NotBlank(message = "项目类型名称不能为空！")
+    @Length(min = 1, message = "项目类型名称不能为空！")
+    @Length(max = 64, message = "项目类型名称不能超过 64 个字符！")
     private String prcName;
 
-    @ApiModelProperty("允许调度时间")
+    @ApiModelProperty("允许调度的时间范围")
+    @Max(value = 3131, message = "允许调度的时间范围不合法")
+    @Min(value = 0, message = "允许调度的时间范围不合法")
     private Integer prcPeriod;
 }

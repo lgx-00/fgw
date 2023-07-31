@@ -13,7 +13,7 @@ import static com.pxxy.constant.SystemConstant.DELETED_STATUS;
  */
 public enum DispatchStatusEnum {
 
-    NORMAL(DEFAULT_STATUS, "正常"),
+    NORMAL(DEFAULT_STATUS, "未锁定"),
     LOCKED(1, "已锁定"),
     DELETED(DELETED_STATUS, "已删除");
 

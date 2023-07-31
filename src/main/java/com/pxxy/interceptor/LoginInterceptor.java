@@ -1,4 +1,4 @@
-package com.pxxy.intercepter;
+package com.pxxy.interceptor;
 
 import cn.hutool.json.JSONUtil;
 import com.pxxy.dto.UserDTO;

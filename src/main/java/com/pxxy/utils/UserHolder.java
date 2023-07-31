@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-import static com.pxxy.constant.SystemConstant.USER_DATA$REMOVE_HANDLERS;
+import static com.pxxy.constant.SystemConstant.USER_DATA$LOGOUT_HANDLERS;
 
 public class UserHolder {
 
@@ -24,17 +24,6 @@ public class UserHolder {
      * @see UserKey
      */
     private static final Map<UserKey, Object> storage = new ConcurrentHashMap<>();
-
-    public static void handleRemoveUser(UserDTO user) {
-        @SuppressWarnings("unchecked")
-        List<Consumer<UserDTO>> handlers = (List<Consumer<UserDTO>>) getData(USER_DATA$REMOVE_HANDLERS, user);
-        if (handlers != null) {
-            handlers.forEach(userDTOConsumer -> userDTOConsumer.accept(user));
-        }
-        List<UserKey> toBeRemove = new ArrayList<>();
-        storage.keySet().forEach(k -> {if (k.user.equals(user)) toBeRemove.add(k);});
-        toBeRemove.forEach(storage::remove);
-    }
 
     /**
      * 用户数据映射中的键的类型。
@@ -99,6 +88,41 @@ public class UserHolder {
         return getData(key, user);
     }
 
+    /**
+     * 获取当前线程的用户下线时要执行的相关操作列表。
+     * @return 当前线程的用户下线时要执行的相关操作列表
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Consumer<UserDTO>> getLogoutHandlers() {
+        List<Consumer<UserDTO>> handlers = (List<Consumer<UserDTO>>) getData(USER_DATA$LOGOUT_HANDLERS);
+        if (handlers == null) {
+            handlers = new ArrayList<>();
+            UserHolder.putData(USER_DATA$LOGOUT_HANDLERS, handlers);
+        }
+        return handlers;
+    }
+
+    /**
+     * 执行用户下线时的相关操作。
+     * @param user 要执行操作的用户
+     */
+    public static void handleUserLogout(UserDTO user) {
+        @SuppressWarnings("unchecked")
+        List<Consumer<UserDTO>> handlers = (List<Consumer<UserDTO>>) getData(USER_DATA$LOGOUT_HANDLERS, user);
+        if (handlers != null) {
+            handlers.forEach(userDTOConsumer -> userDTOConsumer.accept(user));
+        }
+        List<UserKey> toBeRemove = new ArrayList<>();
+        storage.keySet().forEach(k -> {if (k.user.equals(user)) toBeRemove.add(k);});
+        toBeRemove.forEach(storage::remove);
+    }
+
+    /**
+     * 根据数据标识和用户获取用户的数据。
+     * @param key 数据标识
+     * @param user 用户
+     * @return 用户的数据
+     */
     public static Object getData(String key, UserDTO user) {
         UserKey k = new UserKey(user, key);
         return storage.get(k);

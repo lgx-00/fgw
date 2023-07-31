@@ -9,10 +9,7 @@ import com.pxxy.dto.UserDTO;
 import com.pxxy.mapper.UserMapper;
 import com.pxxy.pojo.*;
 import com.pxxy.service.*;
-import com.pxxy.utils.Md5Util;
-import com.pxxy.utils.PageUtil;
-import com.pxxy.utils.ResultResponse;
-import com.pxxy.utils.TokenUtil;
+import com.pxxy.utils.*;
 import com.pxxy.vo.*;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -164,24 +161,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 updateById(user);
 
                 // *查询用户权限
-                Map<String, PermissionDTO> permission = new HashMap<>();
-                List<UserRole> userRoleList = userRoleService.query().eq("u_id", user.getUId()).list();
-
                 // 角色id集合
-                List<Integer> roleIds = userRoleList.stream().map(UserRole::getRId).collect(Collectors.toList());
+                List<Integer> roleIds = userRoles.stream().map(UserRole::getRId).collect(Collectors.toList());
 
-                for (Integer roleId : roleIds) {
-                    List<RolePermission> rolePermissionList = rolePermissionService
-                            .query().eq("r_id", roleId).list();
-                    for (RolePermission rolePermission : rolePermissionList) {
-                        Permission p = permissionService.query().eq("p_id", rolePermission.getPId()).one();
-                        PermissionDTO permissionDTO = permission
-                                .getOrDefault(p.getPPath(), new PermissionDTO(p.getPPath(), p.getPName()));
-                        permissionDTO.setRpDetail(permissionDTO.getRpDetail() | rolePermission.getRpDetail());
+                List<RolePermission> rolePermissions = rolePermissionService.query().in("r_id", roleIds).list();
+                List<Integer> pIds = rolePermissions.stream().map(RolePermission::getPId)
+                        .distinct().collect(Collectors.toList());
 
-                        permission.put(p.getPPath(), permissionDTO);
-                    }
-                }
+                Map<String, PermissionDTO> permissions = permissionService.query().in("p_id", pIds).list().stream()
+                    .map(p -> {
+                        PermissionDTO dto = new PermissionDTO(p.getPPath(), p.getPName());
+                        dto.setRpDetail(rolePermissions.stream().filter(rp -> rp.getPId().equals(p.getPId()))
+                                .reduce(0, (a, b) -> a | b.getRpDetail(), (a, b) -> a | b));
+                        return dto;
+                    }).collect(Collectors.toMap(PermissionDTO::getPPath, dto -> dto));
 
                 // 将待调度的项目的状态更新为待调度
                 projectService.updateDispatchStatus();
@@ -222,15 +215,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             save(user);
         } catch (DuplicateKeyException e) {
             if (Objects.requireNonNull(e.getMessage()).contains("user.user_u_name__uindex")) {
-                return ResultResponse.fail("用户名重复！");
+                return ResultResponse.fail("用户名已被占用！");
             } else {
+                log.error("用户新增失败！", e);
                 return ResultResponse.fail("操作失败，未知原因！");
             }
         } catch (DataIntegrityViolationException e) {
             if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {
                 return ResultResponse.fail("非法操作！");
             } else {
-                log.error("用户插入失败！", e);
+                log.error("用户新增失败！", e);
                 return ResultResponse.fail("操作失败，未知原因！");
             }
         }

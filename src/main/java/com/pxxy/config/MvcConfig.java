@@ -1,7 +1,7 @@
 package com.pxxy.config;
 
-import com.pxxy.intercepter.LoginInterceptor;
-import com.pxxy.intercepter.PermissionInterceptor;
+import com.pxxy.interceptor.LoginInterceptor;
+import com.pxxy.interceptor.PermissionInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

@@ -50,7 +50,7 @@ public class TokenUtil {
         }
 
         static Token generate() {
-            updateMapper().forEach(UserHolder::handleRemoveUser);
+            updateMapper().forEach(UserHolder::handleUserLogout);
             Token candidate;
             do {
                 candidate = new Token(RandomUtil.randomString(BASE_STRING, LENGTH));
@@ -118,7 +118,7 @@ public class TokenUtil {
     public static UserDTO getUser(String token) {
         Token t = new Token(token);
         synchronized (TokenUtil.class) {
-            updateMapper(t).forEach(UserHolder::handleRemoveUser);
+            updateMapper(t).forEach(UserHolder::handleUserLogout);
         }
         return TOKEN_MAPPER.get(t);
     }
@@ -138,7 +138,11 @@ public class TokenUtil {
 
     public static UserDTO invalidate(String token) {
         synchronized (TokenUtil.class) {
-            return TOKEN_MAPPER.remove(new Token(token));
+            UserDTO userDTO = TOKEN_MAPPER.remove(new Token(token));
+            if (userDTO != null) {
+                UserHolder.handleUserLogout(userDTO);
+            }
+            return userDTO;
         }
     }
 
@@ -149,6 +153,13 @@ public class TokenUtil {
                     k.kill();
                 }
             });
+        }
+    }
+
+    public static void invalidateAll() {
+        synchronized (TokenUtil.class) {
+            TOKEN_MAPPER.keySet().forEach(Token::kill);
+            updateMapper().forEach(UserHolder::handleUserLogout);
         }
     }
 

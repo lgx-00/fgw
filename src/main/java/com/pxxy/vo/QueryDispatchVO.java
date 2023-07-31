@@ -137,13 +137,17 @@ public class QueryDispatchVO {
     @ApiModelProperty("备注")
     private String disRemark;
 
-    @ApiModelProperty("项目状态")
+    @ApiModelProperty("调度状态，0未锁定 1已锁定 5已删除")
     private String disStatus;
+
+    @ApiModelProperty("是否锁定")
+    private boolean locked;
 
     public void setDisStatus(Integer disStatus) {
         for (DispatchStatusEnum value : DispatchStatusEnum.values()) {
             if (Objects.equals(value.val, disStatus)) {
                 this.disStatus = value.name;
+                this.locked = value.equals(DispatchStatusEnum.LOCKED);
                 return;
             }
         }
