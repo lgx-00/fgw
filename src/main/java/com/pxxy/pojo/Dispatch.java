@@ -139,6 +139,11 @@ public class Dispatch implements Serializable {
      */
     private String disAppendix;
 
+    /**
+     * 上传的附件的原名
+     */
+    private String disAppendixName;
+
     public Dispatch(Integer disId, Integer disTotal, Integer disPlanYear, Integer disYear, Integer disTotalPercent, Integer disYearPercent) {
         this.disId = disId;
         this.disTotal = disTotal;

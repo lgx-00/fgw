@@ -31,6 +31,7 @@ public class SystemConstant {
 
 
     public static final String USER_DATA$UPLOAD_FILE_NAME = "upload-file-name";
-    public static final String USER_DATA$REMOVE_HANDLERS = "remove-handlers";
+    public static final String USER_DATA$UPLOAD_ORIGINAL_FILE_NAME = "upload-file-original-name";
+    public static final String USER_DATA$LOGOUT_HANDLERS = "remove-handlers";
 
 }

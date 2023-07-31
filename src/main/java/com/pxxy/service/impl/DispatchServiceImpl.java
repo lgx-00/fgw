@@ -35,8 +35,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.net.URLEncoder;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -129,12 +129,15 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
 
         try {
             checkExists(false);
-            return responseFile(appendix);
+            return responseFile(appendix, dis.getDisAppendixName());
         } catch (FileException e) {
             return responseFail(e.getMessage());
         } catch (FileNotFoundException e) {
             log.error("下载附件失败！", e);
             return responseFail(APPENDIX_NOT_AVAILABLE);
+        } catch (UnsupportedEncodingException e) {
+            log.error("编码失败", e);
+            return responseFail(FAIL_MSG);
         }
 
     }
@@ -152,6 +155,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         if (baseMapper.insert(dis) == 1 && updateProject(vo, dis)) {
             baseMapper.lockLastDispatch(dis.getDisId(), dis.getProId());
             UserHolder.removeData(USER_DATA$UPLOAD_FILE_NAME);
+            UserHolder.removeData(USER_DATA$UPLOAD_ORIGINAL_FILE_NAME);
             return ResultResponse.ok();
         }
         throw new DBException(ADD_FAILED);
@@ -248,7 +252,11 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             return ResultResponse.fail(UPLOAD_FAILED);
         }
 
-        if (update().eq("dis_id", disId).set("dis_appendix", fileName).update()) {
+        if (update().eq("dis_id", disId).set("dis_appendix", fileName)
+                .set("dis_appendix_name", disAppendix.getOriginalFilename()).update()) {
+            if (!new File(filePath, fileName).delete()) {
+                log.warn("文件 {}/{} 删除失败。", filePath, fileName);
+            }
             String oldAppendix = dis.getDisAppendix();
             if (oldAppendix != null) if (!new File(filePath, oldAppendix).delete()) {
                 log.warn("文件 {}/{} 删除失败。", filePath, fileName);
@@ -256,9 +264,6 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             return ResultResponse.ok();
         }
 
-        if (!new File(filePath, fileName).delete()) {
-            log.warn("文件 {}/{} 删除失败。", filePath, fileName);
-        }
         return ResultResponse.fail(UPLOAD_FAILED);
 
     }
@@ -266,26 +271,21 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
     @Override
     public ResultResponse<String> upload(MultipartFile disAppendix) {
         String fileName = uploadFile(disAppendix);
-        if (fileName != null) {
-            String oldFileName = (String) UserHolder.putData(USER_DATA$UPLOAD_FILE_NAME, fileName);
-            if (oldFileName != null) if (!new File(filePath, oldFileName).delete()) {
-                log.warn("文件 {}/{} 删除失败。", filePath, oldFileName);
-            }
-            @SuppressWarnings("unchecked")
-            List<Consumer<UserDTO>> handlers = (List<Consumer<UserDTO>>) UserHolder.getData(USER_DATA$REMOVE_HANDLERS);
-            if (handlers == null) {
-                handlers = new ArrayList<>();
-                UserHolder.putData(USER_DATA$REMOVE_HANDLERS, handlers);
-            }
-            handlers.add(user -> {
-                String fileToDelete = (String) UserHolder.getData(USER_DATA$UPLOAD_FILE_NAME, user);
-                if (fileToDelete != null) if (!new File(filePath, fileToDelete).delete()) {
-                    log.warn("文件 {}/{} 删除失败。", filePath, fileToDelete);
-                }
-            });
-            return ResultResponse.ok(fileName);
+        if (fileName == null) {
+            return ResultResponse.fail(UPLOAD_FAILED);
         }
-        return ResultResponse.fail(UPLOAD_FAILED);
+        String oldFileName = (String) UserHolder.putData(USER_DATA$UPLOAD_FILE_NAME, fileName);
+        UserHolder.putData(USER_DATA$UPLOAD_ORIGINAL_FILE_NAME, disAppendix.getOriginalFilename());
+        if (oldFileName != null) if (!new File(filePath, oldFileName).delete()) {
+            log.warn("文件 {}/{} 删除失败。", filePath, oldFileName);
+        }
+        UserHolder.getLogoutHandlers().add(user -> {
+            String fileToDelete = (String) UserHolder.getData(USER_DATA$UPLOAD_FILE_NAME, user);
+            if (fileToDelete != null) if (!new File(filePath, fileToDelete).delete()) {
+                log.warn("文件 {}/{} 删除失败。", filePath, fileToDelete);
+            }
+        });
+        return ResultResponse.ok(fileName);
     }
 
     private enum CheckType {
@@ -516,14 +516,18 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
     }
 
     private <VO extends DispatchVO> Dispatch parsePojo(VO vo) throws FileException {
-        String uploadFileName = (String) UserHolder.getData(USER_DATA$UPLOAD_FILE_NAME);
-        if (uploadFileName == null || !uploadFileName.equals(vo.getDisAppendix())) {
-            throw new FileException(APPENDIX_NOT_AVAILABLE);
-        }
         Dispatch dis = new Dispatch();
         BeanUtil.copyProperties(vo, dis);
         dis.setUId(UserHolder.getUser().getUId());
-        dis.setDisAppendix(uploadFileName);
+        if (vo.getDisAppendix() != null) {
+            // 未上传附件的情况
+            String uploadFileName = (String) UserHolder.getData(USER_DATA$UPLOAD_FILE_NAME);
+            if (uploadFileName == null || !uploadFileName.equals(vo.getDisAppendix())) {
+                throw new FileException(APPENDIX_NOT_AVAILABLE);
+            }
+            dis.setDisAppendix(uploadFileName);
+        }
+        dis.setDisAppendixName((String) UserHolder.getData(USER_DATA$UPLOAD_ORIGINAL_FILE_NAME));
         return dis;
     }
 
@@ -569,17 +573,18 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         }
     }
 
-    private ResponseEntity<InputStreamResource> responseFile(String appendix) throws FileNotFoundException {
+    private ResponseEntity<InputStreamResource> responseFile(String appendix, String appendixName)
+            throws FileNotFoundException, UnsupportedEncodingException {
         File f = new File(filePath, appendix);
         FileInputStream fis = new FileInputStream(f);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition",
-                String.format("attachment; filename=\"附件.%s\"", FileUtil.extName(appendix)));
-        return ResponseEntity.ok()
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(new InputStreamResource(fis));
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" +
+                URLEncoder.encode(Optional.ofNullable(appendixName).orElse("附件"), "UTF-8"));
+        headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(f.length()));
+        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+        return ResponseEntity.ok().headers(headers).body(new InputStreamResource(fis));
     }
 
     private ResponseEntity<InputStreamResource> responseFail(String msg) {

@@ -48,7 +48,7 @@ public class AddDispatchVO extends DispatchVO implements Serializable {
      */
     @ApiModelProperty("今年计划投资")
     @NotNull(message = "今年计划投资不能为空！")
-    @Min(value = 1, message = "今年计划投资必须为一个正整数")
+    @Min(value = 0, message = "今年计划投资必须为一个非负数")
     private Integer disPlanYear;
 
     /**
@@ -77,7 +77,6 @@ public class AddDispatchVO extends DispatchVO implements Serializable {
      * 主要形象进度
      */
     @ApiModelProperty("主要形象进度")
-    @NotNull(message = "主要形象进度不能为空！")
     @NotBlank(message = "主要形象进度不能为空！")
     @Length(max = 255, message = "主要形象进度不能超过 255 个字符！")
     private String disProgress;
