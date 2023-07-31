@@ -380,6 +380,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 return ResultResponse.fail(REPORT_FAILED);
             }
             project.setDepId(depId);
+            project.setProStatus(PENDING_REVIEW.val);
         }
         return null;
     }
