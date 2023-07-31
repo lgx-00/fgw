@@ -13,7 +13,16 @@ import static com.pxxy.constant.SystemConstant.USER_DATA$REMOVE_HANDLERS;
 
 public class UserHolder {
 
+    /**
+     * 本地线程隔离类，用于存储当前线程的用户信息。
+     */
     private static final ThreadLocal<UserDTO> tl = new ThreadLocal<>();
+
+    /**
+     * 用于存储用户数据的映射。
+     * 用户数据是用户在登录状态下需要用到的缓存数据，每个用户拥有独立一份，互不干扰。
+     * @see UserKey
+     */
     private static final Map<UserKey, Object> storage = new ConcurrentHashMap<>();
 
     public static void handleRemoveUser(UserDTO user) {
@@ -27,6 +36,10 @@ public class UserHolder {
         toBeRemove.forEach(storage::remove);
     }
 
+    /**
+     * 用户数据映射中的键的类型。
+     * 包括一个用户对象和一个用来标识数据内容的字符串。
+     */
     private static class UserKey {
         private final UserDTO user;
         private final String key;
@@ -50,18 +63,34 @@ public class UserHolder {
         }
     }
 
+    /**
+     * 将用户信息保存到当前线程中。
+     * @param user 用户信息
+     */
     public static void saveUser(UserDTO user) {
         tl.set(user);
     }
 
+    /**
+     * 从当前线程中获取用户信息。
+     * @return 用户信息
+     */
     public static UserDTO getUser() {
         return tl.get();
     }
 
+    /**
+     * 从当前线程中移除用户信息，释放资源。
+     */
     public static void removeUser() {
         tl.remove();
     }
 
+    /**
+     * 获取当前线程的用户的数据，key 是数据标识。
+     * @param key 数据标识
+     * @return 用户的一项数据
+     */
     public static Object getData(String key) {
         if (key == null) {
             return null;
@@ -75,6 +104,12 @@ public class UserHolder {
         return storage.get(k);
     }
 
+    /**
+     * 移除当前线程的用户的一项数据。
+     * @param key 数据标识
+     * @return 移除的数据
+     */
+    @SuppressWarnings("UnusedReturnValue")
     public static Object removeData(String key) {
         if (key == null) {
             return null;
@@ -84,6 +119,12 @@ public class UserHolder {
         return storage.remove(k);
     }
 
+    /**
+     * 为当前线程的用户添加一项数据。
+     * @param key 数据标识
+     * @param data 数据内容
+     * @return 添加的数据
+     */
     public static Object putData(String key, Object data) {
         if (key == null) {
             throw new IllegalArgumentException("The key is null. ");
