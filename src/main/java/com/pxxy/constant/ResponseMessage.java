@@ -43,5 +43,6 @@ public class ResponseMessage {
     public static final String ADD_OUT_OF_TIME = "当前不在允许添加调度的时间段";
     public static final String NO_PERMISSION = "你没有操作此项目的调度的权限";
     public static final String ONLY_UNLOCK_LAST_DISPATCH = "只能解锁最后一次调度";
+    public static final String ILLEGAL_PROJECT_STATUS = "非法的项目状态";
 
 }

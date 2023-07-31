@@ -51,6 +51,14 @@ public class ProjectController {
         return projectService.getAllDispatchProject(page);
     }
 
+    @GetMapping("/dispatch/vague")
+    @ApiOperation("分页模糊查询调度库项目")
+    public ResultResponse<PageInfo<QueryProjectVO>> getVagueDispatchProject(
+            @ModelAttribute @Validated Page page,
+            @Validated ProjectDTO projectDTO) {
+        return projectService.getVagueDispatchProject(page, projectDTO);
+    }
+
     @GetMapping("/vague")
     @ApiOperation("分页模糊查询项目")
     public ResultResponse<PageInfo<QueryProjectVO>> getVagueProject(
@@ -89,7 +97,7 @@ public class ProjectController {
     }
 
     @PostMapping("/import")
-    @ApiOperation("导入Excel")
+    @ApiOperation("批量导入")
     public ResultResponse<?> importExcel(@RequestPart("file") MultipartFile file) {
         return projectService.importExcel(file);
     }

@@ -47,10 +47,10 @@ public class ProjectDTO {
     private Integer proStatus;
 
     @ApiModelProperty("从")
-    private Date beginTime;
+    private Date beginTime = ZERO_DATE;
 
     @ApiModelProperty("至")
-    private Date endTime;
+    private Date endTime = INFINITY_DATE;
 
     @ApiModelProperty("标记1")
     private String proMark1;

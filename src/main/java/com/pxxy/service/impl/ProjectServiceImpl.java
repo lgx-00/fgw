@@ -230,7 +230,8 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 .eq(nn(dto.getProStatus()), "pro_status", dto.getProStatus())
                 .between(nn(dto.getBeginTime()) || nn(dto.getEndTime()), "pro_date",
                         Optional.ofNullable(dto.getBeginTime()).orElse(ZERO_DATE),
-                        Optional.ofNullable(dto.getEndTime()).orElse(INFINITY_DATE)));
+                        Optional.ofNullable(dto.getEndTime()).orElse(INFINITY_DATE))
+                .orderByDesc("pro_id"));
     }
 
     private static boolean nn(String s) {
@@ -658,6 +659,18 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     @Override
     public void clearDispatch() {
         update().set("pro_dis_year", 0).set("pro_dis_year_percent", 0).update();
+    }
+
+    @Override
+    public ResultResponse<PageInfo<QueryProjectVO>> getVagueDispatchProject(Page page, ProjectDTO projectDTO) {
+        int status = Optional.ofNullable(projectDTO.getProStatus()).orElse(1);
+        if (status != 3 && status != 4 && status != 1) {
+            return ResultResponse.fail(ILLEGAL_PROJECT_STATUS);
+        }
+        projectDTO.setUId(UserHolder.getUser().getUId());
+        updateBaseData();
+        return ResultResponse.ok(PageUtil.selectPage(page, () ->
+                baseMapper.getVagueDispatchProjectByUser(projectDTO), mapProjectToVO));
     }
 
 }

@@ -14,6 +14,7 @@ import java.util.List;
  * @author hs
  * @since 2023-06-14
  */
+@SuppressWarnings("UnusedReturnValue")
 public interface ProjectMapper extends BaseMapper<Project> {
     List<Project> getAllProjectByUser(Integer depId, Integer couId, Integer uId);
 
@@ -25,4 +26,5 @@ public interface ProjectMapper extends BaseMapper<Project> {
 
     List<Project> getAllDispatchProjectByUser(Integer depId, Integer couId, Integer uId);
 
+    List<Project> getVagueDispatchProjectByUser(ProjectDTO projectDTO);
 }

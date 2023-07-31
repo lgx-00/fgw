@@ -56,4 +56,6 @@ public interface ProjectService extends IService<Project> {
     ResultResponse<QueryProjectVO> getProject(Integer proId);
 
     void clearDispatch();
+
+    ResultResponse<PageInfo<QueryProjectVO>> getVagueDispatchProject(Page page, ProjectDTO projectDTO);
 }

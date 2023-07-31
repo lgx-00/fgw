@@ -74,6 +74,7 @@
         </if>
 
         )
+        ORDER BY pro_id DESC
     </select>
 
     <!--union all是不去重 union 是去重-->
@@ -103,6 +104,7 @@
         </if>
 
         )
+        ORDER BY pro_id DESC
     </select>
 
     <!--union all是不去重 union 是去重-->
@@ -166,6 +168,79 @@
             </if>
         </if>
 
+        ORDER BY pro_id DESC
+
+    </select>
+
+    <!--union all是不去重 union 是去重-->
+    <select id="getVagueDispatchProjectByUser" resultType="com.pxxy.pojo.Project">
+        SELECT * FROM project WHERE
+        <if test="uId == 1">
+            TRUE
+        </if>
+        <if test="uId != 1">
+            pro_id IN
+            (
+
+            <if test="depId != null">
+                SELECT pro_id FROM project
+                WHERE dep_id = #{depId}
+            </if>
+
+            <if test="couId != null">
+                <if test="depId != null">
+                    UNION
+                </if>
+                SELECT pro_id FROM project
+                WHERE cou_id = #{couId}
+            </if>
+
+            <if test="uId != null">
+                <if test="couId != null or depId != null">
+                    UNION
+                </if>
+                SELECT pro_id FROM project
+                WHERE u_id = #{uId}
+            </if>
+
+            ) AS pro
+        </if>
+
+        <if test="proStatus == null">
+            AND pro_status IN (1, 3, 4)
+        </if>
+        <if test="proName != null">
+            AND pro_name LIKE "%"#{proName}"%"
+        </if>
+        <if test="townId != null">
+            AND town_id = #{townId}
+        </if>
+        <if test="prcId != null">
+            AND prc_id = #{prcId}
+        </if>
+        <if test="infId != null">
+            AND inf_id = #{infId}
+        </if>
+        <if test="proStatus != null">
+            AND pro_status = #{proStatus}
+        </if>
+
+        AND pro_date BETWEEN #{beginTime} AND #{endTime}
+
+        <if test="projectStage > 0">
+            <if test="projectStage == 1">
+                AND IFNULL(pro_dis_start, '2222-12-22') > CURRENT_DATE
+            </if>
+            <if test="projectStage == 2">
+                AND pro_dis_start &lt;= pro_dis_complete AND IFNULL(pro_dis_complete, '2222-12-22') > CURRENT_DATE
+            </if>
+            <if test="projectStage == 3">
+                AND IFNULL(pro_dis_complete, '2222-12-22') &lt;= CURRENT_DATE
+            </if>
+        </if>
+
+        ORDER BY pro_id DESC
+
     </select>
 
     <select id="getExamineProjectByUser" resultType="com.pxxy.pojo.Project">
@@ -197,10 +272,11 @@
             <if test="projectStage == 2">
                 AND pro_dis_start &lt;= pro_dis_complete AND IFNULL(pro_dis_complete, '2222-12-22') > CURRENT_DATE
             </if>
-            <if test="projectStage == 3">
+            <if test="projectStage  == 3">
                 AND IFNULL(pro_dis_complete, '2222-12-22') &lt;= CURRENT_DATE
             </if>
         </if>
+        ORDER BY pro_id DESC
 
     </select>
 
@@ -238,6 +314,7 @@
                 AND IFNULL(pro_dis_complete, '2222-12-22') &lt;= CURRENT_DATE
             </if>
         </if>
+        ORDER BY pro_id DESC
     </select>
 
     <!--union all是不去重 union 是去重-->
@@ -281,12 +358,13 @@
                 AND IFNULL(pro_dis_complete, '2222-12-22') &lt;= CURRENT_DATE
             </if>
         </if>
+        ORDER BY pro_id DESC
 
     </select>
 
     <!--union all是不去重 union 是去重-->
     <select id="getDispatchingCount" resultType="Integer">
-        SELECT COUNT(1) FROM
+        SELECT COUNT(pro_id) FROM
         (
 
         <if test="depId != null">
@@ -314,6 +392,42 @@
             WHERE <if test="uId != 1">u_id = #{uId}
               AND </if>pro_status = ${proStatus}
               AND pro_dis_complete IS NULL
+        </if>
+
+        ) p
+
+    </select>
+
+    <!--union all是不去重 union 是去重-->
+    <select id="getCompleteCount" resultType="Integer">
+        SELECT COUNT(pro_id) FROM
+        (
+
+        <if test="depId != null">
+            SELECT pro_id FROM project
+            WHERE dep_id = #{depId}
+              AND pro_status = ${proStatus}
+              AND pro_dis_complete IS NOT NULL
+        </if>
+
+        <if test="couId != null">
+            <if test="depId != null">
+                UNION
+            </if>
+            SELECT pro_id FROM project
+            WHERE cou_id = #{couId}
+              AND pro_status = ${proStatus}
+              AND pro_dis_complete IS NOT NULL
+        </if>
+
+        <if test="uId != null">
+            <if test="couId != null or depId != null">
+                UNION
+            </if>
+            SELECT pro_id FROM project
+            WHERE <if test="uId != 1">u_id = #{uId}
+              AND </if>pro_status = ${proStatus}
+              AND pro_dis_complete IS NOT NULL
         </if>
 
         ) p
