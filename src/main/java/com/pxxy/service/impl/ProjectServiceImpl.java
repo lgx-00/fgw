@@ -154,15 +154,15 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     @Override
     @Transactional
     public ResultResponse<PageInfo<QueryProjectVO>> getAllProject(Page page) {
-        //先拿到用户信息
+        // 先拿到用户信息
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
 
         updateBaseData();
 
-        //管理员特殊通道
+        // 管理员特殊通道
         if (uId == 1) return ResultResponse.ok(PageUtil.selectPage(page, () ->
-                this.query().ne("pro_status", DELETED_STATUS).list(), mapProjectToVO));
+                this.query().ne("pro_status", DELETED_STATUS).orderByDesc("pro_id").list(), mapProjectToVO));
 
         // 非管理员通道
         User u = userService.query().eq("u_id", uId).one();
@@ -176,13 +176,13 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Override
     public ResultResponse<PageInfo<QueryProjectVO>> getAllDispatchProject(Page page) {
-        //先拿到用户信息
+        // 先拿到用户信息
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
 
         updateBaseData();
 
-        //管理员特殊通道
+        // 管理员特殊通道
         if (uId == 1) return ResultResponse.ok(PageUtil.selectPage(page, () ->
                 query().in("pro_status", Arrays.asList(1, 3, 4)).list(), mapProjectToVO));
 

@@ -10,9 +10,6 @@ public class ResponseMessage {
     public static final int INVALID_TOKEN = 401;
     public static final int PERMISSION_NOT_ENOUGH = 402;
 
-    // 系统控制
-    public static final String NO_PERMISSION_FOR_SYSTEM_CONTROL = "你没有执行此项操作的权限";
-
     public static final String OK_MSG = "操作成功";
     public static final String FAIL_MSG = "操作失败";
     public static final String ILLEGAL_OPERATE = "非法操作";
@@ -22,6 +19,9 @@ public class ResponseMessage {
     public static final String DELETE_FAILED = "删除失败";
     public static final String UPDATE_FAILED = "更新失败";
     public static final String UPLOAD_FAILED = "上传文件失败";
+
+    // 系统控制
+    public static final String NO_PERMISSION_FOR_SYSTEM_CONTROL = "你没有执行此项操作的权限";
 
     // 项目相关的错误信息
     public static final String COUNTY_AND_TOWN_NOT_MATCH = "辖区和二级辖区不匹配";

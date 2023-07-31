@@ -11,7 +11,7 @@ public class SystemConstant {
     // 用户被禁用的状态
     public static final int         USER_DISABLED_STATUS            =                4;
     // 用户登录最大错误次数
-    public static final int         USER_MISPASS_TIMES              =                10;
+    public static final int         USER_MISPASS_TIMES              =               10;
     // 用户禁用时间key
     public static final String      USER_DISABLED_TIME_KEY          =      "disabled:";
     // 用户错误次数key
@@ -22,9 +22,9 @@ public class SystemConstant {
     public static final long        USER_DEFAULT_DISABLE_TIME       =                5;
 
     // 默认分页大小
-    public static final int         DEFAULT_PAGE_SIZE               =               10;
+    public static final int         DEFAULT_PAGE_SIZE               =               20;
     // 默认页数大小
-    public static final int         DEFAULT_PAGE_NUM               =                 1;
+    public static final int         DEFAULT_PAGE_NUM                =                1;
 
     public static final Date        INFINITY_DATE                   = new Date(7985664000000L);
     public static final Date        ZERO_DATE                       = new Date(0);
