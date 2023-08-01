@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.pxxy.constant.ResponseMessage.CANNOT_DELETE_SUPER_USER;
+import static com.pxxy.constant.ResponseMessage.CANNOT_DELETE_ADMINISTRATOR;
 import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
 import static com.pxxy.constant.SystemConstant.*;
 
@@ -148,8 +148,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 }
                 //先判断用户是否拥有角色
                 List<UserRole> userRoles = userRoleService.query().eq("u_id", user.getUId()).list();
+                // 角色id集合
+                List<Integer> roleIds = userRoles.stream().map(UserRole::getRId).collect(Collectors.toList());
+                List<Role> roles = roleService.query().in("r_id", roleIds).ne("r_status", DELETED_STATUS).list();
 
-                if (userRoles == null || userRoles.size() == 0) {
+                if (roles.isEmpty()) {
                     return ResultResponse.fail("用户所属的角色已被删除，请联系管理员！");
                 }
 
@@ -161,9 +164,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 updateById(user);
 
                 // *查询用户权限
-                // 角色id集合
-                List<Integer> roleIds = userRoles.stream().map(UserRole::getRId).collect(Collectors.toList());
-
                 List<RolePermission> rolePermissions = rolePermissionService.query().in("r_id", roleIds).list();
                 List<Integer> pIds = rolePermissions.stream().map(RolePermission::getPId)
                         .distinct().collect(Collectors.toList());
@@ -249,7 +249,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public ResultResponse<?> deleteUser(Integer userId) {
 
         if (userId == 1) {
-            return ResultResponse.fail(CANNOT_DELETE_SUPER_USER);
+            return ResultResponse.fail(CANNOT_DELETE_ADMINISTRATOR);
         }
 
         User user = query().eq("u_id", userId).one();

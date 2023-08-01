@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 /**
@@ -17,6 +18,7 @@ import java.util.Map;
 public class UpdateRoleVO {
 
     @ApiModelProperty("角色ID")
+    @NotNull(message = "缺少待修改的角色的编号")
     private Integer rId;
 
     @ApiModelProperty("角色名")

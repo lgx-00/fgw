@@ -23,5 +23,5 @@ public class QueryRoleVO {
     private String rName;
 
     @ApiModelProperty("权限")
-    private List<String> permission = new ArrayList<>();
+    private List<PermissionVO> permission = new ArrayList<>();
 }
