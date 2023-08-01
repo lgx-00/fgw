@@ -10,6 +10,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +27,7 @@ import static com.pxxy.constant.ResponseMessage.NO_PERMISSION_FOR_SYSTEM_CONTROL
  * @author xw
  * @version 1.0
  */
+@CrossOrigin
 @RestController
 @Api(tags = "系统")
 @RequestMapping("/sys")

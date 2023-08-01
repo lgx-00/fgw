@@ -21,6 +21,7 @@ import javax.annotation.Resource;
  * @author xw
  * @version 1.0
  */
+@CrossOrigin
 @RestController
 @Api(tags = "操作")
 @RequestMapping("/sys/oper")
