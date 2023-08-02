@@ -219,27 +219,19 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
 
         Dispatch dis = query().select("dis_id", "dis_status")
                 .eq("dis_id", disId).eq("pro_id", proId).one();
-        ResultResponse<?> valid = checkValid(dis, false);
-        if (valid != null) return valid;
-
-        dis.setDisStatus(DELETED.val);
-        if (!updateById(dis)) {
+        if (dis == null) {
             return ResultResponse.fail(DELETE_FAILED);
         }
-        Dispatch lastDispatch = baseMapper.getLastDispatch(disId, proId);
-        if (lastDispatch == null) {
-            // 最后一条调度被删除，将项目中的冗余字段删除
-            lastDispatch = new Dispatch();
-            lastDispatch.setProId(proId);
-            lastDispatch.setDisTotal(0);
-            lastDispatch.setDisInvest(0);
-            lastDispatch.setDisYear(0);
-            lastDispatch.setDisTotalPercent(0);
-            lastDispatch.setDisYearPercent(0);
-            lastDispatch.setDisProgress("");
+        if (dis.getDisStatus().equals(LOCKED.val)) {
+            return ResultResponse.fail(CANNOT_DELETE_LOCKED_DISPATCH);
         }
-        updateProject(lastDispatch, ProjectStatusEnum.NORMAL.val);
-        return ResultResponse.ok();
+        dis.setDisStatus(DELETED.val);
+        if (updateById(dis)) {
+            projectService.update().eq("pro_id", proId)
+                    .set("pro_status", ProjectStatusEnum.NORMAL.val);
+            return ResultResponse.ok();
+        }
+        return ResultResponse.fail(DELETE_FAILED);
     }
 
     @Override
@@ -441,8 +433,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             ProjectCheckDTO dto = new ProjectCheckDTO();
             if (disId != 0) {
                 // 调度编号不为 0 则查询是否为最后一次调度
-                Dispatch dispatch = query().select("max(dis_id) as dis_id").eq("pro_id", proId)
-                        .ne("dis_status", DELETED.val).one();
+                Dispatch dispatch = query().select("max(dis_id) as dis_id").eq("pro_id", proId).one();
                 dto.setLastDis(dispatch != null && Objects.equals(disId, dispatch.getDisId()));
             }
             List<String> selects = new ArrayList<>(8);
@@ -481,50 +472,37 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
     private ResultResponse<?> update0(Dispatch dispatch) {
         Dispatch dis = query().select("dis_appendix", "dis_status")
                 .eq("dis_id", dispatch.getDisId()).one();
-        ResultResponse<?> valid = checkValid(dis, true);
-        if (valid != null) return valid;
-
-        if (!updateById(dispatch)) {
+        if (dis == null) {
             return ResultResponse.fail(UPDATE_FAILED);
         }
-        UserHolder.removeData(USER_DATA$UPLOAD_FILE_NAME);
-        UserHolder.removeData(USER_DATA$UPLOAD_ORIGINAL_FILE_NAME);
-
-        updateProject(dispatch, null);
-
-        // 删除之前上传的文件，判断条件：新的附件和旧的附件均不为空
+        if (dis.getDisStatus().equals(LOCKED.val)) {
+            return ResultResponse.fail(CANNOT_UPDATE_LOCKED_DISPATCH);
+        }
         String oldAppendix = dis.getDisAppendix();
         String newAppendix = dispatch.getDisAppendix();
-        if (newAppendix != null && oldAppendix != null && !new File(filePath, oldAppendix).delete()) {
-            log.warn("文件 {}/{} 删除失败。", filePath, oldAppendix);
+        if (updateById(dispatch)) {
+            updateProject(dispatch);
+            UserHolder.removeData(USER_DATA$UPLOAD_FILE_NAME);
+            // 删除之前上传的文件，判断条件：新的附件和旧的附件均不为空
+            if (newAppendix != null && oldAppendix != null) {
+                if (!new File(filePath, oldAppendix).delete())
+                log.warn("文件 {}/{} 删除失败。", filePath, oldAppendix);
+            }
+            return ResultResponse.ok();
         }
-        return ResultResponse.ok();
+        return ResultResponse.fail(UPDATE_FAILED);
     }
 
-    private ResultResponse<Object> checkValid(Dispatch dis, boolean updating) {
-        if (dis == null) {
-            return ResultResponse.fail(updating ? UPDATE_FAILED: DELETE_FAILED);
-        }
-        if (dis.getDisStatus().equals(LOCKED.val)) {
-            return ResultResponse.fail(updating ? CANNOT_UPDATE_LOCKED_DISPATCH: CANNOT_DELETE_LOCKED_DISPATCH);
-        }
-        if (dis.getDisStatus().equals(DELETED.val)) {
-            return ResultResponse.fail(updating ? UPDATE_FAILED: DELETE_FAILED);
-        }
-        return null;
-    }
-
-    private void updateProject(Dispatch dispatch, Integer proStatus) {
-        // 更新调度时，更新项目中的冗余字段
+    private void updateProject(Dispatch dispatch) {
+        // 更新项目中的冗余字段
         Project project = new Project(dispatch.getProId(), dispatch.getDisTotal(),
                 dispatch.getDisYear(), dispatch.getDisTotalPercent(),
                 dispatch.getDisYearPercent(), dispatch.getDisProgress());
-        project.setProStatus(proStatus);
         projectService.updateById(project);
     }
 
     private boolean updateProject(AddDispatchVO vo, Dispatch dis) {
-        // 添加调度时，更新项目中的冗余字段
+        // 更新项目中的冗余字段
         Project project = new Project(vo.getProId(), dis.getDisTotal(), dis.getDisYear(),
                 dis.getDisTotalPercent(), dis.getDisYearPercent(), dis.getDisProgress());
         project.setProStatus(ProjectStatusEnum.UNLOCKED.val);
