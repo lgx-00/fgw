@@ -37,9 +37,8 @@ public interface DispatchMapper extends BaseMapper<Dispatch> {
             ")")
     void lockLastDispatch(@Param("disId") Integer disId, @Param("proId") Integer proId);
 
-    @Select("select dis_id, pro_id, dis_invest, dis_total, dis_plan_year, dis_total_percent, dis_year, dis_year_percent " +
-            "from dispatch where dis_id in (select max(dis_id) from dispatch where dis_status <> 5 and dis_id<#{di" +
-            "sId} and pro_id=#{proId})")
+    @Select("select dis_id, dis_invest, dis_total, dis_plan_year, dis_total_percent, dis_year, dis_year_percent " +
+            "from dispatch where dis_id in (select max(dis_id) from dispatch where dis_id<#{disId} and pro_id=#{proId})")
     Dispatch getLastDispatch(@Param("disId") Integer disId, @Param("proId") Integer proId);
 
 }
