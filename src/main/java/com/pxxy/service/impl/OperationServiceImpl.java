@@ -85,6 +85,7 @@ public class OperationServiceImpl extends BaseService<OperationMapper, Operation
                         .between("oper_time", vo.getBeginTime(), vo.getEndTime())
                         .like(Objects.nonNull(vo.getOperPath()), "oper_path", vo.getOperPath())
                         .eq(Objects.nonNull(vo.getOperIp()), "oper_ip", finalIpv)
+                        .eq(Objects.nonNull(vo.getOperStatus()), "oper_status", vo.getOperStatus())
                         .orderByDesc("oper_id")
                         .list(),
                 mapOperationToVO));
