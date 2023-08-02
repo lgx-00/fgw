@@ -420,81 +420,80 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     public ResultResponse<?> importExcel(MultipartFile file) {
 
         int uid = UserHolder.getUser().getUId();
-        // 错误信息集合
-        List<String> errorMsgList = new ArrayList<>();
 
         try {
             List<ProjectExcelVO> projectExcelVOList = EasyExcel.read(file.getInputStream())
                     .head(ProjectExcelVO.class)
                     .sheet()
                     .doReadSync();
-            List<Project> projectList = new ArrayList<>();
+            Date now = new Date();
+
+            // 错误信息集合
+            List<String> errorMsgList = new ArrayList<>();
             for (ProjectExcelVO projectExcelVO : projectExcelVOList) {
-                if (projectExcelVO.getProDate()     == null) errorMsgList.add("项目日期不能为空；");
+                if (projectExcelVO.getProDate()     == null) projectExcelVO.setProDate(now);
+                if (projectExcelVO.getCouName()     == null) errorMsgList.add("辖区不能为空；");
                 if (projectExcelVO.getProName()     == null) errorMsgList.add("项目名称不能为空；");
                 if (projectExcelVO.getProLocation() == null) errorMsgList.add("建设地点不能为空；");
-                if (projectExcelVO.getCouName()     == null) errorMsgList.add("辖区不能为空；");
-                if (projectExcelVO.getTownName()    == null) errorMsgList.add("二级辖区不能为空；");
                 if (projectExcelVO.getPrcName()     == null) errorMsgList.add("项目类型名称不能为空；");
                 if (projectExcelVO.getInfName()     == null) errorMsgList.add("行业领域名称不能为空；");
             }
-
             if (errorMsgList.size() != 0)
                 return ResultResponse.fail(errorMsgList.stream().distinct().collect(Collectors.toList()).toString());
 
+            Map<String, Integer> depNameMapId = depService.all().stream().collect(Collectors.toMap(Department::getDepName, Department::getDepId));
+            Map<String, Integer> couNameMapId = countyService.all().stream().collect(Collectors.toMap(County::getCouName, County::getCouId));
+            Map<String, Town> townNameMapTown = townService.all().stream().collect(Collectors.toMap(Town::getTownName, t -> t));
+            Map<String, Integer> prcNameMapId = prcService.all().stream().collect(Collectors.toMap(ProjectCategory::getPrcName, ProjectCategory::getPrcId));
+            Map<String, Integer> infNameMapId = infService.all().stream().collect(Collectors.toMap(IndustryField::getInfName, IndustryField::getInfId));
+
+            List<Project> projectList = new ArrayList<>();
             for (ProjectExcelVO projectExcelVO : projectExcelVOList) {
                 Project project = new Project();
                 BeanUtil.copyProperties(projectExcelVO, project);
                 String departmentName = projectExcelVO.getDepartmentName();
                 if (departmentName != null) {
-                    Department department = depService.query().eq("dep_name", departmentName).one();
-                    if (department != null) {
-                        project.setDepId(department.getDepId());
-                    } else {
-                        //若为空
+                    Integer depId = depNameMapId.get(departmentName);
+                    if (Objects.nonNull(depId)) {
+                        project.setDepId(depId);
+                    } else {  // 若为空
                         errorMsgList.add("不存在科室名“" + departmentName + "”；");
                     }
-
                 }
 
-                String couName = projectExcelVO.getCouName();
-                County county = countyService.query().eq("cou_name", couName).one();
-                if (county != null) {
-                    project.setCouId(county.getCouId());
+                Integer couId = couNameMapId.get(projectExcelVO.getCouName());
+                if (Objects.nonNull(couId)) {
+                    project.setCouId(couId);
                     String townName = projectExcelVO.getTownName();
-                    Town town = townService.query().eq("town_name", townName).one();
-                    if (town != null) {
-                        if (town.getCouId().equals(county.getCouId())) {
-                            project.setTownId(town.getTownId());
-                        } else {
-                            errorMsgList.add("辖区“" + county.getCouName() + "”与二级辖区“" + townName + "”不匹配；");
+                    if (Objects.nonNull(townName)) {
+                        Town town = townNameMapTown.get(townName);
+                        if (Objects.nonNull(town)) {
+                            if (town.getCouId().equals(couId)) {
+                                project.setTownId(town.getTownId());
+                            } else {
+                                errorMsgList.add("辖区“" + projectExcelVO.getCouName()
+                                        + "”与二级辖区“" + townName + "”不匹配；");
+                            }
+                        } else {  // 若为空
+                            errorMsgList.add("不存在名称为“" + townName + "”的二级辖区；");
                         }
-                    } else {
-                        //若为空
-                        errorMsgList.add("不存在名称为“" + townName + "”的二级辖区；");
                     }
-                } else {
-                    //若为空
-                    errorMsgList.add("不存在名称为“" + couName + "”的辖区；");
+                } else {  // 若为空
+                    errorMsgList.add("不存在名称为“" + projectExcelVO.getCouName() + "”的辖区；");
                 }
 
-
-                String prcName = projectExcelVO.getPrcName();
-                ProjectCategory projectCategory = prcService.query().eq("prc_name", prcName).one();
-                if (projectCategory != null) {
-                    project.setPrcId(projectCategory.getPrcId());
-                } else {
-                    //若为空
-                    errorMsgList.add("不存在名称为“" + prcName + "”的项目类型；");
+                Integer prcId = prcNameMapId.get(projectExcelVO.getPrcName());
+                if (Objects.nonNull(prcId)) {
+                    project.setPrcId(prcId);
+                } else {  // 若为空
+                    errorMsgList.add("不存在名称为“" + projectExcelVO.getPrcName() + "”的项目类型；");
                 }
 
-                String infName = projectExcelVO.getInfName();
-                IndustryField industryField = infService.query().eq("inf_name", infName).one();
-                if (industryField != null) {
-                    project.setInfId(industryField.getInfId());
-                } else {
-                    //若为空
-                    errorMsgList.add("不存在名称为“" + infName + "”的行业领域；");
+                Integer infId = infNameMapId.get(projectExcelVO.getInfName());
+                if (Objects.nonNull(infId)) {
+                    project.setInfId(infId);
+                } else {  // 若为空
+                    errorMsgList.add("不存在名称为“" + projectExcelVO.getInfName() + "”的行业领域；");
 
                 }
 
@@ -521,6 +520,11 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
                 // 把用户ID存进去才知道是谁导入的
                 project.setUId(uid);
+                project.setProMark(
+                        StrUtil.nullToEmpty(projectExcelVO.getProMark1()) + "᛭" +
+                        StrUtil.nullToEmpty(projectExcelVO.getProMark2()) + "᛭" +
+                        StrUtil.nullToEmpty(projectExcelVO.getProMark3())
+                );
 
                 projectList.add(project);
             }
@@ -533,13 +537,23 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             int total = projectList.size();
 
             // 插入的项目 项目代码以及入统入库代码必须唯一
-            int s1 = (int) projectList.stream().map(Project::getProCode).distinct().count();
-            if (s1 < total) {
-                return ResultResponse.fail("项目代码必须保证唯一！");
+            for (int i = 0; i < projectList.size(); i++) {
+                String proCode = projectList.get(i).getProCode();
+                if (Objects.isNull(proCode)) continue;
+                for (int j = i + 1; j < projectList.size(); j++) {
+                    String proCode1 = projectList.get(j).getProCode();
+                    if (Objects.isNull(proCode1)) continue;
+                    if (proCode.equals(proCode1)) return ResultResponse.fail("项目代码必须保证唯一！");
+                }
             }
-            int s2 = (int) projectList.stream().map(Project::getProInCode).distinct().count();
-            if (s2 < total) {
-                return ResultResponse.fail("入统入库代码必须保证唯一！");
+            for (int i = 0; i < projectList.size(); i++) {
+                String proCode = projectList.get(i).getProInCode();
+                if (Objects.isNull(proCode)) continue;
+                for (int j = i + 1; j < projectList.size(); j++) {
+                    String proCode1 = projectList.get(j).getProInCode();
+                    if (Objects.isNull(proCode1)) continue;
+                    if (proCode.equals(proCode1)) return ResultResponse.fail("入统入库代码必须保证唯一！");
+                }
             }
 
             saveBatch(projectList);
