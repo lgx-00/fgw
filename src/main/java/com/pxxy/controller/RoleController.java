@@ -26,11 +26,11 @@ import java.util.List;
  * @author hs
  * @since 2023-06-14
  */
+@Validated
 @CrossOrigin
 @RestController
-@Validated
-@RequestMapping("/sys/role")
 @Api(tags = "角色")
+@RequestMapping("/sys/role")
 public class RoleController {
 
     @Resource
