@@ -113,8 +113,14 @@ public class ProjectExcelVO {
     @ExcelProperty("上次调度的日期")
     private Date proLastDis;
 
-    @ExcelProperty("标记")
-    private String proMark;
+    @ExcelProperty("标记1")
+    private String proMark1;
+
+    @ExcelProperty("标记2")
+    private String proMark2;
+
+    @ExcelProperty("标记3")
+    private String proMark3;
 
     @ExcelProperty("备注")
     private String proRemark;

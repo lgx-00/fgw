@@ -11,6 +11,8 @@ import com.pxxy.vo.QueryProjectVO;
 import com.pxxy.vo.UpdateProjectVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -100,6 +102,12 @@ public class ProjectController {
     @ApiOperation("批量导入")
     public ResultResponse<?> importExcel(@RequestPart("file") MultipartFile file) {
         return projectService.importExcel(file);
+    }
+
+    @GetMapping("/template")
+    @ApiOperation("下载批量导入模板")
+    public ResponseEntity<InputStreamResource> template() {
+        return projectService.downloadTemplate();
     }
 
     @PutMapping("/accept")

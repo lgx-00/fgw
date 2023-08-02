@@ -1,6 +1,8 @@
 package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.exception.ExcelCommonException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -19,11 +21,19 @@ import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
 import com.pxxy.vo.*;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
@@ -65,6 +75,9 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private ResourceLoader resourceLoader;
 
     private Map<Integer, Department> departments;
     private Map<Integer, County> counties;
@@ -672,6 +685,28 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         updateBaseData();
         return ResultResponse.ok(PageUtil.selectPage(page, () ->
                 baseMapper.getVagueDispatchProjectByUser(projectDTO), mapProjectToVO));
+    }
+
+    @Override
+    public ResponseEntity<InputStreamResource> downloadTemplate() {
+        try {
+            File file = resourceLoader.getResource("classpath:template.xlsx").getFile();
+
+            return ResponseEntity.ok().headers(h -> {
+                h.add(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment;filename=%E5%AF%BC%E5%85%A5%E9%A1%B9%E7%9B%AE%E6%A8%A1%E6%9D%BF.xlsx");
+                h.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+                h.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(file.length()));
+                h.add(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            }).body(new InputStreamResource(new FileInputStream(file)));
+        } catch (IOException e) {
+            log.error("获取导入模板文件失败。", e);
+            byte[] bytes = JSONUtil.toJsonStr(ResultResponse.fail(LOAD_TEMPLATE_FAILED)).getBytes();
+            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new InputStreamResource(bais));
+        }
     }
 
 }
