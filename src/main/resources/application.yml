@@ -29,6 +29,9 @@ fgw:
     max-length: 300
   max-inactive-interval: 86400
   file-path: /mysoft/fgw/appendix
+  token:
+    store: true
+    path: /mysoft/fgw/tokens
 
 #mybatis-plus:
 #  configuration:

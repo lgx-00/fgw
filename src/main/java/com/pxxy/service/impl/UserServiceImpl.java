@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.stream.CollectorUtil.CH_ID;
 import static com.pxxy.constant.ResponseMessage.CANNOT_DELETE_ADMINISTRATOR;
 import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
 import static com.pxxy.constant.SystemConstant.*;
@@ -148,46 +149,110 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     }
                     return ResultResponse.fail("用户名或密码错误！");
                 }
-                //先判断用户是否拥有角色
-                List<UserRole> userRoles = userRoleService.query().eq("u_id", user.getUId()).list();
-                // 角色id集合
-                List<Integer> roleIds = userRoles.stream().map(UserRole::getRId).collect(Collectors.toList());
-                List<Role> roles = roleService.query().in("r_id", roleIds).ne("r_status", DELETED_STATUS).list();
-
-                if (roles.isEmpty()) {
-                    return ResultResponse.fail("用户所属的角色已被删除，请联系管理员！");
-                }
 
                 // 检查是否过年了
                 checkIfNewYear(now);
+                // 将待调度的项目的状态更新为待调度
+                projectService.updateDispatchStatus();
+
+                // *查询用户权限
+                UserDTO dto = getPerms(user);
+                // 将用户信息存储起来供操作记录切面使用
+                UserHolder.saveUser(dto);
+                TokenUtil.Token xToken = TokenUtil.generate(dto);
 
                 // 登录成功，更新用户登录时间
                 user.setULoginTime(now);
                 updateById(user);
-
-                // *查询用户权限
-                List<RolePermission> rolePermissions = rolePermissionService.query().in("r_id", roleIds).list();
-                List<Integer> pIds = rolePermissions.stream().map(RolePermission::getPId)
-                        .distinct().collect(Collectors.toList());
-
-                Map<String, PermissionDTO> permissions = permissionService.query().in("p_id", pIds).list().stream()
-                    .map(p -> {
-                        PermissionDTO dto = new PermissionDTO(p.getPPath(), p.getPName());
-                        dto.setRpDetail(rolePermissions.stream().filter(rp -> rp.getPId().equals(p.getPId()))
-                                .reduce(0, (a, b) -> a | b.getRpDetail(), (a, b) -> a | b));
-                        return dto;
-                    }).collect(Collectors.toMap(PermissionDTO::getPPath, dto -> dto));
-
-                // 将待调度的项目的状态更新为待调度
-                projectService.updateDispatchStatus();
-
-                UserDTO dto = new UserDTO(user.getUId(), user.getUName(), user.getDepId(), permissions);
-                UserHolder.saveUser(dto);
-                TokenUtil.Token xToken = TokenUtil.generate(dto);
                 return ResultResponse.ok(xToken.token);
             default:
                 return ResultResponse.fail("用户状态异常！");
         }
+    }
+
+    /**
+     * 获取用户列表的权限
+     *
+     * @param userIdSet 用户编号列表
+     * @return 得到权限信息的用户
+     */
+    @Transactional
+    public Map<Integer, UserDTO> getPerms(Set<Integer> userIdSet) {
+        if (Objects.isNull(userIdSet)) return null;
+        if (userIdSet.isEmpty()) return Collections.emptyMap();
+
+        List<UserRole> allUserRoles = userRoleService.query().in("u_id", userIdSet).list();
+        Map<Integer, List<Integer>> userIdMapRoleIdList = allUserRoles.stream().collect(Collectors.groupingBy(
+                UserRole::getUId, new SimpleCollector<UserRole,List<Integer>,List<Integer>>
+                        (ArrayList::new, (l, r) -> l.add(r.getRId()), null, CH_ID)));
+
+        Set<Integer> allRolesIdSet = allUserRoles.stream().map(UserRole::getRId).collect(Collectors.toSet());
+        Set<Integer> roleIdSet = roleService.query().select("r_id").in("r_id", allRolesIdSet)
+                .ne("r_status", DELETED_STATUS).list().stream().map(Role::getRId).collect(Collectors.toSet());
+
+        if (roleIdSet.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<RolePermission> allRPList = rolePermissionService.query().in("r_id", roleIdSet).list();
+        Set<Integer> allPermIdSet = allRPList.stream().map(RolePermission::getPId).collect(Collectors.toSet());
+        Map<Integer, Permission> allPermIdMapPerm = permissionService.query().in("p_id", allPermIdSet)
+                .ne("p_status", DELETED_STATUS).list().stream().collect(Collectors.toMap(Permission::getPId, p -> p));
+
+        Map<Integer, List<RolePermission>> userIdMapRPList = new HashMap<>(userIdMapRoleIdList.size());
+        userIdMapRoleIdList.forEach((userId, roleId) -> userIdMapRPList.put(userId, allRPList.stream()
+                .filter(rp -> roleId.contains(rp.getRId())).collect(Collectors.toList())));
+
+        Map<Integer, UserDTO> ret = new HashMap<>();
+        Map<Integer, User> userIdMapUser = query().in("u_id", userIdSet).ne("u_status", DELETED_STATUS).list()
+                .stream().collect(Collectors.toMap(User::getUId, u -> u));
+        userIdMapRPList.forEach((userId, rpList) -> {
+            if (Objects.isNull(rpList) || rpList.isEmpty()) return;
+            UserDTO userDTO = new UserDTO(userIdMapUser.get(userId));
+            Map<Integer, List<RolePermission>> permIdMapRPList =
+                    rpList.stream().collect(Collectors.groupingBy(RolePermission::getPId));
+            Map<String, PermissionDTO> perms = new HashMap<>((int) (permIdMapRPList.size() / 0.75) + 1);
+            permIdMapRPList.forEach((permId, rps) -> {
+                PermissionDTO dto = new PermissionDTO(allPermIdMapPerm.get(permId));
+                dto.setRpDetail(rps.stream().reduce(0, (l, r) -> l | r.getRpDetail(), (a, b) -> null));
+                perms.put(dto.getPPath(), dto);
+            });
+            userDTO.setPermission(perms);
+            ret.put(userId, userDTO);
+        });
+        return ret;
+    }
+
+    /**
+     * 获取单个用户的权限
+     *
+     * @param user 没有权限信息的用户列表
+     * @return 得到权限信息的用户列表
+     */
+    @Transactional
+    public UserDTO getPerms(User user) {
+        if (Objects.isNull(user)) return null;
+        // 先判断用户是否拥有角色
+        List<UserRole> userRoles = userRoleService.query().eq("u_id", user.getUId()).list();
+        // 角色id集合
+        List<Integer> roleIds = userRoles.stream().map(UserRole::getRId).collect(Collectors.toList());
+        long roleCount = roleService.query().in("r_id", roleIds).ne("r_status", DELETED_STATUS).count();
+
+        if (roleCount == 0) {
+            throw new UserPermissionException("用户所属的角色已被删除，请联系管理员！");
+        }
+
+        List<RolePermission> rolePermissions = rolePermissionService.query().in("r_id", roleIds).list();
+        Set<Integer> pIds = rolePermissions.stream().map(RolePermission::getPId).collect(Collectors.toSet());
+
+        Map<String, PermissionDTO> permissions = permissionService.query().in("p_id", pIds).list().stream()
+                .map(p -> {
+                    PermissionDTO dto = new PermissionDTO(p.getPPath(), p.getPName());
+                    dto.setRpDetail(rolePermissions.stream().filter(rp -> rp.getPId().equals(p.getPId()))
+                            .reduce(0, (a, b) -> a | b.getRpDetail(), (a, b) -> a | b));
+                    return dto;
+                }).collect(Collectors.toMap(PermissionDTO::getPPath, dto -> dto));
+        return new UserDTO(user.getUId(), user.getUName(), user.getDepId(), permissions);
     }
 
     private void checkIfNewYear(Date now) {

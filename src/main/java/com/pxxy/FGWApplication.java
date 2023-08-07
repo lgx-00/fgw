@@ -1,5 +1,6 @@
 package com.pxxy;
 
+import com.pxxy.utils.TokenUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -14,10 +15,16 @@ import java.net.InetAddress;
 @MapperScan("com.pxxy.mapper")
 @SpringBootApplication
 public class FGWApplication {
+
     public static void main(String[] args) throws IOException {
+
         ConfigurableApplicationContext context = SpringApplication.run(FGWApplication.class, args);
         Environment environment =  context.getBean(Environment.class);
+
         log.info("启动成功，后端服务API地址：http://{}:{}/doc.html",
                 InetAddress.getLocalHost().getHostAddress(), environment.getProperty("server.port"));
+
+        TokenUtil.restoreToken();
     }
+
 }

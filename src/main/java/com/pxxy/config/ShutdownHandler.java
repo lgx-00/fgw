@@ -21,8 +21,7 @@ public class ShutdownHandler {
     @PreDestroy
     public void preDestroy() {
         log.info("接收到关闭信号，开始清理缓存。");
-        // 强制下线所有用户
-        TokenUtil.invalidateAll();
+        TokenUtil.storeToken();
         log.info("清理完成。");
     }
 

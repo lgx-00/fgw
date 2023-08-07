@@ -22,6 +22,10 @@ public interface UserService extends IService<User> {
 
     ResultResponse<String> login(LoginVO loginForm);
 
+    Map<Integer, UserDTO> getPerms(Set<Integer> userIdSet);
+
+    UserDTO getPerms(User user);
+
     ResultResponse<?> addUser(AddUserVO addUserVO);
 
     ResultResponse<?> deleteUser(Integer userId);
