@@ -2,12 +2,12 @@ package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.pojo.Role;
+import com.pxxy.entity.pojo.Role;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddRoleVO;
-import com.pxxy.vo.Page;
-import com.pxxy.vo.QueryRoleVO;
-import com.pxxy.vo.UpdateRoleVO;
+import com.pxxy.entity.vo.AddRoleVO;
+import com.pxxy.entity.vo.Page;
+import com.pxxy.entity.vo.QueryRoleVO;
+import com.pxxy.entity.vo.UpdateRoleVO;
 
 /**
  * <p>

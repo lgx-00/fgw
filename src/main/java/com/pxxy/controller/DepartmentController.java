@@ -3,9 +3,9 @@ package com.pxxy.controller;
 
 import com.pxxy.service.DepartmentService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddDepartmentVO;
-import com.pxxy.vo.QueryDepartmentVO;
-import com.pxxy.vo.UpdateDepartmentVO;
+import com.pxxy.entity.vo.AddDepartmentVO;
+import com.pxxy.entity.vo.QueryDepartmentVO;
+import com.pxxy.entity.vo.UpdateDepartmentVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;

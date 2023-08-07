@@ -2,7 +2,7 @@ package com.pxxy.service.impl;
 
 import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.TownMapper;
-import com.pxxy.pojo.Town;
+import com.pxxy.entity.pojo.Town;
 import com.pxxy.service.BaseService;
 import com.pxxy.service.TownService;
 import org.springframework.stereotype.Service;

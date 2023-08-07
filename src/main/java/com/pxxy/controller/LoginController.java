@@ -1,8 +1,8 @@
 package com.pxxy.controller;
 
-import com.pxxy.dto.UserDTO;
+import com.pxxy.entity.dto.UserDTO;
 import com.pxxy.utils.UserHolder;
-import com.pxxy.vo.LoginVO;
+import com.pxxy.entity.vo.LoginVO;
 import com.pxxy.service.UserService;
 import com.pxxy.utils.TokenUtil;
 import com.pxxy.utils.ResultResponse;

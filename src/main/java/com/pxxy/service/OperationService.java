@@ -2,11 +2,11 @@ package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.pojo.Operation;
+import com.pxxy.entity.pojo.Operation;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.OperationVO;
-import com.pxxy.vo.Page;
-import com.pxxy.vo.QueryOperationVO;
+import com.pxxy.entity.vo.OperationVO;
+import com.pxxy.entity.vo.Page;
+import com.pxxy.entity.vo.QueryOperationVO;
 
 /**
  * Interface name: OperationService

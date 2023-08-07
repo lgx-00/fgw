@@ -1,7 +1,7 @@
 package com.pxxy.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.pxxy.pojo.Operation;
+import com.pxxy.entity.pojo.Operation;
 
 /**
  * Interface name: OperationMapper

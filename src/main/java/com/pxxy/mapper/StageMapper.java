@@ -1,6 +1,6 @@
 package com.pxxy.mapper;
 
-import com.pxxy.pojo.Stage;
+import com.pxxy.entity.pojo.Stage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

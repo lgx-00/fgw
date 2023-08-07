@@ -1,6 +1,6 @@
 package com.pxxy.mapper;
 
-import com.pxxy.pojo.UserRole;
+import com.pxxy.entity.pojo.UserRole;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

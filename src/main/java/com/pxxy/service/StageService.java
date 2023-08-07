@@ -1,11 +1,11 @@
 package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.pxxy.pojo.Stage;
+import com.pxxy.entity.pojo.Stage;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddStageVO;
-import com.pxxy.vo.QueryStageVO;
-import com.pxxy.vo.UpdateStageVO;
+import com.pxxy.entity.vo.AddStageVO;
+import com.pxxy.entity.vo.QueryStageVO;
+import com.pxxy.entity.vo.UpdateStageVO;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
 package com.pxxy.utils;
 
-import com.pxxy.dto.UserDTO;
+import com.pxxy.entity.dto.UserDTO;
 
 import java.util.ArrayList;
 import java.util.List;

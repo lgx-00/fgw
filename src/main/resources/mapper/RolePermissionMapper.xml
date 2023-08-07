@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.RolePermissionMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.RolePermission">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.RolePermission">
         <id column="rp_id" property="rpId" />
         <result column="p_id" property="pId" />
         <result column="r_id" property="rId" />

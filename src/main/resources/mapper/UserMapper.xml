@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.UserMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.User">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.User">
         <id column="u_id" property="uId" />
         <result column="u_name" property="uName" />
         <result column="u_password" property="uPassword" />

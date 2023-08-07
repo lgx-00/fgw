@@ -1,8 +1,8 @@
 package com.pxxy.interceptor;
 
 import cn.hutool.json.JSONUtil;
-import com.pxxy.dto.PermissionDTO;
-import com.pxxy.dto.UserDTO;
+import com.pxxy.entity.dto.PermissionDTO;
+import com.pxxy.entity.dto.UserDTO;
 import com.pxxy.enums.RequestMethodEnum;
 import com.pxxy.utils.TokenUtil;
 import com.pxxy.utils.ResultResponse;
@@ -20,8 +20,8 @@ import java.util.Set;
 import static com.pxxy.constant.ResponseMessage.PERMISSION_NOT_ENOUGH;
 
 /**
- * @Author: hesen
- * @Date: 2023-06-20-9:31
+ * @author hesen
+ * @since 2023-06-20-9:31
  * @Description:
  */
 @Data

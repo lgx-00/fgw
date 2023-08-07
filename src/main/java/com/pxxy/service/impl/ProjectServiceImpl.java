@@ -8,19 +8,19 @@ import com.alibaba.excel.exception.ExcelCommonException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.ISelect;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.dto.ProjectDTO;
-import com.pxxy.dto.UserDTO;
+import com.pxxy.entity.dto.ProjectDTO;
+import com.pxxy.entity.dto.UserDTO;
 import com.pxxy.enums.ProjectStageEnum;
 import com.pxxy.enums.ProjectStatusEnum;
 import com.pxxy.enums.YesOrNoEnum;
 import com.pxxy.exceptions.ReportException;
 import com.pxxy.mapper.ProjectMapper;
-import com.pxxy.pojo.*;
+import com.pxxy.entity.pojo.*;
 import com.pxxy.service.*;
 import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
-import com.pxxy.vo.*;
+import com.pxxy.entity.vo.*;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
@@ -557,7 +557,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             }
 
             saveBatch(projectList);
-            return ResultResponse.ok("成功插入" + total + "条数据！");
+            return ResultResponse.ok("成功导入" + total + "条数据！");
 
         } catch (IOException e) {
             return ResultResponse.fail("导入失败！");

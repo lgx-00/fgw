@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.ProjectMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.Project">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.Project">
         <id column="pro_id" property="proId"/>
         <result column="pro_date" property="proDate"/>
         <result column="dep_id" property="depId"/>
@@ -48,7 +48,7 @@
     </sql>
 
     <!--union all是不去重 union 是去重-->
-    <select id="getAllProjectByUser" resultType="com.pxxy.pojo.Project">
+    <select id="getAllProjectByUser" resultType="com.pxxy.entity.pojo.Project">
         SELECT * FROM project WHERE pro_id IN
         (
 
@@ -78,7 +78,7 @@
     </select>
 
     <!--union all是不去重 union 是去重-->
-    <select id="getAllDispatchProjectByUser" resultType="com.pxxy.pojo.Project">
+    <select id="getAllDispatchProjectByUser" resultType="com.pxxy.entity.pojo.Project">
         SELECT * FROM project WHERE pro_id IN
         (
 
@@ -108,7 +108,7 @@
     </select>
 
     <!--union all是不去重 union 是去重-->
-    <select id="getVagueProjectByUser" resultType="com.pxxy.pojo.Project">
+    <select id="getVagueProjectByUser" resultType="com.pxxy.entity.pojo.Project">
         SELECT * FROM
         (
 
@@ -173,7 +173,7 @@
     </select>
 
     <!--union all是不去重 union 是去重-->
-    <select id="getVagueDispatchProjectByUser" resultType="com.pxxy.pojo.Project">
+    <select id="getVagueDispatchProjectByUser" resultType="com.pxxy.entity.pojo.Project">
         SELECT * FROM project WHERE
         <if test="uId == 1">
             TRUE
@@ -243,7 +243,7 @@
 
     </select>
 
-    <select id="getExamineProjectByUser" resultType="com.pxxy.pojo.Project">
+    <select id="getExamineProjectByUser" resultType="com.pxxy.entity.pojo.Project">
         SELECT * FROM
         project WHERE TRUE
         <if test="depId != null">
@@ -281,7 +281,7 @@
     </select>
 
     <!--待调度-->
-    <select id="getDispatchProjectByUser" resultType="com.pxxy.pojo.Project">
+    <select id="getDispatchProjectByUser" resultType="com.pxxy.entity.pojo.Project">
         SELECT * FROM
         project WHERE TRUE
         <if test="depId != null">
@@ -318,7 +318,7 @@
     </select>
 
     <!--union all是不去重 union 是去重-->
-    <select id="getProjectByUser" resultType="com.pxxy.pojo.Project">
+    <select id="getProjectByUser" resultType="com.pxxy.entity.pojo.Project">
         SELECT * FROM
         (
 

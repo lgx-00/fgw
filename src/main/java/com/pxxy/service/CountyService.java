@@ -1,11 +1,11 @@
 package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.pxxy.pojo.County;
+import com.pxxy.entity.pojo.County;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddCountyVO;
-import com.pxxy.vo.QueryCountyVO;
-import com.pxxy.vo.UpdateCountyVO;
+import com.pxxy.entity.vo.AddCountyVO;
+import com.pxxy.entity.vo.QueryCountyVO;
+import com.pxxy.entity.vo.UpdateCountyVO;
 
 import java.util.List;
 

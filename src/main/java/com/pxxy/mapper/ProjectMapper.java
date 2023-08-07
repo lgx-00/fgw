@@ -1,7 +1,7 @@
 package com.pxxy.mapper;
 
-import com.pxxy.dto.ProjectDTO;
-import com.pxxy.pojo.Project;
+import com.pxxy.entity.dto.ProjectDTO;
+import com.pxxy.entity.pojo.Project;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 import java.util.List;

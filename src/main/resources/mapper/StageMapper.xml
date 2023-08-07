@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.StageMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.Stage">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.Stage">
         <id column="stage_id" property="stageId" />
         <result column="stage_name" property="stageName" />
         <result column="stage_status" property="stageStatus" />

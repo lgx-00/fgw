@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.CountyMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.County">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.County">
         <id column="cou_id" property="couId" />
         <result column="cou_name" property="couName" />
         <result column="cou_status" property="couStatus" />

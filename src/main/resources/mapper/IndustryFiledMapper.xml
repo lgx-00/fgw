@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.IndustryFieldMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.IndustryField">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.IndustryField">
         <id column="inf_id" property="infId" />
         <result column="inf_name" property="infName" />
         <result column="inf_status" property="infStatus" />

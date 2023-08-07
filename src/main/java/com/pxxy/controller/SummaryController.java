@@ -2,8 +2,9 @@ package com.pxxy.controller;
 
 import com.pxxy.service.SummaryService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.SummaryDetailsVO;
-import com.pxxy.vo.SummaryVO;
+import com.pxxy.entity.vo.DashboardVO;
+import com.pxxy.entity.vo.SummaryDetailsVO;
+import com.pxxy.entity.vo.SummaryVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.format.annotation.DateTimeFormat;

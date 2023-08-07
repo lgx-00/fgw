@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.DispatchMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.Dispatch">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.Dispatch">
         <id column="dis_id" property="disId"/>
         <result column="pro_id" property="proId"/>
         <result column="dis_time" property="disTime"/>
@@ -34,7 +34,7 @@
         , pro_id, dis_time, u_id, dis_total, dis_plan_year, dis_year, dis_total_percent, dis_year_percent, dis_progress, stage_id, dis_invest, dis_apply, dis_situation, dis_to_dep, dis_source, dis_guarantee, dis_filed, dis_issue, dis_status, dis_remark, dis_appendix
     </sql>
 
-    <select id="getDispatch" resultType="com.pxxy.pojo.Dispatch">
+    <select id="getDispatch" resultType="com.pxxy.entity.pojo.Dispatch">
         select pro_id, dis_time, dis_total, dis_plan_year, dis_year
         from dispatch
         where dis_id

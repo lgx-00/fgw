@@ -1,6 +1,6 @@
 package com.pxxy.mapper;
 
-import com.pxxy.pojo.IndustryField;
+import com.pxxy.entity.pojo.IndustryField;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

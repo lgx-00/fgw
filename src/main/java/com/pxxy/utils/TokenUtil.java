@@ -2,7 +2,10 @@ package com.pxxy.utils;
 
 
 import cn.hutool.core.util.RandomUtil;
-import com.pxxy.dto.UserDTO;
+import com.pxxy.entity.dto.UserDTO;
+import com.pxxy.service.UserService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 

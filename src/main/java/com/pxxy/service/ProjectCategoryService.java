@@ -1,13 +1,11 @@
 package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.pxxy.advice.annotations.Cached;
-import com.pxxy.pojo.ProjectCategory;
+import com.pxxy.entity.pojo.ProjectCategory;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddProjectCategoryVO;
-import com.pxxy.vo.QueryProjectCategoryVO;
-import com.pxxy.vo.UpdateProjectCategoryVO;
-import org.springframework.validation.annotation.Validated;
+import com.pxxy.entity.vo.AddProjectCategoryVO;
+import com.pxxy.entity.vo.QueryProjectCategoryVO;
+import com.pxxy.entity.vo.UpdateProjectCategoryVO;
 
 import java.util.List;
 

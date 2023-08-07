@@ -1,14 +1,14 @@
 package com.pxxy.controller;
 
 import com.github.pagehelper.PageInfo;
-import com.pxxy.dto.UserDTO;
+import com.pxxy.entity.dto.UserDTO;
 import com.pxxy.service.UserService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
-import com.pxxy.vo.AddUserVO;
-import com.pxxy.vo.Page;
-import com.pxxy.vo.QueryUserVO;
-import com.pxxy.vo.UpdateUserVO;
+import com.pxxy.entity.vo.AddUserVO;
+import com.pxxy.entity.vo.Page;
+import com.pxxy.entity.vo.QueryUserVO;
+import com.pxxy.entity.vo.UpdateUserVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;

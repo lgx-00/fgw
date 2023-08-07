@@ -1,14 +1,14 @@
 package com.pxxy.enums;
 
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
-import com.pxxy.pojo.Project;
+import com.pxxy.entity.pojo.Project;
 
 import java.util.Date;
 import java.util.List;
 
 /**
- * @Author: hesen
- * @Date: 2023-07-07-21:03
+ * @author hesen
+ * @since 2023-07-07-21:03
  * @Description:
  */
 public enum ProjectStageEnum {

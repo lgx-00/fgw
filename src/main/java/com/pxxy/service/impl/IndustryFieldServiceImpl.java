@@ -2,12 +2,12 @@ package com.pxxy.service.impl;
 
 import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.IndustryFieldMapper;
-import com.pxxy.pojo.IndustryField;
+import com.pxxy.entity.pojo.IndustryField;
 import com.pxxy.service.BaseService;
 import com.pxxy.service.IndustryFieldService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddIndustryFieldVO;
-import com.pxxy.vo.UpdateIndustryFieldVO;
+import com.pxxy.entity.vo.AddIndustryFieldVO;
+import com.pxxy.entity.vo.UpdateIndustryFieldVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

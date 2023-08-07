@@ -1,7 +1,7 @@
 package com.pxxy.config.websocket;
 
 import cn.hutool.json.JSONUtil;
-import com.pxxy.pojo.User;
+import com.pxxy.entity.pojo.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +36,7 @@ public class WebSocket {
         try {
             SESSIONS.add(session);
             SESSION_POOL.put(userId, session);
-            log.info("【WebSocket消息】有新的连接，总数为：" + SESSIONS.size());
+            log.info("【WebSocket消息】有新的连接，总数为：{}", SESSIONS.size());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -47,7 +47,7 @@ public class WebSocket {
     public void onClose(Session session) {
         try {
             SESSIONS.remove(session);
-            log.info("【WebSocket消息】连接断开，总数为：" + SESSIONS.size());
+            log.info("【WebSocket消息】连接断开，总数为：{}", SESSIONS.size());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -56,7 +56,7 @@ public class WebSocket {
     @OnMessage
     // 当客户端发送消息到服务端时，会触发这个注解修改的方法。
     public void onMessage(String message) {
-        log.info("【WebSocket消息】收到客户端消息：" + message);
+        log.info("【WebSocket消息】收到客户端消息：{}", message);
         User user = JSONUtil.toBean(message, User.class);
         System.out.println(user);
         this.sendOneMessage(user.getUId()+"",message);
@@ -68,7 +68,7 @@ public class WebSocket {
      * @param message 消息
      */
     public void sendAllMessage(String message) {
-        log.info("【WebSocket消息】广播消息：" + message);
+        log.info("【WebSocket消息】广播消息：{}", message);
         for (Session session : SESSIONS) {
             try {
                 if (session.isOpen()) {
@@ -91,7 +91,7 @@ public class WebSocket {
         if (session != null && session.isOpen()) {
             try {
                 synchronized (session) {
-                    log.info("【WebSocket消息】单点消息：" + message);
+                    log.info("【WebSocket消息】单点消息：{}", message);
                     session.getAsyncRemote().sendText(message);
                 }
             } catch (Exception e) {
@@ -111,7 +111,7 @@ public class WebSocket {
             Session session = SESSION_POOL.get(userId);
             if (session != null && session.isOpen()) {
                 try {
-                    log.info("【WebSocket消息】单点消息：" + message);
+                    log.info("【WebSocket消息】单点消息：{}", message);
                     session.getAsyncRemote().sendText(message);
                 } catch (Exception e) {
                     e.printStackTrace();

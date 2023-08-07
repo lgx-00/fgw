@@ -3,9 +3,9 @@ package com.pxxy.controller;
 
 import com.pxxy.service.CountyService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddCountyVO;
-import com.pxxy.vo.QueryCountyVO;
-import com.pxxy.vo.UpdateCountyVO;
+import com.pxxy.entity.vo.AddCountyVO;
+import com.pxxy.entity.vo.QueryCountyVO;
+import com.pxxy.entity.vo.UpdateCountyVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;

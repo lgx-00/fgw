@@ -1,6 +1,6 @@
 package com.pxxy.service.impl;
 
-import com.pxxy.pojo.ProPrc;
+import com.pxxy.entity.pojo.ProPrc;
 import com.pxxy.mapper.ProPrcMapper;
 import com.pxxy.service.ProPrcService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

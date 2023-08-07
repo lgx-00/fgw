@@ -1,6 +1,6 @@
 package com.pxxy.service.impl;
 
-import com.pxxy.pojo.RolePermission;
+import com.pxxy.entity.pojo.RolePermission;
 import com.pxxy.mapper.RolePermissionMapper;
 import com.pxxy.service.RolePermissionService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

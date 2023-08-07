@@ -1,7 +1,7 @@
 package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.pxxy.pojo.Town;
+import com.pxxy.entity.pojo.Town;
 
 import java.util.List;
 

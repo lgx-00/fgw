@@ -3,9 +3,9 @@ package com.pxxy.controller;
 
 import com.pxxy.service.StageService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddStageVO;
-import com.pxxy.vo.QueryStageVO;
-import com.pxxy.vo.UpdateStageVO;
+import com.pxxy.entity.vo.AddStageVO;
+import com.pxxy.entity.vo.QueryStageVO;
+import com.pxxy.entity.vo.UpdateStageVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;

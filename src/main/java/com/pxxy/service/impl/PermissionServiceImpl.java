@@ -2,7 +2,7 @@ package com.pxxy.service.impl;
 
 import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.PermissionMapper;
-import com.pxxy.pojo.Permission;
+import com.pxxy.entity.pojo.Permission;
 import com.pxxy.service.BaseService;
 import com.pxxy.service.PermissionService;
 import com.pxxy.utils.ResultResponse;

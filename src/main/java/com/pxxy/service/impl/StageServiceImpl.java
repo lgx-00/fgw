@@ -4,12 +4,12 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.StageMapper;
-import com.pxxy.pojo.Stage;
+import com.pxxy.entity.pojo.Stage;
 import com.pxxy.service.StageService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddStageVO;
-import com.pxxy.vo.QueryStageVO;
-import com.pxxy.vo.UpdateStageVO;
+import com.pxxy.entity.vo.AddStageVO;
+import com.pxxy.entity.vo.QueryStageVO;
+import com.pxxy.entity.vo.UpdateStageVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

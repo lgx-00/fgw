@@ -1,16 +1,18 @@
 package com.pxxy.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.stream.SimpleCollector;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.dto.PermissionDTO;
-import com.pxxy.dto.UserDTO;
+import com.pxxy.entity.dto.PermissionDTO;
+import com.pxxy.entity.dto.UserDTO;
+import com.pxxy.entity.pojo.*;
+import com.pxxy.entity.vo.*;
+import com.pxxy.exceptions.UserPermissionException;
 import com.pxxy.mapper.UserMapper;
-import com.pxxy.pojo.*;
 import com.pxxy.service.*;
 import com.pxxy.utils.*;
-import com.pxxy.vo.*;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;

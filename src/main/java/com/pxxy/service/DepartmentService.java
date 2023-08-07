@@ -1,13 +1,11 @@
 package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.pxxy.advice.annotations.Cached;
-import com.pxxy.pojo.Department;
+import com.pxxy.entity.pojo.Department;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddDepartmentVO;
-import com.pxxy.vo.QueryDepartmentVO;
-import com.pxxy.vo.UpdateDepartmentVO;
-import org.springframework.validation.annotation.Validated;
+import com.pxxy.entity.vo.AddDepartmentVO;
+import com.pxxy.entity.vo.QueryDepartmentVO;
+import com.pxxy.entity.vo.UpdateDepartmentVO;
 
 import java.util.List;
 

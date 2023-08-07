@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.github.pagehelper.ISelect;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.vo.Page;
+import com.pxxy.entity.vo.Page;
 
 import java.util.List;
 import java.util.function.Function;

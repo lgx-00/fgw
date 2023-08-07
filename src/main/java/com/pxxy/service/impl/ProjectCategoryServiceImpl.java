@@ -3,13 +3,13 @@ package com.pxxy.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.pxxy.advice.annotations.Cached;
 import com.pxxy.mapper.ProjectCategoryMapper;
-import com.pxxy.pojo.ProjectCategory;
+import com.pxxy.entity.pojo.ProjectCategory;
 import com.pxxy.service.BaseService;
 import com.pxxy.service.ProjectCategoryService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddProjectCategoryVO;
-import com.pxxy.vo.QueryProjectCategoryVO;
-import com.pxxy.vo.UpdateProjectCategoryVO;
+import com.pxxy.entity.vo.AddProjectCategoryVO;
+import com.pxxy.entity.vo.QueryProjectCategoryVO;
+import com.pxxy.entity.vo.UpdateProjectCategoryVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

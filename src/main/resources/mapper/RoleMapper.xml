@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.RoleMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.Role">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.Role">
         <id column="r_id" property="rId" />
         <result column="r_name" property="rName" />
         <result column="r_status" property="rStatus" />

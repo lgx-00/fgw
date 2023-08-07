@@ -1,8 +1,8 @@
 package com.pxxy.advice;
 
 import cn.hutool.core.net.Ipv4Util;
-import com.pxxy.dto.UserDTO;
-import com.pxxy.pojo.Operation;
+import com.pxxy.entity.dto.UserDTO;
+import com.pxxy.entity.pojo.Operation;
 import com.pxxy.service.OperationService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;

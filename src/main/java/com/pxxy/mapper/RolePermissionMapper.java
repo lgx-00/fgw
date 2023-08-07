@@ -1,6 +1,6 @@
 package com.pxxy.mapper;
 
-import com.pxxy.pojo.RolePermission;
+import com.pxxy.entity.pojo.RolePermission;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

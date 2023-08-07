@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.ProjectCategoryMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.ProjectCategory">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.ProjectCategory">
         <id column="prc_id" property="prcId" />
         <result column="prc_name" property="prcName" />
         <result column="prc_period" property="prcPeriod" />

@@ -1,6 +1,6 @@
 package com.pxxy.service;
 
-import com.pxxy.pojo.ProPrc;
+import com.pxxy.entity.pojo.ProPrc;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.TownMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.Town">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.Town">
         <id column="town_id" property="townId" />
         <result column="cou_id" property="couId" />
         <result column="town_name" property="townName" />

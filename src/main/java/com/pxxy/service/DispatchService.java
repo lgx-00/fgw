@@ -2,12 +2,12 @@ package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.pojo.Dispatch;
+import com.pxxy.entity.pojo.Dispatch;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddDispatchVO;
-import com.pxxy.vo.Page;
-import com.pxxy.vo.QueryDispatchVO;
-import com.pxxy.vo.UpdateDispatchVO;
+import com.pxxy.entity.vo.AddDispatchVO;
+import com.pxxy.entity.vo.Page;
+import com.pxxy.entity.vo.QueryDispatchVO;
+import com.pxxy.entity.vo.UpdateDispatchVO;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;

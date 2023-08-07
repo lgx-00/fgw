@@ -2,15 +2,15 @@ package com.pxxy.service.impl;
 
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.pxxy.enums.ProjectStatusEnum;
-import com.pxxy.mapper.*;
-import com.pxxy.pojo.*;
-import com.pxxy.service.SummaryService;
-import com.pxxy.service.UserService;
+import com.pxxy.mapper.DispatchMapper;
+import com.pxxy.mapper.ProjectMapper;
+import com.pxxy.entity.pojo.*;
+import com.pxxy.service.*;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
-import com.pxxy.vo.SummaryDetailsVO;
-import com.pxxy.vo.SummaryVO;
+import com.pxxy.entity.vo.DashboardVO;
+import com.pxxy.entity.vo.SummaryDetailsVO;
+import com.pxxy.entity.vo.SummaryVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +27,7 @@ import static com.pxxy.enums.ProjectStatusEnum.*;
 
 
 /**
- * @Author: XRW
+ * @author XRW
  * @CreateTime: 2023-07-01  14:40
  */
 
@@ -39,22 +39,23 @@ public class SummaryServiceImpl implements SummaryService {
 
 
     @Resource
-    private TownMapper townMapper;
+    private TownService townService;
 
     @Resource
-    private DispatchMapper dispatchMapper;
+    private DispatchService dispatchService;
 
     @Resource
-    private ProjectMapper projectMapper;
+    private ProjectService projectService;
 
     @Resource
-    private IndustryFieldMapper industryFieldMapper;
+    private IndustryFieldService infService;
 
     @Resource
-    private ProjectCategoryMapper projectCategoryMapper;
+    private ProjectCategoryService prcService;
 
     private static Map<Integer, String> infMap;
     private static Map<Integer, String> prcMap;
+    private static Map<Integer, String> townMap;
 
     @Override
     @Transactional
@@ -69,7 +70,7 @@ public class SummaryServiceImpl implements SummaryService {
                     .eq(Objects.nonNull(infId), "inf_id", infId)
                     .ge(Objects.nonNull(beginTime), "pro_date", beginTime)
                     .le(Objects.nonNull(endTime), "pro_date", endTime);
-            List<Project> projects = projectMapper.selectList(wrapper);
+            List<Project> projects = projectService.list(wrapper);
             if (projects.size() == 0) {
                 return ResultResponse.ok(Collections.emptyList());
             }
@@ -106,7 +107,7 @@ public class SummaryServiceImpl implements SummaryService {
         User user = userService.query().eq("u_id", uId).one();
         Integer depId = user.getDepId();  //科室
         Integer couId = user.getCouId();   //辖区
-        List<Project> projectList = projectMapper.getProjectByUser(depId, couId, uId);
+        List<Project> projectList = ((ProjectMapper) projectService.getBaseMapper()).getProjectByUser(depId, couId, uId);
         if (projectList.size() == 0) {
             return ResultResponse.ok(Collections.emptyList());
         }
@@ -128,12 +129,12 @@ public class SummaryServiceImpl implements SummaryService {
                     .eq(Objects.nonNull(infId), "inf_id", infId)
                     .ge(Objects.nonNull(beginTime), "pro_date", beginTime)
                     .le(Objects.nonNull(endTime), "pro_date", endTime);
-            List<Project> projects = projectMapper.selectList(wrapper);
+            List<Project> projects = projectService.list(wrapper);
             if (projects.size() == 0) {
                 return ResultResponse.ok(Collections.emptyList());
             }
-            LocalDate[] extracted = extracted();
-            List<Dispatch> dispatchList = dispatchMapper.getDispatch(extracted[0], extracted[1]);
+            LocalDate[] firstDay = getFirstDay();
+            List<Dispatch> dispatchList = ((DispatchMapper) dispatchService.getBaseMapper()).getDispatch(firstDay[0], firstDay[1]);
             List<SummaryDetailsVO> listList = groupSummaryDetails(projects, dispatchList);
 
             //全区
@@ -161,12 +162,12 @@ public class SummaryServiceImpl implements SummaryService {
         User user = userService.query().eq("u_id", uId).one();
         Integer depId = user.getDepId();  //科室
         Integer couId = user.getCouId();   //辖区
-        List<Project> projectList = projectMapper.getProjectByUser(depId, couId, uId);
+        List<Project> projectList = ((ProjectMapper) projectService.getBaseMapper()).getProjectByUser(depId, couId, uId);
         if (projectList.size() == 0) {
             return ResultResponse.ok(Collections.emptyList());
         }
-        LocalDate[] extracted = extracted();
-        List<Dispatch> dispatchList = dispatchMapper.getDispatch(extracted[0], extracted[1]);
+        LocalDate[] firstDay = getFirstDay();
+        List<Dispatch> dispatchList = ((DispatchMapper) dispatchService.getBaseMapper()).getDispatch(firstDay[0], firstDay[1]);
         List<SummaryDetailsVO> listList = groupSummaryDetails(projectList, dispatchList);
 
         return ResultResponse.ok(listList);
@@ -180,7 +181,7 @@ public class SummaryServiceImpl implements SummaryService {
             // 设置字符编码
             response.setCharacterEncoding("utf-8");
             // 设置响应头
-            response.setHeader("Content-disposition", "attachment;filename=demo.xlsx");
+            response.setHeader("Content-disposition", "attachment;filename=统计信息.xlsx");
             EasyExcel.write(response.getOutputStream(), SummaryVO.class).sheet("导出统计信息").doWrite(summaryVOList);
         } catch (IOException e) {
             return ResultResponse.fail("导出失败！");
@@ -189,12 +190,12 @@ public class SummaryServiceImpl implements SummaryService {
     }
 
     private List<SummaryVO> groupSummary(List<Project> projects) {
-        // TODO: 2023/7/14 根据辖区分组
-        //对同一二级辖区的项目进行分组
+        //对同一辖区的项目进行分组
         Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getCouId));
+        townMap = townService.all().stream().collect(Collectors.toMap(Town::getTownId, Town::getTownName));
         return listMap.keySet().stream().map(key -> {
             SummaryVO summaryVO = new SummaryVO();
-            summaryVO.setTownName(townMapper.selectById(key).getTownName());
+            summaryVO.setTownName(townMap.get(key));
             List<Project> projectsList = listMap.get(key);  //组内对象集合
             summaryVO.setProjectNum(projectsList.size()); // 项目个数
             AtomicInteger count = new AtomicInteger(0); // 初始化计数器为0
@@ -229,47 +230,45 @@ public class SummaryServiceImpl implements SummaryService {
         }).collect(Collectors.toList());
     }
 
-    private void updateBaseDate() {
-        infMap = industryFieldMapper.selectList(new QueryWrapper<>())
-                .stream().collect(Collectors.toMap(IndustryField::getInfId, IndustryField::getInfName));
-        prcMap = projectCategoryMapper.selectList(new QueryWrapper<>())
-                .stream().collect(Collectors.toMap(ProjectCategory::getPrcId, ProjectCategory::getPrcName));
+    private void updateBaseData() {
+        infMap = infService.all().stream()
+                .collect(Collectors.toMap(IndustryField::getInfId, IndustryField::getInfName));
+        prcMap = prcService.all().stream()
+                .collect(Collectors.toMap(ProjectCategory::getPrcId, ProjectCategory::getPrcName));
+        townMap = townService.all().stream()
+                .collect(Collectors.toMap(Town::getTownId, Town::getTownName));
     }
 
     private List<SummaryDetailsVO> groupSummaryDetails(List<Project> projects, List<Dispatch> dispatchList) {
         // TODO: 2023/7/14 根据辖区分组
         //对同一辖区的项目进行分组
-        Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getCouId));
-        updateBaseDate();
+        Map<Integer, List<Project>> couIdMapProjects = projects.stream().collect(Collectors.groupingBy(Project::getCouId));
+        updateBaseData();
 
-        return listMap.keySet().stream().map(key -> {
-            ArrayList<SummaryDetailsVO> list = new ArrayList<>();
-            List<Project> projectList = listMap.get(key);     //此辖区下的项目集合
+        return couIdMapProjects.entrySet().stream().map(e -> {
+            ArrayList<SummaryDetailsVO> vos = new ArrayList<>();     //此辖区下的项目集合
+            List<Project> projectList = e.getValue();
             for (Project project : projectList) {
                 SummaryDetailsVO summaryDetailsVO = new SummaryDetailsVO()
                         .setProName(project.getProName())
                         .setProjectNum(1)
                         .setProLocation(project.getProLocation())
-                        .setProContent(project.getProContent() == null ? null : project.getProContent())
-                        .setProStartDate(project.getProDisStart() == null ? null : project.getProDisStart())
-                        .setProCompleteDate(project.getProDisComplete() == null ? null : project.getProDisComplete())
+                        .setProContent(project.getProContent())
+                        .setProStartDate(project.getProDisStart())
+                        .setProCompleteDate(project.getProDisComplete())
                         .setProAllPlan(project.getProDisTotal())
                         .setProPlanYear(project.getProPlanYear())
                         .setProYear(project.getProDisYear())
                         .setInfName(infMap.get(project.getInfId()))
-                        .setPrcName(prcMap.get(project.getPrcId()));
-                if (project.getProPlanYear() != 0) {
-                    summaryDetailsVO.setProPlanCompletionPercent(calculatePercentage(project.getProDisYear(),
+                        .setPrcName(prcMap.get(project.getPrcId()))
+                        .setProPlanCompletionPercent(calculatePercentage(project.getProDisYear(),
                             project.getProPlanYear()));
-                } else {
-                    summaryDetailsVO.setProPlanCompletionPercent("0%");
-                }
 
                 if (dispatchList != null) {
                     for (Dispatch dispatch : dispatchList) {
                         if (dispatch.getProId().equals(project.getProId())) {
-                            summaryDetailsVO.setProPlanMonths(dispatch.getDisTotal());
-                            summaryDetailsVO.setProPlanMonth(project.getProDisYear() - dispatch.getDisTotal());
+                            summaryDetailsVO.setProPlanMonths(dispatch.getDisYear());
+                            summaryDetailsVO.setProPlanMonth(project.getProDisYear() - dispatch.getDisYear());
                         } else {
                             summaryDetailsVO.setProPlanMonths(0);
                             summaryDetailsVO.setProPlanMonth(0);
@@ -279,50 +278,61 @@ public class SummaryServiceImpl implements SummaryService {
                     summaryDetailsVO.setProPlanMonths(0);
                     summaryDetailsVO.setProPlanMonth(0);
                 }
-                list.add(summaryDetailsVO);
+                vos.add(summaryDetailsVO);
             }
             //对辖区下面的项目进行统计
             SummaryDetailsVO summaryDetailsVO = new SummaryDetailsVO()
-                    .setProName(townMapper.selectById(key).getTownName())
+                    .setProName(townMap.get(e.getKey()))
                     .setProjectNum(projectList.size())
-                    .setProAllPlan(list.stream().mapToInt(SummaryDetailsVO::getProAllPlan).sum())
-                    .setProPlanYear(list.stream().mapToInt(SummaryDetailsVO::getProYear).sum())
-                    .setProPlanMonths(list.stream().mapToInt(SummaryDetailsVO::getProPlanMonths).sum())
-                    .setProPlanMonth(list.stream().mapToInt(SummaryDetailsVO::getProPlanMonth).sum())
-                    .setProYear(list.stream().mapToInt(SummaryDetailsVO::getProYear).sum());
-            if (list.stream().mapToInt(SummaryDetailsVO::getProYear).sum() != 0) {
+                    .setProAllPlan(vos.stream().mapToInt(SummaryDetailsVO::getProAllPlan).sum())
+                    .setProPlanYear(vos.stream().mapToInt(SummaryDetailsVO::getProYear).sum())
+                    .setProPlanMonths(vos.stream().mapToInt(SummaryDetailsVO::getProPlanMonths).sum())
+                    .setProPlanMonth(vos.stream().mapToInt(SummaryDetailsVO::getProPlanMonth).sum())
+                    .setProYear(vos.stream().mapToInt(SummaryDetailsVO::getProYear).sum());
+            if (vos.stream().mapToInt(SummaryDetailsVO::getProYear).sum() != 0) {
                 summaryDetailsVO.setProPlanCompletionPercent(calculatePercentage(
-                        list.stream().mapToInt(SummaryDetailsVO::getProYear).sum(),
-                        list.stream().mapToInt(SummaryDetailsVO::getProYear).sum()));
+                        vos.stream().mapToInt(SummaryDetailsVO::getProYear).sum(),
+                        vos.stream().mapToInt(SummaryDetailsVO::getProYear).sum()));
             } else {
                 summaryDetailsVO.setProPlanCompletionPercent("0%");
             }
-            summaryDetailsVO.setChildren(list);
+            summaryDetailsVO.setChildren(vos);
 
             return summaryDetailsVO;
         }).collect(Collectors.toList());
     }
 
-    //用于计算百分比
+    // 用于计算百分比
     public static String calculatePercentage(double numerator, double denominator) {
         if (denominator == 0) {
-            throw new IllegalArgumentException("分母不能为零");
+            return "除数为 0 ，无法计算";
         }
         return String.format("%.2f%%", (numerator / denominator) * 100);
     }
 
-
-    private static LocalDate[] extracted() {
+    /**
+     * 获取当前年第一天和上个月最后一天。
+     *
+     * @return 当前年第一天和上个月最后一天。
+     */
+    private static LocalDate[] getFirstDay() {
         // 获取当前日期
         LocalDate currentDate = LocalDate.now();
         // 当前年第一天
         LocalDate firstDayOfYear = LocalDate.of(currentDate.getYear(), Month.JANUARY, 1);
-        // 当前年当前月第一天
-        LocalDate firstDayOfMonth = LocalDate.of(currentDate.getYear(), currentDate.getMonth(), 1);
+        // 当前年上个月最后一天
+        LocalDate lastDayOfLastMonth = LocalDate.of(currentDate.getYear(), currentDate.getMonth(), 1).minusDays(1);
 
         // 存储日期到数组  并且返回日期数组
-        return new LocalDate[]{firstDayOfYear, firstDayOfMonth};
+        return new LocalDate[]{firstDayOfYear, lastDayOfLastMonth};
     }
 
+    @Override
+    public ResultResponse<DashboardVO> dashboard() {
+        DashboardVO vo = new DashboardVO();
+        Integer uId = UserHolder.getUser().getUId();
+
+        return null;
+    }
 
 }

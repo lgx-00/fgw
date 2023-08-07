@@ -1,11 +1,11 @@
 package com.pxxy.controller;
 
 
-import com.pxxy.pojo.IndustryField;
+import com.pxxy.entity.pojo.IndustryField;
 import com.pxxy.service.IndustryFieldService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddIndustryFieldVO;
-import com.pxxy.vo.UpdateIndustryFieldVO;
+import com.pxxy.entity.vo.AddIndustryFieldVO;
+import com.pxxy.entity.vo.UpdateIndustryFieldVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;

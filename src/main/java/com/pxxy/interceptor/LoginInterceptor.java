@@ -1,7 +1,7 @@
 package com.pxxy.interceptor;
 
 import cn.hutool.json.JSONUtil;
-import com.pxxy.dto.UserDTO;
+import com.pxxy.entity.dto.UserDTO;
 import com.pxxy.utils.TokenUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
@@ -16,8 +16,8 @@ import static com.pxxy.constant.ResponseMessage.INVALID_TOKEN;
 
 
 /**
- * @Author: hesen
- * @Date: 2023-06-05-15:08
+ * @author hesen
+ * @since 2023-06-05-15:08
  * @Description:
  */
 

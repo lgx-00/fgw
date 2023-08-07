@@ -6,9 +6,6 @@ import lombok.Data;
 
 import java.io.Serializable;
 
-/**
- * @author: xrw
- **/
 @Data
 public class ResultResponse<T> implements Serializable {
 

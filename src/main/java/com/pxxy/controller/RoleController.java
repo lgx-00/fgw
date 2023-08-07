@@ -2,14 +2,14 @@ package com.pxxy.controller;
 
 
 import com.github.pagehelper.PageInfo;
-import com.pxxy.pojo.Permission;
+import com.pxxy.entity.pojo.Permission;
 import com.pxxy.service.PermissionService;
 import com.pxxy.service.RoleService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddRoleVO;
-import com.pxxy.vo.Page;
-import com.pxxy.vo.QueryRoleVO;
-import com.pxxy.vo.UpdateRoleVO;
+import com.pxxy.entity.vo.AddRoleVO;
+import com.pxxy.entity.vo.Page;
+import com.pxxy.entity.vo.QueryRoleVO;
+import com.pxxy.entity.vo.UpdateRoleVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;

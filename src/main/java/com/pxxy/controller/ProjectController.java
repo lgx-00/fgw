@@ -2,13 +2,13 @@ package com.pxxy.controller;
 
 
 import com.github.pagehelper.PageInfo;
-import com.pxxy.dto.ProjectDTO;
+import com.pxxy.entity.dto.ProjectDTO;
 import com.pxxy.service.ProjectService;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.AddProjectVO;
-import com.pxxy.vo.Page;
-import com.pxxy.vo.QueryProjectVO;
-import com.pxxy.vo.UpdateProjectVO;
+import com.pxxy.entity.vo.AddProjectVO;
+import com.pxxy.entity.vo.Page;
+import com.pxxy.entity.vo.QueryProjectVO;
+import com.pxxy.entity.vo.UpdateProjectVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.core.io.InputStreamResource;

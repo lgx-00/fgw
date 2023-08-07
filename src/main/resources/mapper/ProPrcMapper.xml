@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.ProPrcMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.ProPrc">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.ProPrc">
         <id column="pp_id" property="ppId" />
         <result column="pro_id" property="proId" />
         <result column="prc_id" property="prcId" />

@@ -3,7 +3,7 @@
 <mapper namespace="com.pxxy.mapper.DepartmentMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.pxxy.pojo.Department">
+    <resultMap id="BaseResultMap" type="com.pxxy.entity.pojo.Department">
         <id column="dep_id" property="depId" />
         <result column="dep_name" property="depName" />
         <result column="dep_status" property="depStatus" />

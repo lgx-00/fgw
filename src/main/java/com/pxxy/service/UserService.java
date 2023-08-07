@@ -2,9 +2,13 @@ package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.pojo.User;
+import com.pxxy.entity.dto.UserDTO;
+import com.pxxy.entity.pojo.User;
+import com.pxxy.entity.vo.*;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.vo.*;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>
