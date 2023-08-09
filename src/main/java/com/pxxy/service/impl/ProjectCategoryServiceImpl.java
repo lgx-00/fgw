@@ -53,7 +53,8 @@ public class ProjectCategoryServiceImpl extends BaseService<ProjectCategoryMappe
 
     @Override
     public ResultResponse<List<QueryProjectCategoryVO>> getAllProjectCategory() {
-        List<QueryProjectCategoryVO> queryProjectCategoryVOS = query().list().stream().map(projectCategory -> {
+        List<QueryProjectCategoryVO> queryProjectCategoryVOS = query().orderByDesc("prc_id")
+                .list().stream().map(projectCategory -> {
             QueryProjectCategoryVO queryProjectCategoryVO = new QueryProjectCategoryVO();
             BeanUtil.copyProperties(projectCategory, queryProjectCategoryVO);
             return queryProjectCategoryVO;

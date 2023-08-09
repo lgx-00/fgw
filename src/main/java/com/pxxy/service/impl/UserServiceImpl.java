@@ -369,7 +369,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public ResultResponse<PageInfo<QueryUserVO>> getAllUser(Page page) {
         //  根据类型分页查询
         PageInfo<QueryUserVO> pageInfo = PageUtil.selectPage(page,
-                () -> query().ne("u_status",DELETED_STATUS).list(), mapUserToVO);
+                () -> query().ne("u_status",DELETED_STATUS).orderByDesc("u_id").list(), mapUserToVO);
         return ResultResponse.ok(pageInfo);
     }
 
@@ -378,7 +378,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //  根据类型分页查询
         PageInfo<QueryUserVO> pageInfo = PageUtil.selectPage(page,
                 () -> query().like("u_name", uName)
-                        .ne("u_status", DELETED_STATUS).list(), mapUserToVO);
+                        .ne("u_status", DELETED_STATUS).orderByDesc("u_id").list(), mapUserToVO);
         return ResultResponse.ok(pageInfo);
     }
 

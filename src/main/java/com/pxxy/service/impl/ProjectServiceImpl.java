@@ -197,7 +197,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
         // 管理员特殊通道
         if (uId == 1) return ResultResponse.ok(PageUtil.selectPage(page, () ->
-                query().in("pro_status", Arrays.asList(1, 3, 4)).list(), mapProjectToVO));
+                query().in("pro_status", Arrays.asList(1, 3, 4)).orderByDesc("pro_id").list(), mapProjectToVO));
 
         // 非管理员通道
         User u = userService.query().eq("u_id", uId).one();
@@ -336,7 +336,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Override
     public ResultResponse<?> reportProject(List<Integer> proIds, Integer depId) {
-        List<Project> projects = getProjects(proIds);
+        List<Project> projects = getProjectsForReport(proIds);
         if (projects.size() == 0) {
              return ResultResponse.fail(FAIL_MSG);
         }
@@ -353,7 +353,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     @Override
     public ResultResponse<?> reportProject(List<Integer> proIds, List<Integer> depIds) {
         if (proIds.size() != depIds.size()) return ResultResponse.fail(FAIL_MSG);
-        List<Project> projects = getProjects(proIds);
+        List<Project> projects = getProjectsForReport(proIds);
         if (projects.size() == 0) {
             return ResultResponse.fail(FAIL_MSG);
         }
@@ -364,7 +364,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         return ResultResponse.ok();
     }
 
-    private List<Project> getProjects(List<Integer> proIds) throws ReportException {
+    private List<Project> getProjectsForReport(List<Integer> proIds) throws ReportException {
         List<Project> projects = query().select("pro_id", "prc_id",
                 "pro_name", "pro_status").in("pro_id", proIds).list();
         // 检查上报的科室是否具有管理该类型的项目的权限

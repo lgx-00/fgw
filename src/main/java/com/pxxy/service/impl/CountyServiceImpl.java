@@ -85,7 +85,7 @@ public class CountyServiceImpl extends BaseService<CountyMapper, County> impleme
 
     @Override
     public ResultResponse<List<QueryCountyVO>> getAllCounties() {
-        List<County> countyList = query().list();
+        List<County> countyList = query().orderByDesc("cou_id").list();
 
         List<Integer> couIds = countyList.stream().map(County::getCouId).collect(Collectors.toList());
         Map<Integer, List<QueryTownVO>> couIdMapTowns = townService.query().in("cou_id", couIds).list()

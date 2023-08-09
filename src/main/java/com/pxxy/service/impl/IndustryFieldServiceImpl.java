@@ -49,7 +49,7 @@ public class IndustryFieldServiceImpl extends BaseService<IndustryFieldMapper, I
 
     @Override
     public ResultResponse<List<IndustryField>> getAll() {
-        List<IndustryField> industryFields = baseMapper.selectList(null);
+        List<IndustryField> industryFields = query().orderByDesc("inf_id").list();
         return ResultResponse.ok(industryFields);
     }
 

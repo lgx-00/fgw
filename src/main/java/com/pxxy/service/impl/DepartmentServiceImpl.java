@@ -94,7 +94,7 @@ public class DepartmentServiceImpl extends BaseService<DepartmentMapper, Departm
     public ResultResponse<List<QueryDepartmentVO>> getAllDepartment() {
 
         // get all departments and the middle entities for the following operation
-        List<Department> departmentList = query().list();
+        List<Department> departmentList = query().orderByDesc("dep_id").list();
         List<Integer> depIds = departmentList.stream().map(Department::getDepId).collect(Collectors.toList());
         List<DepPrc> depPrcList = depPrcService.query().in("dep_id", depIds).list();
 

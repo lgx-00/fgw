@@ -50,7 +50,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     @Override
     public ResultResponse<PageInfo<QueryRoleVO>> getAllRole(Page page) {
         // 根据类型分页查询
-        PageInfo<QueryRoleVO> pageInfo = PageUtil.selectPage(page, this::list, mapRoleToVO);
+        PageInfo<QueryRoleVO> pageInfo = PageUtil.selectPage(page, () -> query().orderByDesc("r_id").list(), mapRoleToVO);
 
         return fillBean(pageInfo);
     }
@@ -59,7 +59,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     public ResultResponse<PageInfo<QueryRoleVO>> getVagueRole(Page page, String rName) {
         // 根据类型分页查询
         PageInfo<QueryRoleVO> pageInfo = PageUtil.selectPage(page,
-                () -> query().like("r_name", rName).list(), mapRoleToVO);
+                () -> query().like("r_name", rName).orderByDesc("r_id").list(), mapRoleToVO);
 
         return fillBean(pageInfo);
     }
