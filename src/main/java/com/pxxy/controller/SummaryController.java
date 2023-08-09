@@ -17,7 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * @Author: XRW
+ * @author XRW
  * @CreateTime: 2023-07-01  13:54
  */
 @Validated
@@ -56,5 +56,10 @@ public class SummaryController {
         return summaryService.exportSummaryExcel(response, summaryVOList);
     }
 
+    @GetMapping("/dashboard")
+    @ApiOperation("获取仪表板的数据")
+    public ResultResponse<DashboardVO> dashboard() {
+        return summaryService.dashboard();
+    }
 
 }

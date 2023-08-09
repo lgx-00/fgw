@@ -2,8 +2,8 @@ package com.pxxy.enums;
 
 import com.pxxy.constant.SystemConstant;
 /**
- * @Author: hesen
- * @Date: 2023-06-26-10:35
+ * @author hesen
+ * @since 2023-06-26-10:35
  * @Description:
  */
 public enum ProjectStatusEnum {

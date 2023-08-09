@@ -1,8 +1,8 @@
 package com.pxxy.enums;
 
 /**
- * @Author: hesen
- * @Date: 2023-06-21-16:38
+ * @author hesen
+ * @since 2023-06-21-16:38
  * @Description:
  */
 public enum RequestMethodEnum {

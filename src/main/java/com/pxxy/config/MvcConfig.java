@@ -10,8 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @Author: hesen
- * @Date: 2023-06-05-15:26
+ * @author hesen
+ * @since 2023-06-05-15:26
  * @Description:
  */
 @Configuration

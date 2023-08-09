@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @Author: hesen
- * @Date: 2023-06-26-10:35
+ * @author hesen
+ * @since 2023-06-26-10:35
  * @Description:
  */
 public enum YesOrNoEnum {
-    YES(1,"是"),
-    NO(0,"否");
+    YES(1, "是"),
+    NO(0, "否");
 
     private static final Map<String, YesOrNoEnum> mapper = new HashMap<>(2);
 
