@@ -41,4 +41,5 @@ public interface SummaryService {
      * @return 仪表板上的数据
      */
     ResultResponse<DashboardVO> dashboard();
+
 }

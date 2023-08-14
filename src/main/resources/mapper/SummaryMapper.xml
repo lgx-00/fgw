@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pxxy.mapper.SummaryMapper">
+
+    <sql id="proIdCondition">
+        pro_id IN
+        (
+
+        <if test="depId != null">
+            SELECT pro_id FROM project
+            WHERE dep_id = #{depId} AND pro_status != 5
+        </if>
+
+        <if test="couId != null">
+            <if test="depId != null">
+                UNION
+            </if>
+            SELECT pro_id FROM project
+            WHERE cou_id = #{couId} AND pro_status != 5
+        </if>
+
+        <if test="uId != null">
+            <if test="couId != null or depId != null">
+                UNION
+            </if>
+            SELECT pro_id FROM project
+            WHERE u_id = #{uId} AND pro_status != 5
+        </if>
+
+        )
+    </sql>
+
+    <sql id="proIdConditionAnd">
+        <if test="uId != 1">AND <include refid="proIdCondition"/></if>
+    </sql>
+
+    <sql id="proIdConditionWhere">
+        <if test="uId != 1">WHERE <include refid="proIdCondition"/></if>
+    </sql>
+
+    <!-- 月总调度，本月调度次数 -->
+    <select id="getMonthly" resultType="java.util.Map">
+        SELECT SUM(dis_invest) monthlyInvest,
+               COUNT(dis_id) monthlyInvestCount
+        FROM dispatch
+        WHERE dis_time BETWEEN DATE_FORMAT(CURRENT_DATE, '%Y-%m-01') AND DATE_FORMAT(CURRENT_DATE + INTERVAL 1 MONTH, '%Y-%m-01')
+          <include refid="proIdConditionAnd"/>
+    </select>
+
+    <!-- 已入库项目数，已完工项目数 -->
+    <select id="getTotal" resultType="java.util.Map">
+        SELECT COUNT(pro_id) projectQuantity,
+               SUM(pro_dis_complete IS NOT NULL) completeQuantity
+        FROM project
+        <include refid="proIdConditionWhere"/>
+    </select>
+
+    <!-- 最近调度过的项目 -->
+    <select id="lastDispatchingProject" resultType="com.pxxy.entity.vo.DashboardVO$ProjectVO">
+        SELECT dis_time last_dispatching_date,
+               pro_name,
+               dis_invest invest
+        FROM (
+             SELECT dis_time, dis_invest, pro_id
+             FROM dispatch
+             WHERE dis_id IN (
+                 SELECT max_dis_id
+                 FROM (
+                      SELECT max_dis_id
+                      FROM (
+                               SELECT MAX(dis_id) max_dis_id
+                               FROM dispatch
+                               <include refid="proIdConditionWhere"/>
+                               GROUP BY pro_id
+                           ) AS sub1
+                      ORDER BY max_dis_id DESC
+                      LIMIT 10
+                 ) sub2
+             )
+        ) d
+        LEFT JOIN project p ON p.pro_id = d.pro_id
+        ORDER BY dis_time DESC
+    </select>
+
+    <!-- 长期未调度的项目 -->
+    <select id="waitingForDispatching" resultType="com.pxxy.entity.vo.DashboardVO$ProjectVO">
+        SELECT dis_time last_dispatching_date,
+               pro_name,
+               dis_invest invest
+        FROM (
+             SELECT dis_time, dis_invest, pro_id
+             FROM dispatch
+             WHERE dis_id IN (
+                 SELECT max_dis_id
+                 FROM (
+                      SELECT max_dis_id
+                      FROM (
+                               SELECT MAX(dis_id) max_dis_id
+                               FROM dispatch
+                               <include refid="proIdConditionWhere"/>
+                               GROUP BY pro_id
+                           ) AS sub1
+                      ORDER BY max_dis_id
+                      LIMIT 10
+                 ) sub2
+             )
+        ) d
+        LEFT JOIN project p ON p.pro_id = d.pro_id
+        ORDER BY dis_time
+    </select>
+
+    <!-- 近 12 个月的调度额（折线图） -->
+    <select id="line" resultType="com.pxxy.entity.vo.DashboardVO$LineVO">
+        SELECT month, SUM(dis_invest) invests, COUNT(dis_id) counts
+        FROM (
+                 SELECT DATE_FORMAT(CURRENT_DATE - INTERVAL NUM MONTH, '%Y-%m') month
+                 FROM (
+                          SELECT 1 AS NUM UNION SELECT 2  UNION SELECT 3  UNION
+                          SELECT 4        UNION SELECT 5  UNION SELECT 6  UNION
+                          SELECT 7        UNION SELECT 8  UNION SELECT 9  UNION
+                          SELECT 10       UNION SELECT 11 UNION SELECT 12
+                      ) NUMS
+             ) N
+        NATURAL LEFT OUTER JOIN (
+            SELECT dis_id, dis_invest, DATE_FORMAT(dis_time, '%Y-%m') month
+            FROM dispatch
+            WHERE dis_time > DATE_FORMAT(CURRENT_DATE - INTERVAL 12 MONTH, '%Y-%m')
+            <include refid="proIdConditionAnd"/>
+        ) D
+        GROUP BY month
+        ORDER BY month
+    </select>
+
+    <!-- 近 12 个月项目开工状态（柱状图） -->
+    <select id="bar" resultType="com.pxxy.entity.vo.DashboardVO$BarVO">
+        SELECT
+            `month`,
+            SUM(p.time &lt; D.month AND (p.d_start IS NULL OR p.d_start > D.month)) AS not_started_quantities,
+            SUM(p.time &lt; D.month AND p.d_start &lt;= D.month AND (p.complete IS NULL OR p.complete > D.month)) AS dispatching_quantities,
+            SUM(p.time &lt; D.month AND p.d_start IS NOT NULL AND p.complete IS NOT NULL AND p.d_start &lt;= D.month AND p.complete &lt;= D.month) AS completed_quantities
+        FROM
+        (
+            SELECT DATE_FORMAT(CURRENT_DATE - INTERVAL num MONTH, '%Y-%m') AS month
+            FROM (
+            SELECT 1 AS num UNION SELECT 2  UNION SELECT 3  UNION
+            SELECT 4        UNION SELECT 5  UNION SELECT 6  UNION
+            SELECT 7        UNION SELECT 8  UNION SELECT 9  UNION
+            SELECT 10       UNION SELECT 11 UNION SELECT 12
+            ) nums
+        ) D
+        CROSS JOIN
+        (
+            SELECT DATE_FORMAT(pro_dis_start, '%Y-%m') AS d_start,
+            DATE_FORMAT(pro_dis_complete, '%Y-%m')     AS complete,
+            DATE_FORMAT(pro_add_time, '%Y-%m')         AS time
+            FROM project
+            <include refid="proIdConditionWhere"/>
+        ) p
+        GROUP BY
+            D.month
+    </select>
+
+    <!-- 当前的状况（饼图） -->
+    <select id="pie" resultType="com.pxxy.entity.vo.DashboardVO$PieVO">
+        SELECT SUM(pro_status = 0) pre_report,
+               SUM(pro_status = 2) review,
+               SUM(pro_status = 1) normal,
+               SUM(pro_status = 4) dispatch,
+               SUM(pro_status = 3) unlocked,
+               SUM(pro_status = 6) complete
+        FROM project
+        <include refid="proIdConditionWhere"/>
+    </select>
+
+</mapper>

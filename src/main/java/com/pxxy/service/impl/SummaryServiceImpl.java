@@ -2,9 +2,12 @@ package com.pxxy.service.impl;
 
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.pxxy.entity.dto.SimpleUserDataDTO;
+import com.pxxy.entity.dto.UserDTO;
 import com.pxxy.mapper.DispatchMapper;
 import com.pxxy.mapper.ProjectMapper;
 import com.pxxy.entity.pojo.*;
+import com.pxxy.mapper.SummaryMapper;
 import com.pxxy.service.*;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
@@ -17,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
@@ -37,7 +42,6 @@ public class SummaryServiceImpl implements SummaryService {
     @Resource
     private UserService userService;
 
-
     @Resource
     private TownService townService;
 
@@ -52,6 +56,9 @@ public class SummaryServiceImpl implements SummaryService {
 
     @Resource
     private ProjectCategoryService prcService;
+
+    @Resource
+    private SummaryMapper baseMapper;
 
     private static Map<Integer, String> infMap;
     private static Map<Integer, String> prcMap;
@@ -137,7 +144,7 @@ public class SummaryServiceImpl implements SummaryService {
             List<Dispatch> dispatchList = ((DispatchMapper) dispatchService.getBaseMapper()).getDispatch(firstDay[0], firstDay[1]);
             List<SummaryDetailsVO> listList = groupSummaryDetails(projects, dispatchList);
 
-            //全区
+            // 全区
             SummaryDetailsVO summaryDetailsVO = new SummaryDetailsVO()
                     .setProName("全区")
                     .setProjectNum(projects.size())
@@ -152,7 +159,7 @@ public class SummaryServiceImpl implements SummaryService {
                 summaryDetailsVO.setProPlanCompletionPercent("0%");
             }
             summaryDetailsVO.setChildren(listList);
-            //返回值
+            // 返回值
             ArrayList<SummaryDetailsVO> summaryDetailsVOArrayList = new ArrayList<>();
             summaryDetailsVOArrayList.add(summaryDetailsVO);
             return ResultResponse.ok(summaryDetailsVOArrayList);
@@ -160,8 +167,8 @@ public class SummaryServiceImpl implements SummaryService {
 
         // 非管理员通道
         User user = userService.query().eq("u_id", uId).one();
-        Integer depId = user.getDepId();  //科室
-        Integer couId = user.getCouId();   //辖区
+        Integer depId = user.getDepId();   // 科室
+        Integer couId = user.getCouId();   // 辖区
         List<Project> projectList = ((ProjectMapper) projectService.getBaseMapper()).getProjectByUser(depId, couId, uId);
         if (projectList.size() == 0) {
             return ResultResponse.ok(Collections.emptyList());
@@ -320,7 +327,7 @@ public class SummaryServiceImpl implements SummaryService {
         LocalDate currentDate = LocalDate.now();
         // 当前年第一天
         LocalDate firstDayOfYear = LocalDate.of(currentDate.getYear(), Month.JANUARY, 1);
-        // 当前年上个月最后一天
+        // 上个月最后一天
         LocalDate lastDayOfLastMonth = LocalDate.of(currentDate.getYear(), currentDate.getMonth(), 1).minusDays(1);
 
         // 存储日期到数组  并且返回日期数组
@@ -328,11 +335,26 @@ public class SummaryServiceImpl implements SummaryService {
     }
 
     @Override
+    @Transactional
     public ResultResponse<DashboardVO> dashboard() {
         DashboardVO vo = new DashboardVO();
-        Integer uId = UserHolder.getUser().getUId();
-
-        return null;
+        UserDTO user = UserHolder.getUser();
+        SimpleUserDataDTO dataDTO = new SimpleUserDataDTO(user.getUId(), user.getCouId(), user.getDepId());
+        Map<String, Object> monthly = baseMapper.getMonthly(dataDTO);
+        Map<String, Object> total = baseMapper.getTotal(dataDTO);
+        List<DashboardVO.ProjectVO> last = baseMapper.lastDispatchingProject(dataDTO);
+        List<DashboardVO.ProjectVO> waiting = baseMapper.waitingForDispatching(dataDTO);
+        List<DashboardVO.BarVO> bar = baseMapper.bar(dataDTO);
+        List<DashboardVO.LineVO> line = baseMapper.line(dataDTO);
+        DashboardVO.PieVO pie = baseMapper.pie(dataDTO);
+        return ResultResponse.ok(new DashboardVO(
+                monthly.get("monthlyInvest"),
+                monthly.get("monthlyInvestCount"),
+                total.get("projectQuantity"),
+                total.get("completeQuantity"),
+                last, waiting,
+                line, bar, pie
+        ));
     }
 
 }

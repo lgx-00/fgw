@@ -3,6 +3,7 @@ package com.pxxy.mapper;
 import com.pxxy.entity.dto.ProjectDTO;
 import com.pxxy.entity.pojo.Project;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -27,4 +28,15 @@ public interface ProjectMapper extends BaseMapper<Project> {
     List<Project> getAllDispatchProjectByUser(Integer depId, Integer couId, Integer uId);
 
     List<Project> getVagueDispatchProjectByUser(ProjectDTO projectDTO);
+
+    @Update("update project " +
+            "set pro_dis_total=#{proDisTotal}," +
+                "pro_dis_year=#{proDisYear}," +
+                "pro_dis_total_percent=#{proDisTotalPercent}," +
+                "pro_dis_year_percent=#{proDisYearPercent}," +
+                "pro_dis_progress=#{proDisProgress}," +
+                "pro_last_dis=now()," +
+                "pro_dis_start=ifnull(pro_dis_start,now()) " +
+            "where pro_id=#{proId}")
+    int updateDispatchData(Project project);
 }
