@@ -287,7 +287,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         if (oldFileName != null) if (!new File(filePath, oldFileName).delete()) {
             log.warn("文件 {}/{} 删除失败。", filePath, oldFileName);
         }
-        UserHolder.getLogoutHandlers().add(user -> {
+        UserHolder.addLogoutHandler(user -> {
             String fileToDelete = (String) UserHolder.getData(USER_DATA$UPLOAD_FILE_NAME, user);
             if (fileToDelete != null) if (!new File(filePath, fileToDelete).delete()) {
                 log.warn("文件 {}/{} 删除失败。", filePath, fileToDelete);

@@ -252,7 +252,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                             .reduce(0, (a, b) -> a | b.getRpDetail(), (a, b) -> a | b));
                     return dto;
                 }).collect(Collectors.toMap(PermissionDTO::getPPath, dto -> dto));
-        return new UserDTO(user.getUId(), user.getUName(), user.getDepId(), permissions);
+        return new UserDTO(user.getUId(), user.getUName(), user.getDepId(), user.getCouId(), roleIds, permissions);
     }
 
     private void checkIfNewYear(Date now) {

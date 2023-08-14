@@ -103,6 +103,13 @@ public class UserHolder {
     }
 
     /**
+     * 添加当前线程的用户下线时要执行的相关操作。
+     */
+    public static void addLogoutHandler(Consumer<UserDTO> handler) {
+        getLogoutHandlers().add(handler);
+    }
+
+    /**
      * 执行用户下线时的相关操作。
      * @param user 要执行操作的用户
      */

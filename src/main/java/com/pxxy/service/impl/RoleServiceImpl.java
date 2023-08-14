@@ -4,16 +4,19 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.mapper.RoleMapper;
 import com.pxxy.entity.pojo.Permission;
 import com.pxxy.entity.pojo.Role;
 import com.pxxy.entity.pojo.RolePermission;
+import com.pxxy.entity.pojo.UserRole;
+import com.pxxy.entity.vo.*;
+import com.pxxy.mapper.RoleMapper;
 import com.pxxy.service.PermissionService;
 import com.pxxy.service.RolePermissionService;
 import com.pxxy.service.RoleService;
+import com.pxxy.service.UserRoleService;
 import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.ResultResponse;
-import com.pxxy.entity.vo.*;
+import com.pxxy.utils.TokenUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +37,9 @@ import static com.pxxy.constant.ResponseMessage.*;
  */
 @Service
 public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements RoleService {
+
+    @Resource
+    private UserRoleService userRoleService;
 
     @Resource
     private PermissionService permissionService;
@@ -115,6 +121,13 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
             return ResultResponse.fail(ILLEGAL_OPERATE);
         }
         removeById(roleId);
+
+        // 强制下线角色被删除的用户
+        Set<Integer> userIds = userRoleService.query().select("u_id")
+                .eq("r_id", roleId).list().stream().map(UserRole::getUId)
+                .collect(Collectors.toSet());
+        TokenUtil.invalidateAll(userIds);
+
         return ResultResponse.ok();
     }
 
@@ -140,6 +153,13 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
         }
         role.setRName(updateRoleVO.getRName());
         updateById(role);
+
+        // 强制下线角色被修改的用户
+        Set<Integer> userIds = userRoleService.query().select("u_id")
+                .eq("r_id", updateRoleVO.getRId()).list().stream().map(UserRole::getUId)
+                .collect(Collectors.toSet());
+        TokenUtil.invalidateAll(userIds);
+
         return savePerm(role, updateRoleVO.getPermissionMapper());
     }
 

@@ -200,6 +200,18 @@ public class TokenUtil {
     /**
      * 使所有令牌失效，并执行用户注销的后置方法
      */
+    public static void invalidateAll(Set<Integer> userIds) {
+        synchronized (TokenUtil.class) {
+            TOKEN_MAPPER.entrySet().stream()
+                    .filter(e -> userIds.contains(e.getValue().getUId()))
+                    .forEach(e -> e.getKey().kill());
+            updateMapper().forEach(UserHolder::handleUserLogout);
+        }
+    }
+
+    /**
+     * 使所有令牌失效，并执行用户注销的后置方法
+     */
     public static void invalidateAll() {
         synchronized (TokenUtil.class) {
             TOKEN_MAPPER.keySet().forEach(Token::kill);

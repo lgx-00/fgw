@@ -4,6 +4,7 @@ import com.pxxy.entity.pojo.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -20,6 +21,10 @@ public class UserDTO {
      */
     private Integer depId;
 
+    private Integer couId;
+
+    private List<Integer> roleIds;
+
     //权限路径,权限详情
     private Map<String, PermissionDTO> permission;
 
@@ -31,6 +36,7 @@ public class UserDTO {
         uId = user.getUId();
         uName = user.getUName();
         depId = user.getDepId();
+        couId = user.getCouId();
     }
 
     @Override
