@@ -1,19 +1,22 @@
 import com.pxxy.FGWApplication;
+import com.pxxy.entity.pojo.Project;
 import com.pxxy.enums.ProjectStatusEnum;
 import com.pxxy.mapper.ProjectMapper;
-import com.pxxy.pojo.Project;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.annotation.Resource;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * @Author: hesen
- * @Date: 2023-06-29-13:30
+ * @author hesen
+ * @since 2023-06-29-13:30
  * @Description:
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -43,9 +46,18 @@ public class TestMapper {
         System.out.println(projectStatusEnum.name);
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
-        System.out.println(new Date(7985664000000L));
+        Cls[] cls = new Cls[]{ new Cls(1, 1), new Cls(1, 2), new Cls(2, 2) };
+        System.out.println("Arrays.stream(cls).collect(Collectors.groupingBy(Cls::getA)) = "
+                + Arrays.stream(cls).collect(Collectors.groupingBy(Cls::getA)));
 
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class Cls {
+        Integer a;
+        Integer b;
     }
 }
