@@ -8,13 +8,15 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageInfo;
 import com.pxxy.entity.dto.ProjectCheckDTO;
 import com.pxxy.entity.dto.UserDTO;
+import com.pxxy.entity.pojo.Dispatch;
+import com.pxxy.entity.pojo.Project;
+import com.pxxy.entity.pojo.Stage;
+import com.pxxy.entity.vo.*;
 import com.pxxy.enums.ProjectStatusEnum;
 import com.pxxy.exceptions.DBException;
 import com.pxxy.exceptions.FileException;
 import com.pxxy.mapper.DispatchMapper;
-import com.pxxy.entity.pojo.Dispatch;
-import com.pxxy.entity.pojo.Project;
-import com.pxxy.entity.pojo.Stage;
+import com.pxxy.mapper.ProjectMapper;
 import com.pxxy.service.DispatchService;
 import com.pxxy.service.ProjectCategoryService;
 import com.pxxy.service.ProjectService;
@@ -22,7 +24,6 @@ import com.pxxy.service.StageService;
 import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
-import com.pxxy.entity.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -351,6 +352,11 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
                 // 本次下达投资
                 int i = dis.getDisInvest();
 
+                if (i > y) {
+                    // 本次下达投资不能超过今年总投资
+                    return false;
+                }
+
                 Dispatch dis0 = pro.getOldDispatch();
                 int pt = pro.getProPlan();
                 int py = Optional.ofNullable(dis.getDisPlanYear()).orElse(pro.getProPlanYear());
@@ -534,7 +540,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         int day = Math.min(calendar.getActualMaximum(Calendar.DAY_OF_MONTH), vo.getPrcPeriod() / 100);
         calendar.set(Calendar.DAY_OF_MONTH, day);
         project.setProNextUpdate(calendar.getTime());
-        return projectService.updateById(project);
+        return ((ProjectMapper) projectService.getBaseMapper()).updateDispatchData(project) == 1;
     }
 
     private <VO extends DispatchVO> Dispatch parsePojo(VO vo) throws FileException {
