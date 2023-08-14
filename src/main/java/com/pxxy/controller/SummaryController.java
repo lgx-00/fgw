@@ -30,8 +30,8 @@ public class SummaryController {
     @Resource
     private SummaryService summaryService;
 
-    @GetMapping(value = "/all")
-    @ApiOperation(value = "统计汇总所有项目")
+    @GetMapping("/all")
+    @ApiOperation("统计汇总所有项目")
     public ResultResponse<List<SummaryVO>> getSummary(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
@@ -40,8 +40,8 @@ public class SummaryController {
         return summaryService.getSummary(beginTime, endTime, prcId, infId);
     }
 
-    @GetMapping(value = "/details")
-    @ApiOperation(value = "统计汇总详情")
+    @GetMapping("/details")
+    @ApiOperation("统计汇总详情")
     public ResultResponse<List<SummaryDetailsVO>> detailsSummary(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date beginTime,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
@@ -50,8 +50,8 @@ public class SummaryController {
         return summaryService.detailsSummary(beginTime, endTime, prcId, infId);
     }
 
-    @PostMapping(value = "/exportExcel")
-    @ApiOperation(value = "导出excel")
+    @PostMapping("/exportExcel")
+    @ApiOperation("导出excel")
     public ResultResponse<?> exportSummaryExcel(HttpServletResponse response, @RequestBody List<SummaryVO> summaryVOList) {
         return summaryService.exportSummaryExcel(response, summaryVOList);
     }

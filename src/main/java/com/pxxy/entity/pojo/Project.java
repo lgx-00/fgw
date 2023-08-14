@@ -190,6 +190,9 @@ public class Project implements Serializable {
      */
     private Integer uId;
 
+    /**
+     * 上次调度时间
+     */
     private Date proLastDis;
 
     /**

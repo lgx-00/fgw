@@ -357,7 +357,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
                 int tp = dis.getDisTotalPercent();
                 int yp = dis.getDisYearPercent();
 
-                if (dis0 != null) {  // 是否存在上次投资
+                if (Objects.nonNull(dis0)) {  // 是否存在上次投资
                     int t0 = Optional.ofNullable(dis0.getDisTotal()).orElse(0);
                     int y0 = Optional.ofNullable(dis0.getDisYear()).orElse(0);
 
@@ -503,13 +503,13 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
 
     private ResultResponse<Object> checkValid(Dispatch dis, boolean updating) {
         if (dis == null) {
-            return ResultResponse.fail(updating ? UPDATE_FAILED: DELETE_FAILED);
+            return ResultResponse.fail(updating ? UPDATE_FAILED : DELETE_FAILED);
         }
         if (dis.getDisStatus().equals(LOCKED.val)) {
-            return ResultResponse.fail(updating ? CANNOT_UPDATE_LOCKED_DISPATCH: CANNOT_DELETE_LOCKED_DISPATCH);
+            return ResultResponse.fail(updating ? CANNOT_UPDATE_LOCKED_DISPATCH : CANNOT_DELETE_LOCKED_DISPATCH);
         }
         if (dis.getDisStatus().equals(DELETED.val)) {
-            return ResultResponse.fail(updating ? UPDATE_FAILED: DELETE_FAILED);
+            return ResultResponse.fail(updating ? UPDATE_FAILED : DELETE_FAILED);
         }
         return null;
     }
