@@ -183,7 +183,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         List<UserRole> allUserRoles = userRoleService.query().in("u_id", userIdSet).list();
         Map<Integer, List<Integer>> userIdMapRoleIdList = allUserRoles.stream().collect(Collectors.groupingBy(
-                UserRole::getUId, new SimpleCollector<UserRole,List<Integer>,List<Integer>>
+                UserRole::getUId, new SimpleCollector<UserRole, List<Integer>, List<Integer>>
                         (ArrayList::new, (l, r) -> l.add(r.getRId()), null, CH_ID)));
 
         Set<Integer> allRolesIdSet = allUserRoles.stream().map(UserRole::getRId).collect(Collectors.toSet());
@@ -203,7 +203,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userIdMapRoleIdList.forEach((userId, roleId) -> userIdMapRPList.put(userId, allRPList.stream()
                 .filter(rp -> roleId.contains(rp.getRId())).collect(Collectors.toList())));
 
-        Map<Integer, UserDTO> ret = new HashMap<>();
+        Map<Integer, UserDTO> ret = new HashMap<>(userIdMapRPList.size());
         Map<Integer, User> userIdMapUser = query().in("u_id", userIdSet).ne("u_status", DELETED_STATUS).list()
                 .stream().collect(Collectors.toMap(User::getUId, u -> u));
         userIdMapRPList.forEach((userId, rpList) -> {

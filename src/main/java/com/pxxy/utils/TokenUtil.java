@@ -149,8 +149,8 @@ public class TokenUtil {
         Token t = new Token(token);
         synchronized (TokenUtil.class) {
             updateMapper(t).forEach(UserHolder::handleUserLogout);
+            return TOKEN_MAPPER.get(t);
         }
-        return TOKEN_MAPPER.get(t);
     }
 
     /**
@@ -220,88 +220,106 @@ public class TokenUtil {
     }
 
     /**
-     * 将令牌信息保存到文件中。该方法会根据静态布尔属性 storeToken 的值来决定是否将令牌信息保存到文件中，若 storeToken 的值为 false，则会强制下线所有用户。保存的文件路径由静态字符串属性 storePath 确定。
+     * 执行最终清扫工作，包括下线用户或存储在线用户的令牌。根据静态布尔属性 storeToken 的值来决定是否将令牌信息保存到文件中，若 storeToken 的值为 false，则会强制下线所有用户。一般在关闭服务器时调用。
      */
-    public static void storeToken() {
-        if (storeToken) {
-            if (storePath == null) {
-                log.warn("指定了保存令牌信息却未指定保存令牌信息的文件的地址。");
-                storePath = "tokens";
-            }
-            File path = new File(storePath).getAbsoluteFile();
-            try {
-                if (!path.exists() && !((path.getParentFile().exists() || path.getParentFile().mkdirs()) && path.createNewFile())) {
-                    log.error("无法为保存令牌信息创建文件！");
-                    return;
-                }
-            } catch (IOException e) {
-                log.error("创建保存令牌信息的文件失败。", e);
-                return;
-            }
-            StringJoiner sj = new StringJoiner(System.lineSeparator());
-            TOKEN_MAPPER.forEach((k, v) -> sj.add(k.toString() + v.getUId()));
-            String data = sj.toString();
-            try(FileOutputStream fos = new FileOutputStream(path)) {
-                fos.write(data.getBytes(StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                log.error("令牌信息写入失败。", e);
-            }
+    public static void cleanup() {
+        if (!storeToken) {
+            // storeToken 为 false，强制下线所有用户
+            invalidateAll();
             return;
         }
-        // 强制下线所有用户
-        TokenUtil.invalidateAll();
+        if (storePath == null) {
+            log.warn("指定了保存令牌信息却未指定保存令牌信息的文件的地址。");
+            storePath = "tokens";
+        }
+        storeToken();
     }
 
     /**
-     * 从文件中恢复令牌信息。
+     * 执行载入工作，载入存储的在线用户的令牌。一般在服务器启动完成时调用。
      */
-    public static void restoreToken() {
+    public static void load() {
         if (storeToken) {
             if (storePath == null) {
                 log.warn("指定了恢复令牌却未指定恢复令牌的文件的地址。");
                 storePath = "tokens";
             }
-            File file = new File(storePath);
-            if (!file.exists()) {
-                log.warn("无法恢复令牌，因为无法找到保存令牌的文件！");
-                return;
-            }
-
-            String data;
-            try (FileInputStream fis = new FileInputStream(file)) {
-                byte[] buf = new byte[(int) file.length()];
-                if (fis.read(buf) != file.length()) {
-                    log.warn("恢复令牌时读取的数据长度与预计不符。");
-                }
-                data = new String(buf);
-            } catch (IOException e) {
-                log.error("无法恢复令牌，因为读取文件时发生异常！", e);
-                return;
-            }
-
-            String[] lines = data.split(System.lineSeparator());
-            Map<Token, Integer> tokenMapUserId = new HashMap<>((int) (lines.length / 0.75 + 1));
-            for (String line : lines) {
-                String[] s = line.split(",");
-                String tokenString = s[0];
-                long deadTime = Long.parseLong(s[1]);
-                Integer userId = Integer.valueOf(s[2]);
-
-                Token token = new Token(tokenString);
-                token.deadTime = deadTime;
-
-                tokenMapUserId.put(token, userId);
-            }
-
-            Map<Integer, UserDTO> userIdMapUser = userService.getPerms(new HashSet<>(tokenMapUserId.values()));
-            tokenMapUserId.forEach((token, userId) -> {
-                UserDTO userDTO = userIdMapUser.get(userId);
-                if (Objects.isNull(userDTO)) return;
-                TOKEN_MAPPER.put(token, userDTO);
-            });
-            updateMapper().forEach(UserHolder::handleUserLogout);
-
+            restoreToken();
         }
+        File file = new File(storePath);
+        if (file.exists() && !file.delete()) {
+            log.warn("无法删除旧的令牌信息文件。");
+        }
+    }
+
+    /**
+     * 将令牌信息保存到文件中。保存的文件路径由静态字符串属性 storePath 确定。
+     */
+    private static void storeToken() {
+        File path = new File(storePath).getAbsoluteFile();
+        try {
+            if (!path.exists() && !((path.getParentFile().exists() || path.getParentFile().mkdirs()) && path.createNewFile())) {
+                log.error("无法为保存令牌信息创建文件！");
+                return;
+            }
+        } catch (IOException e) {
+            log.error("创建保存令牌信息的文件失败。", e);
+            return;
+        }
+        StringJoiner sj = new StringJoiner(System.lineSeparator());
+        TOKEN_MAPPER.forEach((k, v) -> sj.add(k.toString() + v.getUId()));
+        String data = sj.toString();
+        try(FileOutputStream fos = new FileOutputStream(path)) {
+            fos.write(data.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            log.error("令牌信息写入失败。", e);
+        }
+    }
+
+    /**
+     * 从文件中恢复令牌信息。
+     */
+    private static void restoreToken() {
+        File file = new File(storePath);
+        if (!file.exists()) {
+            log.warn("无法恢复令牌，因为无法找到保存令牌的文件！");
+            return;
+        }
+
+        String data;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] buf = new byte[(int) file.length()];
+            if (fis.read(buf) != file.length()) {
+                log.warn("恢复令牌时读取的数据长度与预计不符。");
+            }
+            data = new String(buf);
+        } catch (IOException e) {
+            log.error("无法恢复令牌，因为读取文件时发生异常！", e);
+            return;
+        }
+
+        String[] lines = data.split(System.lineSeparator());
+        Map<Token, Integer> tokenMapUserId = new HashMap<>((int) (lines.length / 0.75 + 1));
+        for (String line : lines) {
+            String[] s = line.split(",");
+            String tokenString = s[0];
+            long deadTime = Long.parseLong(s[1]);
+            Integer userId = Integer.valueOf(s[2]);
+
+            Token token = new Token(tokenString);
+            token.deadTime = deadTime;
+
+            tokenMapUserId.put(token, userId);
+        }
+
+        Map<Integer, UserDTO> userIdMapUser = userService.getPerms(new HashSet<>(tokenMapUserId.values()));
+        tokenMapUserId.forEach((token, userId) -> {
+            UserDTO userDTO = userIdMapUser.get(userId);
+            if (Objects.isNull(userDTO)) return;
+            TOKEN_MAPPER.put(token, userDTO);
+        });
+        updateMapper().forEach(UserHolder::handleUserLogout);
+
     }
 
 }
