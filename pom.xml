@@ -11,7 +11,7 @@
 
     <groupId>com.pxxy</groupId>
     <artifactId>fgw-backend</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>fgw-backend</name>
     <description>fgw</description>
     <properties>
