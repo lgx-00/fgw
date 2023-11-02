@@ -45,6 +45,12 @@ public class Permission implements Serializable {
      */
     private Integer pStatus;
 
+    /**
+     * 该页面允许的操作，8=查询 4=增加 2=修改 1=删除；
+     * 以及默认的操作，128=查询 64=增加 32=修改 16=删除
+     */
+    private Integer pMod;
+
     // 一级标题
     @TableField(exist = false)
     private String title;
@@ -53,6 +59,7 @@ public class Permission implements Serializable {
     @TableField(exist = false)
     private String name;
 
+    @SuppressWarnings("unused")
     public void setPName(String pName) {
         this.pName = pName;
         if (pName != null && pName.contains("/")) {
