@@ -40,7 +40,7 @@
 
     <!-- 月总调度，本月调度次数 -->
     <select id="getMonthly" resultType="java.util.Map">
-        SELECT SUM(dis_invest) monthlyInvest,
+        SELECT IFNULL(SUM(dis_invest), 0) monthlyInvest,
                COUNT(dis_id) monthlyInvestCount
         FROM dispatch
         WHERE dis_time BETWEEN DATE_FORMAT(CURRENT_DATE, '%Y-%m-01') AND DATE_FORMAT(CURRENT_DATE + INTERVAL 1 MONTH, '%Y-%m-01')
@@ -50,7 +50,7 @@
     <!-- 已入库项目数，已完工项目数 -->
     <select id="getTotal" resultType="java.util.Map">
         SELECT COUNT(pro_id) projectQuantity,
-               SUM(pro_dis_complete IS NOT NULL) completeQuantity
+               IFNULL(SUM(pro_dis_complete IS NOT NULL), 0) completeQuantity
         FROM project
         <include refid="proIdConditionWhere"/>
     </select>
@@ -111,7 +111,7 @@
 
     <!-- 近 12 个月的调度额（折线图） -->
     <select id="line" resultType="com.pxxy.entity.vo.DashboardVO$LineVO">
-        SELECT month, SUM(dis_invest) invests, COUNT(dis_id) counts
+        SELECT month, IFNULL(SUM(dis_invest), 0) invests, COUNT(dis_id) counts
         FROM (
                  SELECT DATE_FORMAT(CURRENT_DATE - INTERVAL NUM MONTH, '%Y-%m') month
                  FROM (
@@ -135,9 +135,9 @@
     <select id="bar" resultType="com.pxxy.entity.vo.DashboardVO$BarVO">
         SELECT
             `month`,
-            SUM(p.time &lt; D.month AND (p.d_start IS NULL OR p.d_start > D.month)) AS not_started_quantities,
-            SUM(p.time &lt; D.month AND p.d_start &lt;= D.month AND (p.complete IS NULL OR p.complete > D.month)) AS dispatching_quantities,
-            SUM(p.time &lt; D.month AND p.d_start IS NOT NULL AND p.complete IS NOT NULL AND p.d_start &lt;= D.month AND p.complete &lt;= D.month) AS completed_quantities
+            IFNULL(SUM(p.time &lt; D.month AND (p.d_start IS NULL OR p.d_start > D.month)), 0) AS not_started_quantities,
+            IFNULL(SUM(p.time &lt; D.month AND p.d_start &lt;= D.month AND (p.complete IS NULL OR p.complete > D.month)), 0) AS dispatching_quantities,
+            IFNULL(SUM(p.time &lt; D.month AND p.d_start IS NOT NULL AND p.complete IS NOT NULL AND p.d_start &lt;= D.month AND p.complete &lt;= D.month), 0) AS completed_quantities
         FROM
         (
             SELECT DATE_FORMAT(CURRENT_DATE - INTERVAL num MONTH, '%Y-%m') AS month
@@ -158,16 +158,18 @@
         ) p
         GROUP BY
             D.month
+        ORDER BY
+            D.month
     </select>
 
     <!-- 当前的状况（饼图） -->
     <select id="pie" resultType="com.pxxy.entity.vo.DashboardVO$PieVO">
-        SELECT SUM(pro_status = 0) pre_report,
-               SUM(pro_status = 2) review,
-               SUM(pro_status = 1) normal,
-               SUM(pro_status = 4) dispatch,
-               SUM(pro_status = 3) unlocked,
-               SUM(pro_status = 6) complete
+        SELECT IFNULL(SUM(pro_status = 0), 0) pre_report,
+               IFNULL(SUM(pro_status = 2), 0) review,
+               IFNULL(SUM(pro_status = 1), 0) normal,
+               IFNULL(SUM(pro_status = 4), 0) dispatch,
+               IFNULL(SUM(pro_status = 3), 0) unlocked,
+               IFNULL(SUM(pro_status = 6), 0) complete
         FROM project
         <include refid="proIdConditionWhere"/>
     </select>
