@@ -1,9 +1,9 @@
 package com.pxxy.advice;
 
-import cn.hutool.core.net.Ipv4Util;
 import com.pxxy.entity.dto.UserDTO;
 import com.pxxy.entity.pojo.Operation;
 import com.pxxy.service.OperationService;
+import com.pxxy.utils.IPUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
 import io.swagger.annotations.Api;
@@ -20,6 +20,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
 
 import static com.pxxy.constant.ResponseMessage.OK_CODE;
 
@@ -55,7 +56,7 @@ public class OperationLoggerAOP {
         HttpServletRequest req = ((ServletRequestAttributes) requestAttributes).getRequest();
 
         Operation oper = new Operation();
-        oper.setOperIp(Ipv4Util.ipv4ToLong(req.getRemoteAddr()));
+        oper.setOperIp(IPUtil.getLongIp(IPUtil.getIpAddr(req)));
         oper.setOperMethod(req.getMethod());
         oper.setOperPath(req.getRequestURI());
         oper.setOperInfo(getInfo(signature));
@@ -82,8 +83,8 @@ public class OperationLoggerAOP {
         ApiOperation apiOperation = signature.getMethod().getAnnotation(ApiOperation.class);
         StringBuilder info = new StringBuilder();
 
-        boolean flagApi = api != null && api.tags() != null;
-        boolean flagApiOperation = apiOperation != null && apiOperation.value() != null;
+        boolean flagApi = Objects.nonNull(api) && Objects.nonNull(api.tags());
+        boolean flagApiOperation = Objects.nonNull(apiOperation) && Objects.nonNull(apiOperation.value());
         if (flagApi) {
             info.append(api.tags()[0]);
         }
