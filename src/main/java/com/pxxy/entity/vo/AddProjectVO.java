@@ -5,9 +5,12 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author hs
@@ -30,6 +33,12 @@ public class AddProjectVO {
      */
     @ApiModelProperty("日期")
     private Date proDate = new Date();
+
+    public void setProDate(Date proDate) {
+        if (Objects.nonNull(proDate)) {
+            this.proDate = proDate;
+        }
+    }
 
     /**
      * 建设地点 非空
@@ -105,12 +114,16 @@ public class AddProjectVO {
      * 是否当年度新开工项目	0：不是，1：是
      */
     @ApiModelProperty("是否当年度新开工项目")
+    @Min(value = 0, message = "是否当年度新开工项目不合法")
+    @Max(value = 1, message = "是否当年度新开工项目不合法")
     private Integer proIsNew;
 
     /**
      * 是否省大中型项目	0：不是，1：是
      */
     @ApiModelProperty("是否省大中型项目")
+    @Min(value = 0, message = "是否省大中型项目不合法")
+    @Max(value = 1, message = "是否省大中型项目不合法")
     private Integer proIsProvincial;
 
     /**
@@ -124,12 +137,14 @@ public class AddProjectVO {
      * 计划总投资
      */
     @ApiModelProperty("计划总投资")
+    @Min(value = 1, message = "计划总投资必须为正整数")
     private Integer proPlan;
 
     /**
      * 年计划完成投资
      */
     @ApiModelProperty("年计划完成投资")
+    @Min(value = 1, message = "年计划完成投资必须为正整数")
     private Integer proPlanYear;
 
     /**
