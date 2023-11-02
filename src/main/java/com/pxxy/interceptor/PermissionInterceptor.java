@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.pxxy.entity.dto.PermissionDTO;
 import com.pxxy.entity.dto.UserDTO;
 import com.pxxy.enums.RequestMethodEnum;
+import com.pxxy.utils.IPUtil;
 import com.pxxy.utils.TokenUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
@@ -36,7 +37,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
         }
 
         log.info("【权限拦截器】远程主机地址：{}，请求路径：{}，请求方法：{}",
-                req.getRemoteAddr(), req.getServletPath(), req.getMethod());
+                IPUtil.getIpAddr(req), req.getServletPath(), req.getMethod());
 
         UserDTO user = TokenUtil.getUser(req.getHeader("X-Token"));
 
@@ -50,7 +51,8 @@ public class PermissionInterceptor implements HandlerInterceptor {
         String url = req.getServletPath();
         RequestMethodEnum method = RequestMethodEnum.valueOf(req.getMethod());
 
-        if (url.equals("/sys/user") && method.equals(RequestMethodEnum.GET)) {
+        if (url.equals("/sys/user") && method.equals(RequestMethodEnum.GET)
+                || url.startsWith("/basedata") && method.equals(RequestMethodEnum.GET)) {
             log.info("【权限拦截器】离开权限拦截器，请求顺利通过。");
             return true;
         }
