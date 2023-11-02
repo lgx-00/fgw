@@ -2,15 +2,13 @@ package com.pxxy.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.pxxy.entity.dto.UserDTO;
+import com.pxxy.entity.vo.*;
 import com.pxxy.service.UserService;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
-import com.pxxy.entity.vo.AddUserVO;
-import com.pxxy.entity.vo.Page;
-import com.pxxy.entity.vo.QueryUserVO;
-import com.pxxy.entity.vo.UpdateUserVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.validation.BindException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,7 +47,16 @@ public class UserController {
 
     @DeleteMapping
     @ApiOperation("删除用户")
-    public ResultResponse<?> deleteUser(@RequestParam Integer userId) { return userService.deleteUser(userId);
+    public ResultResponse<?> deleteUser(@RequestParam Integer userId) {
+        return userService.deleteUser(userId);
+    }
+
+    @PutMapping("/passwd")
+    @ApiOperation("修改密码")
+    public ResultResponse<?> updatePassword(@RequestBody @Validated UpdatePasswordVO vo) throws BindException {
+        UpdateUserVO updateUserVO = new UpdateUserVO();
+        updateUserVO.setUPassword(vo.getPasswd());
+        return userService.updateUserPassword(vo.getOld(), updateUserVO);
     }
 
     @PutMapping

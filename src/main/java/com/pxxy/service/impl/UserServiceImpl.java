@@ -27,8 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.stream.CollectorUtil.CH_ID;
-import static com.pxxy.constant.ResponseMessage.CANNOT_DELETE_ADMINISTRATOR;
-import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
+import static com.pxxy.constant.ResponseMessage.*;
 import static com.pxxy.constant.SystemConstant.*;
 
 /**
@@ -106,9 +105,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return ResultResponse.fail("用户名或密码错误！");
         }
 
-        // 用户提交的密码给加密
-        String password = Md5Util.code(loginVO.getUPassword());
-
         // 判断用户是否处于禁用时间中
         Date date = disableTimeMap.get(USER_DISABLED_TIME_KEY + user.getUId());
         Date now = new Date();
@@ -123,6 +119,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 return ResultResponse.fail(String.format("当前用户已被禁用，请%d分钟后再试", USER_DEFAULT_DISABLE_TIME));
             }
         }
+
+        // 用户提交的密码给加密
+        String password = Md5Util.code(loginVO.getUPassword());
 
         // 先判断用户状态
         switch (user.getUStatus()) {
@@ -333,31 +332,37 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Transactional
     public ResultResponse<?> updateUser(UpdateUserVO updateUserVO) {
 
-        if (updateUserVO.getRoleList() == null || updateUserVO.getRoleList().size() == 0) {
-            return ResultResponse.fail(ILLEGAL_OPERATE);
+        Integer uid = updateUserVO.getUId();
+        Integer currentUserId = UserHolder.getUser().getUId();
+
+        // 修改用户的角色信息
+        if (Objects.nonNull(updateUserVO.getRoleList()) && updateUserVO.getRoleList().size() > 0) {
+
+            if (currentUserId.equals(uid) && !currentUserId.equals(1)) {
+                return ResultResponse.fail(CANNOT_UPDATE_SELF_USER_ROLE_DATA);
+            }
+
+            if (uid.equals(1)) {
+                return ResultResponse.fail(CANNOT_UPDATE_ADMINISTRATOR_ROLE_DATA);
+            }
+
+            userRoleService.remove(new LambdaQueryWrapper<UserRole>().eq(UserRole::getUId, uid));
+            List<RoleVO> roleList = updateUserVO.getRoleList();
+            List<UserRole> userRoleList = roleList.stream().map(role -> {
+                UserRole userRole = new UserRole();
+                userRole.setUId(uid);
+                userRole.setRId(role.getRId());
+                return userRole;
+            }).collect(Collectors.toList());
+            userRoleService.saveBatch(userRoleList);
         }
 
-        Integer uid = updateUserVO.getUId();
-        User user = query().eq("u_id", uid).one();
-        user.setUName(updateUserVO.getUName())
+        // 修改用户信息
+        User user = new User().setUName(updateUserVO.getUName())
                 .setUPassword(Md5Util.code(updateUserVO.getUPassword()))
                 .setDepId(updateUserVO.getDepId())
-                .setCouId(updateUserVO.getCouId());
-        // 修改用户信息
+                .setCouId(updateUserVO.getCouId()).setUId(uid);
         updateById(user);
-        LambdaQueryWrapper<UserRole> userRoleLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userRoleLambdaQueryWrapper.eq(UserRole::getUId, uid);
-        // 先删除
-        userRoleService.remove(userRoleLambdaQueryWrapper);
-        // 再加入
-        List<RoleVO> roleList = updateUserVO.getRoleList();
-        List<UserRole> userRoleList = roleList.stream().map(role -> {
-            UserRole userRole = new UserRole();
-            userRole.setUId(uid);
-            userRole.setRId(role.getRId());
-            return userRole;
-        }).collect(Collectors.toList());
-        userRoleService.saveBatch(userRoleList);
 
         // 强制下线修改的用户
         TokenUtil.invalidate(new UserDTO(uid));
@@ -380,6 +385,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 () -> query().like("u_name", uName)
                         .ne("u_status", DELETED_STATUS).orderByDesc("u_id").list(), mapUserToVO);
         return ResultResponse.ok(pageInfo);
+    }
+
+    @Override
+    public ResultResponse<?> updateUserPassword(String old, UpdateUserVO updateUserVO) {
+        Integer uId = UserHolder.getUser().getUId();
+        Long count = query().eq("u_id", uId).eq("u_password", Md5Util.code(old)).count();
+        if (count < 1) {
+            return ResultResponse.fail(INVALID_PASSWORD);
+        }
+        updateUserVO.setUId(uId);
+        return updateUser(updateUserVO);
     }
 
 }

@@ -19,10 +19,14 @@ public class ResponseMessage {
     public static final String UPDATE_FAILED = "更新失败";
     public static final String UPLOAD_FAILED = "上传文件失败";
 
+    public static final String INVALID_PASSWORD = "密码错误";
+
     // 系统管理
     public static final String PERMISSION_CANNOT_BE_EMPTY = "权限列表不能为空";
     public static final String CANNOT_DELETE_ADMINISTRATOR = "禁止删除系统管理员";
     public static final String CANNOT_DELETE_ADMINISTRATOR_ROLE = "禁止删除系统管理员角色";
+    public static final String CANNOT_UPDATE_SELF_USER_ROLE_DATA = "禁止修改自己的角色";
+    public static final String CANNOT_UPDATE_ADMINISTRATOR_ROLE_DATA = "禁止修改系统管理员的角色";
 
     // 系统控制
     public static final String NO_PERMISSION_FOR_SYSTEM_CONTROL = "你没有执行此项操作的权限";

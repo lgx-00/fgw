@@ -11,7 +11,7 @@ public class Md5Util {
             md.update(str.getBytes());
             byte[] byteDigest = md.digest();
             int i;
-            StringBuilder buf = new StringBuilder("");
+            StringBuilder buf = new StringBuilder();
             for (byte b : byteDigest) {
                 i = b;
                 if (i < 0) {
@@ -33,7 +33,7 @@ public class Md5Util {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             System.exit(1);
-            return "";
+            return null;
         }
 
     }

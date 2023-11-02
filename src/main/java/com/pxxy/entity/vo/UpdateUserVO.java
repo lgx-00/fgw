@@ -1,5 +1,6 @@
 package com.pxxy.entity.vo;
 
+import com.pxxy.utils.Md5Util;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -18,7 +19,7 @@ import java.util.List;
 @ApiModel("修改用户请求模型")
 public class UpdateUserVO {
 
-    @NotBlank(message = "修改用户名不能为空！")
+    @NotBlank(message = "用户名不能为空！")
     @ApiModelProperty("用户名")
     private String uName;
 
@@ -33,9 +34,7 @@ public class UpdateUserVO {
                 bindingResult.addError(new FieldError("updateUserVO", "uPassword", "密码长度不能超过64"));
                 throw new BindException(bindingResult);
             }
-            if (uPassword.length() == 0) {
-                this.uPassword = null;
-            }
+            this.uPassword = uPassword.length() == 0 ? null : uPassword;
         }
     }
 

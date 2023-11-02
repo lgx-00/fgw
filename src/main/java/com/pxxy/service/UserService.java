@@ -36,4 +36,5 @@ public interface UserService extends IService<User> {
 
     ResultResponse<PageInfo<QueryUserVO>> getVagueUser(Page page, String uName);
 
+    ResultResponse<?> updateUserPassword(String old, UpdateUserVO updateUserVO);
 }

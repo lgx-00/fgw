@@ -22,9 +22,11 @@ public class TokenUtil {
 
     private static final Map<Token, UserDTO> TOKEN_MAPPER = new HashMap<>();
 
+    // 令牌编号中允许的字符，生成令牌编号时会从该字符串中获取随机字符序列
     private static final String BASE_STRING = "123456789012345678901234567890" +
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+    // 令牌的长度
     private static final int LENGTH = 32;
 
     // 最大存活时间，单位 毫秒
@@ -220,7 +222,7 @@ public class TokenUtil {
     }
 
     /**
-     * 执行最终清扫工作，包括下线用户或存储在线用户的令牌。根据静态布尔属性 storeToken 的值来决定是否将令牌信息保存到文件中，若 storeToken 的值为 false，则会强制下线所有用户。一般在关闭服务器时调用。
+     * 执行最终清扫工作，包括下线用户或存储在线用户的令牌。根据静态布尔属性 storeToken 的值来决定是否将令牌信息保存到文件中，若 storeToken 的值为 false，则会强制下线所有用户。该方法一般在关闭服务器时调用。
      */
     public static void cleanup() {
         if (!storeToken) {
@@ -229,24 +231,24 @@ public class TokenUtil {
             return;
         }
         if (storePath == null) {
-            log.warn("指定了保存令牌信息却未指定保存令牌信息的文件的地址。");
+            log.warn("指定了保存令牌信息却未指定保存令牌信息的文件的地址。使用默认值 \"./tokens\" 作为保存地址。");
             storePath = "tokens";
         }
         storeToken();
     }
 
     /**
-     * 执行载入工作，载入存储的在线用户的令牌。一般在服务器启动完成时调用。
+     * 执行载入工作，载入存储的在线用户的令牌。该方法一般在服务器启动完成时调用。
      */
     public static void load() {
         if (storeToken) {
             if (storePath == null) {
-                log.warn("指定了恢复令牌却未指定恢复令牌的文件的地址。");
+                log.warn("指定了恢复令牌却未指定恢复令牌的文件的地址。尝试从默认位置 \"./tokens\" 获取文件。");
                 storePath = "tokens";
             }
             restoreToken();
         }
-        File file = new File(storePath);
+        File file = new File(Optional.ofNullable(storePath).orElse("tokens"));
         if (file.exists() && !file.delete()) {
             log.warn("无法删除旧的令牌信息文件。");
         }
@@ -302,6 +304,7 @@ public class TokenUtil {
         Map<Token, Integer> tokenMapUserId = new HashMap<>((int) (lines.length / 0.75 + 1));
         for (String line : lines) {
             String[] s = line.split(",");
+            if (s.length != 3) continue;
             String tokenString = s[0];
             long deadTime = Long.parseLong(s[1]);
             Integer userId = Integer.valueOf(s[2]);
