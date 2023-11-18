@@ -48,7 +48,7 @@ public class StageServiceImpl extends ServiceImpl<StageMapper, Stage> implements
 
     @Override
     public ResultResponse<List<QueryStageVO>> getAllStage() {
-        List<QueryStageVO> queryStageVOS = query().list().stream().map(stage -> {
+        List<QueryStageVO> queryStageVOS = query().orderByDesc("stage_id").list().stream().map(stage -> {
             QueryStageVO queryStageVO = new QueryStageVO();
             BeanUtil.copyProperties(stage, queryStageVO);
             return queryStageVO;

@@ -59,7 +59,11 @@
     <select id="lastDispatchingProject" resultType="com.pxxy.entity.vo.DashboardVO$ProjectVO">
         SELECT dis_time last_dispatching_date,
                pro_name,
-               dis_invest invest
+               dis_invest invest,
+               pro_content,
+               pro_location,
+               pro_dis_progress,
+               pro_next_update
         FROM (
              SELECT dis_time, dis_invest, pro_id
              FROM dispatch
@@ -86,7 +90,11 @@
     <select id="waitingForDispatching" resultType="com.pxxy.entity.vo.DashboardVO$ProjectVO">
         SELECT dis_time last_dispatching_date,
                pro_name,
-               dis_invest invest
+               dis_invest invest,
+               pro_content,
+               pro_location,
+               pro_dis_progress,
+               pro_next_update
         FROM (
              SELECT dis_time, dis_invest, pro_id
              FROM dispatch

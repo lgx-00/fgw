@@ -63,6 +63,18 @@ public class DashboardVO {
         @ApiModelProperty("调度额")
         private Integer invest;
 
+        @ApiModelProperty("项目内容")
+        private String proContent;
+
+        @ApiModelProperty("项目地址")
+        private String proLocation;
+
+        @ApiModelProperty("下次调度日期")
+        private Date proNextUpdate;
+
+        @ApiModelProperty("主要形象进度")
+        private String proDisProgress;
+
     }
 
     @Data
