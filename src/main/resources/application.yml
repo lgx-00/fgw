@@ -31,7 +31,7 @@ fgw:
   file-path: /mysoft/fgw/appendix
   token:
     store: true
-    path: /mysoft/fgw/tokens
+    store-path: /mysoft/fgw/tokens
 
 #mybatis-plus:
 #  configuration:

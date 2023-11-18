@@ -3,7 +3,9 @@ package com.pxxy.utils;
 
 import cn.hutool.core.util.RandomUtil;
 import com.pxxy.entity.dto.UserDTO;
+import com.pxxy.entity.vo.OnlineUserVO;
 import com.pxxy.service.UserService;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,6 +72,7 @@ public class TokenUtil {
         /**
          * 过期时间
          */
+        @Getter
         private long deadTime;
 
         Token(String token) {
@@ -219,6 +222,10 @@ public class TokenUtil {
             TOKEN_MAPPER.keySet().forEach(Token::kill);
             updateMapper().forEach(UserHolder::handleUserLogout);
         }
+    }
+
+    public static List<OnlineUserVO> getOnlineUsers() {
+        return TOKEN_MAPPER.entrySet().stream().map(OnlineUserVO::new).collect(Collectors.toList());
     }
 
     /**
