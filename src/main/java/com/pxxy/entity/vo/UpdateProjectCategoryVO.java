@@ -21,12 +21,12 @@ public class UpdateProjectCategoryVO {
     private Integer prcId;
 
     @ApiModelProperty("项目类型名称")
-    @Length(min = 1, message = "项目类型名称不能为空！")
-    @Length(max = 64, message = "项目类型名称不能超过 64 个字符！")
+    @Length(min = 1, message = "项目类型名称不能为空")
+    @Length(max = 64, message = "项目类型名称不能超过 64 个字符")
     private String prcName;
 
     @ApiModelProperty("允许调度的时间范围")
     @Max(value = 3131, message = "允许调度的时间范围不合法")
-    @Min(value = 0, message = "允许调度的时间范围不合法")
+    @Min(value = 101, message = "允许调度的时间范围不合法")
     private Integer prcPeriod;
 }

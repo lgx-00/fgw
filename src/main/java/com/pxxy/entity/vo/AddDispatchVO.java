@@ -40,14 +40,14 @@ public class AddDispatchVO extends DispatchVO implements Serializable {
      * 累计完成投资 非空
      */
     @ApiModelProperty("累计完成投资")
-    @NotNull(message = "累计完成投资不能为空！")
+    @NotNull(message = "累计完成投资不能为空")
     private Integer disTotal;
 
     /**
      * 今年计划投资 非空
      */
     @ApiModelProperty("今年计划投资")
-    @NotNull(message = "今年计划投资不能为空！")
+    @NotNull(message = "今年计划投资不能为空")
     @Min(value = 0, message = "今年计划投资必须为一个非负数")
     private Integer disPlanYear;
 
@@ -55,7 +55,7 @@ public class AddDispatchVO extends DispatchVO implements Serializable {
      * 今年已完成投资 非空
      */
     @ApiModelProperty("今年已完成投资")
-    @NotNull(message = "今年已完成投资不能为空！")
+    @NotNull(message = "今年已完成投资不能为空")
     @Min(value = 1, message = "今年已完成投资必须为一个正整数")
     private Integer disYear;
 
@@ -77,8 +77,8 @@ public class AddDispatchVO extends DispatchVO implements Serializable {
      * 主要形象进度
      */
     @ApiModelProperty("主要形象进度")
-    @NotBlank(message = "主要形象进度不能为空！")
-    @Length(max = 255, message = "主要形象进度不能超过 255 个字符！")
+    @NotBlank(message = "主要形象进度不能为空")
+    @Length(max = 255, message = "主要形象进度不能超过 255 个字符")
     private String disProgress;
 
     /**
@@ -106,49 +106,49 @@ public class AddDispatchVO extends DispatchVO implements Serializable {
      * 工程进展状况
      */
     @ApiModelProperty("工程进展状况")
-    @Length(max = 255, message = "工程进展状况不能超过 255 个字符！")
+    @Length(max = 255, message = "工程进展状况不能超过 255 个字符")
     private String disSituation;
 
     /**
      * 报送单位
      */
     @ApiModelProperty("报送单位")
-    @Length(max = 32, message = "报送单位不能超过 32 个字符！")
+    @Length(max = 32, message = "报送单位不能超过 32 个字符")
     private String disToDep;
 
     /**
      * 项目来源
      */
     @ApiModelProperty("项目来源")
-    @Length(max = 32, message = "项目来源不能超过 32 个字符！")
+    @Length(max = 32, message = "项目来源不能超过 32 个字符")
     private String disSource;
 
     /**
      * 包保责任领导
      */
     @ApiModelProperty("包保责任领导")
-    @Length(max = 32, message = "包保责任领导不能超过 32 个字符！")
+    @Length(max = 32, message = "包保责任领导不能超过 32 个字符")
     private String disGuarantee;
 
     /**
      * 所属行业领域
      */
     @ApiModelProperty("所属行业领域")
-    @Length(max = 64, message = "所属行业领域不能超过 64 个字符！")
+    @Length(max = 64, message = "所属行业领域不能超过 64 个字符")
     private String disFiled;
 
     /**
      * 存在问题
      */
     @ApiModelProperty("存在问题")
-    @Length(max = 255, message = "存在问题不能超过 255 个字符！")
+    @Length(max = 255, message = "存在问题不能超过 255 个字符")
     private String disIssue;
 
     /**
      * 备注
      */
     @ApiModelProperty("备注")
-    @Length(max = 255, message = "备注不能超过 255 个字符！")
+    @Length(max = 255, message = "备注不能超过 255 个字符")
     private String disRemark;
 
     @ApiModelProperty(hidden = true)

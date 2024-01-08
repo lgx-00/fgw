@@ -19,11 +19,11 @@ import java.util.List;
 public class AddDepartmentVO {
 
     @ApiModelProperty("科室名")
-    @NotBlank(message = "科室名称不能为空！")
+    @NotBlank(message = "科室名称不能为空")
     private String depName;
 
     @ApiModelProperty("项目类别ID")
-    @NotEmpty(message = "项目类别不能为空！")
+    @NotEmpty(message = "项目类别不能为空")
     private List<Integer> projectCategory;
 
     public void setProjectCategory(Integer[] projectCategory) {

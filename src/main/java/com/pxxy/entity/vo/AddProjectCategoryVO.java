@@ -16,7 +16,7 @@ import javax.validation.constraints.NotBlank;
 public class AddProjectCategoryVO {
 
     @ApiModelProperty("项目类型名称")
-    @NotBlank(message = "项目类型名称不能为空！")
+    @NotBlank(message = "项目类型名称不能为空")
     private String prcName;
 
     @ApiModelProperty("允许调度时间")

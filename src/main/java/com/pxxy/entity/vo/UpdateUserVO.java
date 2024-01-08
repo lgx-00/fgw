@@ -19,7 +19,7 @@ import java.util.List;
 @ApiModel("修改用户请求模型")
 public class UpdateUserVO {
 
-    @NotBlank(message = "用户名不能为空！")
+    @NotBlank(message = "用户名不能为空")
     @ApiModelProperty("用户名")
     private String uName;
 

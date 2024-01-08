@@ -21,7 +21,7 @@ public class UpdateIndustryFieldVO implements Serializable {
 
     private Integer infId;
 
-    @NotBlank(message = "修改行业领域名称不能为空！")
+    @NotBlank(message = "修改行业领域名称不能为空")
     private String infName;
 
     private String infRemark;

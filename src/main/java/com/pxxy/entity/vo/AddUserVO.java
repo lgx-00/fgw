@@ -17,11 +17,11 @@ import java.util.List;
 @ApiModel("新增用户请求模型")
 public class AddUserVO {
     @ApiModelProperty("用户名")
-    @NotBlank(message = "用户名不能为空！")
+    @NotBlank(message = "用户名不能为空")
     private String uName;
 
     @ApiModelProperty("密码")
-    @NotBlank(message = "密码不能为空！")
+    @NotBlank(message = "密码不能为空")
     private String uPassword;
 
     @ApiModelProperty("科室id")

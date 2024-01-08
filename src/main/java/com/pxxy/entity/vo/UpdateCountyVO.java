@@ -21,7 +21,7 @@ public class UpdateCountyVO {
     private Integer couId;
 
     @ApiModelProperty("辖区名称")
-    @NotBlank(message = "修改辖区名称不能为空！")
+    @NotBlank(message = "修改辖区名称不能为空")
     private String couName;
 
     @ApiModelProperty("下辖的二级辖区")

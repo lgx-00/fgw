@@ -15,6 +15,6 @@ import javax.validation.constraints.NotBlank;
 @ApiModel("新增工程进展阶段参数")
 public class AddStageVO {
     @ApiModelProperty("工程进展阶段名称")
-    @NotBlank(message = "工程进展阶段名称不能为空！")
+    @NotBlank(message = "工程进展阶段名称不能为空")
     private String stageName;
 }

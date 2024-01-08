@@ -21,7 +21,7 @@ public class UpdateDepartmentVO {
     private Integer depId;
 
     @ApiModelProperty("科室名")
-    @Length(min = 1, message = "修改科室名称不能为空！")
+    @Length(min = 1, message = "修改科室名称不能为空")
     private String depName;
 
     @ApiModelProperty("项目类别ID")

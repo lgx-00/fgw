@@ -20,7 +20,7 @@ public class AddIndustryFieldVO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty("行业领域名称")
-    @NotBlank(message = "行业领域名称不能为空！")
+    @NotBlank(message = "行业领域名称不能为空")
     private String infName;
 
     @ApiModelProperty("备注")

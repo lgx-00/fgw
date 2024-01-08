@@ -24,8 +24,8 @@ public class AddProjectVO {
      * 项目名称 非空
      */
     @ApiModelProperty("项目名称")
-    @NotBlank(message = "项目名称不能为空！")
-    @Length(max = 128, message = "项目名称不能超过 128 个字符！")
+    @NotBlank(message = "项目名称不能为空")
+    @Length(max = 128, message = "项目名称不能超过 128 个字符")
     private String proName;
 
     /**
@@ -44,15 +44,15 @@ public class AddProjectVO {
      * 建设地点 非空
      */
     @ApiModelProperty("建设地点")
-    @NotBlank(message = "建设地点不能为空！")
-    @Length(max = 32, message = "建设地点不能超过 32 个字符！")
+    @NotBlank(message = "建设地点不能为空")
+    @Length(max = 32, message = "建设地点不能超过 32 个字符")
     private String proLocation;
 
     /**
      * 辖区编号，外键，非空
      */
     @ApiModelProperty("辖区")
-    @NotNull(message = "辖区不能为空！")
+    @NotNull(message = "辖区不能为空")
     private Integer couId;
 
     /**
@@ -65,49 +65,49 @@ public class AddProjectVO {
      * 行业领域 外键，非空
      */
     @ApiModelProperty("行业领域")
-    @NotNull(message = "行业领域不能为空！")
+    @NotNull(message = "行业领域不能为空")
     private Integer infId;
 
     /**
      * 项目类别
      */
     @ApiModelProperty("项目类别")
-    @NotNull(message = "项目类别不能为空！")
+    @NotNull(message = "项目类别不能为空")
     private Integer prcId;
 
     /**
      * 项目法人或责任单位
      */
     @ApiModelProperty("项目法人或责任单位")
-    @Length(max = 128, message = "项目法人或责任单位不能超过 128 个字符！")
+    @Length(max = 128, message = "项目法人或责任单位不能超过 128 个字符")
     private String proLegalPerson;
 
     /**
      * 日常监管直接责任单位
      */
     @ApiModelProperty("日常监管直接责任单位")
-    @Length(max = 64, message = "日常监管直接责任单位不能超过 64 个字符！")
+    @Length(max = 64, message = "日常监管直接责任单位不能超过 64 个字符")
     private String proGuarantee;
 
     /**
      * 项目内容
      */
     @ApiModelProperty("项目内容")
-    @Length(max = 255, message = "项目内容不能超过 255 个字符！")
+    @Length(max = 255, message = "项目内容不能超过 255 个字符")
     private String proContent;
 
     /**
      * 项目代码
      */
     @ApiModelProperty("项目代码")
-    @Length(max = 64, message = "项目代码不能超过 64 个字符！")
+    @Length(max = 64, message = "项目代码不能超过 64 个字符")
     private String proCode;
 
     /**
      * 入库入统代码
      */
     @ApiModelProperty("入库入统代码")
-    @Length(max = 64, message = "入库入统代码不能超过 64 个字符！")
+    @Length(max = 64, message = "入库入统代码不能超过 64 个字符")
     private String proInCode;
 
     /**
@@ -130,7 +130,7 @@ public class AddProjectVO {
      * 部门和地方采取的资金安排方式
      */
     @ApiModelProperty("部门和地方采取的资金安排方式")
-    @Length(max = 64, message = "部门和地方采取的资金安排方式不能超过 64 个字符！")
+    @Length(max = 64, message = "部门和地方采取的资金安排方式不能超过 64 个字符")
     private String proArrange;
 
     /**
@@ -151,7 +151,7 @@ public class AddProjectVO {
      * 投资类别
      */
     @ApiModelProperty("投资类别")
-    @Length(max = 64, message = "投资类别不能超过 64 个字符！")
+    @Length(max = 64, message = "投资类别不能超过 64 个字符")
     private String proType;
 
     /**
