@@ -12,10 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 
 /**
- * 基础数据缓存切面类
- *
- * 在获取
- *
+ * <h3>基础数据缓存切面类</h3>
  * Create time: 2023/7/20 10:37
  *
  * @author xw
@@ -28,6 +25,17 @@ public class BaseDataCacheAOP {
 
     private final CacheMapper cacheMapper = new CacheMapper();
 
+    /**
+     * <h3>从缓存中获取数据</h3>
+     *
+     * <p>针对服务层中添加了 {@link Cached} 注解的类中的所有 <code>get*()</code> 方法、
+     * <code>all()</code> 方法和继承了 {@link BaseService} 抽象类的类的 <code>query()</code> 方法，
+     * 检查是否已缓存上次执行结果且缓存的数据是否未过期，若已缓存且未过期，则直接返回缓存中的数据。</p>
+     *
+     * @param pjp 切点
+     * @return 切点的执行结果或已缓存的数据
+     * @throws Throwable 执行切点时的所有可能异常
+     */
     @Around("(@within(com.pxxy.advice.annotations.Cached)" +
             " && (execution(public * com.pxxy.service.*.get*())" +
             " || execution(public * com.pxxy.service.*.all())))" +

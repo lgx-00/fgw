@@ -42,9 +42,9 @@ public class JacksonConfig {
         return new ObjectMapper()
                 .setLocale(Locale.CHINA)
                 .setTimeZone(TimeZone.getTimeZone(ZoneId.systemDefault()))
-                // 注册一个序列化和反序列化的module
+                // 注册一个序列化和反序列化的 module
                 .registerModule(javaTimeModule())
-                // 配置dote格式參数的解析
+                // 配置 date 格式參数的解析
                 .setDateFormat(new SimpleDateFormat(DatePattern.NORM_DATE_PATTERN))
                 .setLocale(Locale.CHINA)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

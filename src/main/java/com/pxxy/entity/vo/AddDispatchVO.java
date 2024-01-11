@@ -17,7 +17,6 @@ import static com.pxxy.constant.ResponseMessage.ADD_FAILED;
 
 /**
  * Class name: AddDispatchVO
- *
  * Create time: 2023/7/12 15:11
  *
  * @author xw

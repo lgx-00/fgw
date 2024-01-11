@@ -20,12 +20,6 @@ import java.util.Set;
 
 import static com.pxxy.constant.ResponseMessage.PERMISSION_NOT_ENOUGH;
 
-/**
- * @author hesen
- * @since 2023-06-20-9:31
- * @Description:
- */
-@Data
 @Slf4j
 public class PermissionInterceptor implements HandlerInterceptor {
 
