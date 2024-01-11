@@ -1,6 +1,7 @@
 package com.pxxy.advice;
 
 import com.pxxy.advice.annotations.Cached;
+import com.pxxy.service.BaseService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -23,7 +24,7 @@ import java.util.HashMap;
 @Component
 public class BaseDataCacheAOP {
 
-    private final CacheMapper cacheMapper = new CacheMapper();
+    private final HashMap<String, Cache> cacheMapper = new HashMap<>();
 
     /**
      * <h3>从缓存中获取数据</h3>
@@ -114,5 +115,4 @@ public class BaseDataCacheAOP {
 
 }
 
-class CacheMapper extends HashMap<String, Cache> {}
 class Cache extends HashMap<String, Object> {}

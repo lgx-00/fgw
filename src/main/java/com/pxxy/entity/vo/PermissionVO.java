@@ -9,7 +9,7 @@ import java.util.Objects;
 
 /**
  * Class name: PermissionVO
- *
+ * <p></p>
  * Create time: 2023/8/1 11:00
  *
  * @author xw
@@ -43,7 +43,4 @@ public class PermissionVO {
         this.rpDetail[3] = (rpDetail & 1) > 0;
     }
 
-    public boolean[] getRpDetail() {
-        return rpDetail;
-    }
 }

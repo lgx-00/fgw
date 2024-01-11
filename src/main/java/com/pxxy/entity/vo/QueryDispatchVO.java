@@ -4,7 +4,8 @@ import com.pxxy.enums.DispatchStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * 查询调度的实体类
