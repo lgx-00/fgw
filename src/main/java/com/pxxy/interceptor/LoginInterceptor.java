@@ -2,6 +2,7 @@ package com.pxxy.interceptor;
 
 import cn.hutool.json.JSONUtil;
 import com.pxxy.entity.dto.UserDTO;
+import com.pxxy.utils.IPUtil;
 import com.pxxy.utils.TokenUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
@@ -35,8 +36,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         String xToken = request.getHeader("X-Token");
         UserDTO user = TokenUtil.getUser(xToken);
         if (user == null) {
-            log.info("【身份验证拦截器】令牌无效，来自 {} 的请求 {} 已被拦截。",
-                    request.getRemoteAddr(), request.getRequestURI());
+            log.info("【身份验证拦截器】令牌无效，来自 {} 的请求 {} 已被拦截。", IPUtil.getIpAddr(request), request.getRequestURI());
             return fail(response);
         }
 
@@ -52,7 +52,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         response.setStatus(INVALID_TOKEN);
         response.setHeader("Content-Type", "application/json");
         response.setCharacterEncoding("utf-8");
-        response.getWriter().write(JSONUtil.toJsonStr(ResultResponse.fail(INVALID_TOKEN, "无效的令牌！")));
+        response.getWriter().write(JSONUtil.toJsonStr(ResultResponse.fail(INVALID_TOKEN, "无效的令牌")));
 
         return false;
     }
