@@ -61,13 +61,13 @@ public class ProjectDTO {
     @ApiModelProperty("标记3")
     private String proMark3;
 
-    @Max(value = 3, message = "项目阶段为非法值！")
-    @Min(value = 0, message = "项目阶段为非法值！")
+    @Max(value = 3, message = "项目阶段为非法值")
+    @Min(value = 0, message = "项目阶段为非法值")
     @ApiModelProperty("项目阶段，0所有阶段 1未开工 2在建 3已完工")
     private Integer projectStage = 0;
 
     public void setProName(String proName) {
-        if (proName != null && proName.length() == 0) {
+        if (proName != null && proName.isEmpty()) {
             this.proName = null;
             return;
         }

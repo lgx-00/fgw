@@ -268,7 +268,7 @@ public class TokenUtil {
         File path = new File(storePath).getAbsoluteFile();
         try {
             if (!path.exists() && !((path.getParentFile().exists() || path.getParentFile().mkdirs()) && path.createNewFile())) {
-                log.error("无法为保存令牌信息创建文件！");
+                log.error("无法为保存令牌信息创建文件。");
                 return;
             }
         } catch (IOException e) {
@@ -291,7 +291,7 @@ public class TokenUtil {
     private static void restoreToken() {
         File file = new File(storePath);
         if (!file.exists()) {
-            log.warn("无法恢复令牌，因为无法找到保存令牌的文件！");
+            log.warn("无法恢复令牌，因为无法找到保存令牌的文件。");
             return;
         }
 
@@ -303,7 +303,7 @@ public class TokenUtil {
             }
             data = new String(buf);
         } catch (IOException e) {
-            log.error("无法恢复令牌，因为读取文件时发生异常！", e);
+            log.error("无法恢复令牌，因为读取文件时发生异常。", e);
             return;
         }
 
