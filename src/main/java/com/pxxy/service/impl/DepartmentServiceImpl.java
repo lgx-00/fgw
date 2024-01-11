@@ -4,18 +4,18 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.stream.SimpleCollector;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.pxxy.advice.annotations.Cached;
-import com.pxxy.mapper.DepartmentMapper;
 import com.pxxy.entity.pojo.DepPrc;
 import com.pxxy.entity.pojo.Department;
 import com.pxxy.entity.pojo.ProjectCategory;
+import com.pxxy.entity.vo.AddDepartmentVO;
+import com.pxxy.entity.vo.QueryDepartmentVO;
+import com.pxxy.entity.vo.UpdateDepartmentVO;
+import com.pxxy.exceptions.ForbiddenException;
+import com.pxxy.mapper.DepartmentMapper;
 import com.pxxy.service.BaseService;
 import com.pxxy.service.DepPrcService;
 import com.pxxy.service.DepartmentService;
 import com.pxxy.service.ProjectCategoryService;
-import com.pxxy.utils.ResultResponse;
-import com.pxxy.entity.vo.AddDepartmentVO;
-import com.pxxy.entity.vo.QueryDepartmentVO;
-import com.pxxy.entity.vo.UpdateDepartmentVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +48,7 @@ public class DepartmentServiceImpl extends BaseService<DepartmentMapper, Departm
 
     @Override
     @Transactional
-    public ResultResponse<?> addDepartment(AddDepartmentVO addDepartmentVO) {
+    public boolean addDepartment(AddDepartmentVO addDepartmentVO) {
         Department department = new Department();
         department.setDepName(addDepartmentVO.getDepName());
         save(department);
@@ -60,16 +60,16 @@ public class DepartmentServiceImpl extends BaseService<DepartmentMapper, Departm
                 new DepPrc().setDepId(depId).setPrcId(prcId)).collect(Collectors.toList());
 
         depPrcService.saveBatch(depPrcList);
-        return ResultResponse.ok();
+        return true;
     }
 
     @Override
     @Transactional
-    public ResultResponse<?> updateDepartment(UpdateDepartmentVO updateDepartmentVO) {
+    public boolean updateDepartment(UpdateDepartmentVO updateDepartmentVO) throws ForbiddenException {
         Integer depId = updateDepartmentVO.getDepId();
         Department department = query().eq("dep_id", depId).one();
-        if (department == null){
-            return ResultResponse.fail(ILLEGAL_OPERATE);
+        if (department == null) {
+            throw new ForbiddenException(ILLEGAL_OPERATE);
         }
         department.setDepName(updateDepartmentVO.getDepName());
         updateById(department);
@@ -87,11 +87,11 @@ public class DepartmentServiceImpl extends BaseService<DepartmentMapper, Departm
                 new DepPrc().setDepId(depId).setPrcId(prcId)).collect(Collectors.toList());
         depPrcService.saveBatch(depPrcList);
 
-        return ResultResponse.ok();
+        return true;
     }
 
     @Override
-    public ResultResponse<List<QueryDepartmentVO>> getAllDepartment() {
+    public List<QueryDepartmentVO> getAllDepartment() {
 
         // get all departments and the middle entities for the following operation
         List<Department> departmentList = query().orderByDesc("dep_id").list();
@@ -108,24 +108,22 @@ public class DepartmentServiceImpl extends BaseService<DepartmentMapper, Departm
                 .collect(Collectors.groupingBy(DepPrc::getDepId, new SimpleCollector<>(ArrayList::new,
                         (list, dp) -> list.add(prcMapper.get(dp.getPrcId())), null, CH_ID)));
 
-        List<QueryDepartmentVO> voList = departmentList.stream().map(d -> {
+        return departmentList.stream().map(d -> {
             QueryDepartmentVO queryDepartmentVO = new QueryDepartmentVO();
             BeanUtil.copyProperties(d, queryDepartmentVO);
             queryDepartmentVO.setProjectCategoryName(depIdMapPrcNames.get(d.getDepId()));
             return queryDepartmentVO;
         }).collect(Collectors.toList());
-
-        return ResultResponse.ok(voList);
     }
 
     @Override
-    public ResultResponse<?> deleteDepartment(Integer depId) {
+    public boolean deleteDepartment(Integer depId) throws ForbiddenException {
         Department department = query().eq("dep_id", depId).one();
-        if (department == null){
-            return ResultResponse.fail(ILLEGAL_OPERATE);
+        if (department == null) {
+            throw new ForbiddenException(ILLEGAL_OPERATE);
         }
         removeById(depId);
-        return ResultResponse.ok();
+        return true;
     }
 
     @Override

@@ -5,7 +5,9 @@ import com.fasterxml.jackson.core.exc.InputCoercionException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.pxxy.exceptions.BaseRuntimeException;
-import com.pxxy.exceptions.ReportException;
+import com.pxxy.exceptions.BadRequestException;
+import com.pxxy.exceptions.ForbiddenException;
+import com.pxxy.exceptions.NotFoundException;
 import com.pxxy.utils.ResultResponse;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
@@ -110,8 +112,26 @@ public class GlobalExceptionHandler {
 
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ReportException.class)
-    public ResultResponse<?> error(ReportException e) {
+    @ExceptionHandler(BadRequestException.class)
+    public ResultResponse<?> error(BadRequestException e) {
+        ResultResponse<Object> ret = ResultResponse.fail(e.getMessage());
+        log.info("【返回结果】 {}", ret);
+        return ret;
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(ForbiddenException.class)
+    public ResultResponse<?> error(ForbiddenException e) {
+        ResultResponse<Object> ret = ResultResponse.fail(e.getMessage());
+        log.info("【返回结果】 {}", ret);
+        return ret;
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NotFoundException.class)
+    public ResultResponse<?> error(NotFoundException e) {
         ResultResponse<Object> ret = ResultResponse.fail(e.getMessage());
         log.info("【返回结果】 {}", ret);
         return ret;

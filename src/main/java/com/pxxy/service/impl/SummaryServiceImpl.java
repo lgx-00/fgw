@@ -4,24 +4,21 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.pxxy.entity.dto.SimpleUserDataDTO;
 import com.pxxy.entity.dto.UserDTO;
-import com.pxxy.mapper.DispatchMapper;
-import com.pxxy.mapper.ProjectMapper;
 import com.pxxy.entity.pojo.*;
-import com.pxxy.mapper.SummaryMapper;
-import com.pxxy.service.*;
-import com.pxxy.utils.ResultResponse;
-import com.pxxy.utils.UserHolder;
 import com.pxxy.entity.vo.DashboardVO;
 import com.pxxy.entity.vo.SummaryDetailsVO;
 import com.pxxy.entity.vo.SummaryVO;
+import com.pxxy.mapper.DispatchMapper;
+import com.pxxy.mapper.ProjectMapper;
+import com.pxxy.mapper.SummaryMapper;
+import com.pxxy.service.*;
+import com.pxxy.utils.UserHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
@@ -66,20 +63,14 @@ public class SummaryServiceImpl implements SummaryService {
 
     @Override
     @Transactional
-    public ResultResponse<List<SummaryVO>> getSummary(Date beginTime, Date endTime, Integer prcId, Integer infId) {
+    public List<SummaryVO> getSummary(Date beginTime, Date endTime, Integer prcId, Integer infId) {
         //先拿到用户信息
         Integer uId = UserHolder.getUser().getUId();
         //管理员特殊通道   区本级也可以访问
         if (uId == 1) {
-            QueryWrapper<Project> wrapper = new QueryWrapper<>();
-            wrapper.in("pro_status", Arrays.asList(NORMAL.val, UNLOCKED.val, TO_BE_SCHEDULED.val))
-                    .eq(Objects.nonNull(prcId), "prc_id", prcId)
-                    .eq(Objects.nonNull(infId), "inf_id", infId)
-                    .ge(Objects.nonNull(beginTime), "pro_date", beginTime)
-                    .le(Objects.nonNull(endTime), "pro_date", endTime);
-            List<Project> projects = projectService.list(wrapper);
-            if (projects.size() == 0) {
-                return ResultResponse.ok(Collections.emptyList());
+            List<Project> projects = getProjects(beginTime, endTime, prcId, infId);
+            if (projects.isEmpty()) {
+                return Collections.emptyList();
             }
             List<SummaryVO> summaryVOList = groupSummary(projects);
 
@@ -105,9 +96,7 @@ public class SummaryServiceImpl implements SummaryService {
             }
             summaryVO.setChildren(summaryVOList);
             //返回值
-            ArrayList<SummaryVO> summaryVOArrayList = new ArrayList<>();
-            summaryVOArrayList.add(summaryVO);
-            return ResultResponse.ok(summaryVOArrayList);
+            return Collections.singletonList(summaryVO);
         }
 
         // 非管理员通道
@@ -115,30 +104,22 @@ public class SummaryServiceImpl implements SummaryService {
         Integer depId = user.getDepId();  //科室
         Integer couId = user.getCouId();   //辖区
         List<Project> projectList = ((ProjectMapper) projectService.getBaseMapper()).getProjectByUser(depId, couId, uId);
-        if (projectList.size() == 0) {
-            return ResultResponse.ok(Collections.emptyList());
+        if (projectList.isEmpty()) {
+            return Collections.emptyList();
         }
-        List<SummaryVO> summaryVOList = groupSummary(projectList);
-
-        return ResultResponse.ok(summaryVOList);
+        return groupSummary(projectList);
     }
 
     @Override
     @Transactional
-    public ResultResponse<List<SummaryDetailsVO>> detailsSummary(Date beginTime, Date endTime, Integer prcId, Integer infId) {
+    public List<SummaryDetailsVO> detailsSummary(Date beginTime, Date endTime, Integer prcId, Integer infId) {
         //先拿到用户信息
         Integer uId = UserHolder.getUser().getUId();
         //管理员特殊通道   区本级也可以访问
         if (uId == 1) {
-            QueryWrapper<Project> wrapper = new QueryWrapper<>();
-            wrapper.in("pro_status", Arrays.asList(NORMAL.val, UNLOCKED.val, TO_BE_SCHEDULED.val))
-                    .eq(Objects.nonNull(prcId), "prc_id", prcId)
-                    .eq(Objects.nonNull(infId), "inf_id", infId)
-                    .ge(Objects.nonNull(beginTime), "pro_date", beginTime)
-                    .le(Objects.nonNull(endTime), "pro_date", endTime);
-            List<Project> projects = projectService.list(wrapper);
-            if (projects.size() == 0) {
-                return ResultResponse.ok(Collections.emptyList());
+            List<Project> projects = getProjects(beginTime, endTime, prcId, infId);
+            if (projects.isEmpty()) {
+                return Collections.emptyList();
             }
             LocalDate[] firstDay = getFirstDay();
             List<Dispatch> dispatchList = ((DispatchMapper) dispatchService.getBaseMapper()).getDispatch(firstDay[0], firstDay[1]);
@@ -160,9 +141,7 @@ public class SummaryServiceImpl implements SummaryService {
             }
             summaryDetailsVO.setChildren(listList);
             // 返回值
-            ArrayList<SummaryDetailsVO> summaryDetailsVOArrayList = new ArrayList<>();
-            summaryDetailsVOArrayList.add(summaryDetailsVO);
-            return ResultResponse.ok(summaryDetailsVOArrayList);
+            return Collections.singletonList(summaryDetailsVO);
         }
 
         // 非管理员通道
@@ -170,18 +149,27 @@ public class SummaryServiceImpl implements SummaryService {
         Integer depId = user.getDepId();   // 科室
         Integer couId = user.getCouId();   // 辖区
         List<Project> projectList = ((ProjectMapper) projectService.getBaseMapper()).getProjectByUser(depId, couId, uId);
-        if (projectList.size() == 0) {
-            return ResultResponse.ok(Collections.emptyList());
+        if (projectList.isEmpty()) {
+            return Collections.emptyList();
         }
         LocalDate[] firstDay = getFirstDay();
         List<Dispatch> dispatchList = ((DispatchMapper) dispatchService.getBaseMapper()).getDispatch(firstDay[0], firstDay[1]);
-        List<SummaryDetailsVO> listList = groupSummaryDetails(projectList, dispatchList);
 
-        return ResultResponse.ok(listList);
+        return groupSummaryDetails(projectList, dispatchList);
+    }
+
+    private List<Project> getProjects(Date beginTime, Date endTime, Integer prcId, Integer infId) {
+        QueryWrapper<Project> wrapper = new QueryWrapper<>();
+        wrapper.in("pro_status", Arrays.asList(NORMAL.val, UNLOCKED.val, TO_BE_SCHEDULED.val))
+                .eq(Objects.nonNull(prcId), "prc_id", prcId)
+                .eq(Objects.nonNull(infId), "inf_id", infId)
+                .ge(Objects.nonNull(beginTime), "pro_date", beginTime)
+                .le(Objects.nonNull(endTime), "pro_date", endTime);
+         return projectService.list(wrapper);
     }
 
     @Override
-    public ResultResponse<?> exportSummaryExcel(HttpServletResponse response, List<SummaryVO> summaryVOList) {
+    public boolean exportSummaryExcel(HttpServletResponse response, List<SummaryVO> summaryVOList) {
         try {
             // 设置文本类型
             response.setContentType("application/vnd.ms-excel");
@@ -191,9 +179,9 @@ public class SummaryServiceImpl implements SummaryService {
             response.setHeader("Content-disposition", "attachment;filename=统计信息.xlsx");
             EasyExcel.write(response.getOutputStream(), SummaryVO.class).sheet("导出统计信息").doWrite(summaryVOList);
         } catch (IOException e) {
-            return ResultResponse.fail("导出失败！");
+            return false;
         }
-        return null;
+        return true;
     }
 
     private List<SummaryVO> groupSummary(List<Project> projects) {
@@ -336,8 +324,7 @@ public class SummaryServiceImpl implements SummaryService {
 
     @Override
     @Transactional
-    public ResultResponse<DashboardVO> dashboard() {
-        DashboardVO vo = new DashboardVO();
+    public DashboardVO dashboard() {
         UserDTO user = UserHolder.getUser();
         SimpleUserDataDTO dataDTO = new SimpleUserDataDTO(user.getUId(), user.getCouId(), user.getDepId());
         Map<String, Object> monthly = baseMapper.getMonthly(dataDTO);
@@ -347,14 +334,14 @@ public class SummaryServiceImpl implements SummaryService {
         List<DashboardVO.BarVO> bar = baseMapper.bar(dataDTO);
         List<DashboardVO.LineVO> line = baseMapper.line(dataDTO);
         DashboardVO.PieVO pie = baseMapper.pie(dataDTO);
-        return ResultResponse.ok(new DashboardVO(
+        return new DashboardVO(
                 monthly.get("monthlyInvest"),
                 monthly.get("monthlyInvestCount"),
                 total.get("projectQuantity"),
                 total.get("completeQuantity"),
                 last, waiting,
                 line, bar, pie
-        ));
+        );
     }
 
 }

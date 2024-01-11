@@ -19,13 +19,13 @@ import java.util.List;
  */
 public interface DepartmentService extends IService<Department> {
 
-    ResultResponse<?> addDepartment(AddDepartmentVO addDepartmentVO);
+    boolean addDepartment(AddDepartmentVO addDepartmentVO);
 
-    ResultResponse<?> updateDepartment(UpdateDepartmentVO updateDepartmentVO);
+    boolean updateDepartment(UpdateDepartmentVO updateDepartmentVO);
 
-    ResultResponse<List<QueryDepartmentVO>> getAllDepartment();
+    List<QueryDepartmentVO> getAllDepartment();
 
-    ResultResponse<?> deleteDepartment(Integer depId);
+    boolean deleteDepartment(Integer depId);
 
     List<Department> all();
 }

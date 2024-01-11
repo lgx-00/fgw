@@ -25,6 +25,6 @@ public class UpdateCountyVO {
     private String couName;
 
     @ApiModelProperty("下辖的二级辖区")
-    private List<String> townNames = new ArrayList<>();
+    private List<TownVO> towns = new ArrayList<>();
 
 }

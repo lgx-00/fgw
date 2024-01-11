@@ -2,7 +2,6 @@ package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.pxxy.entity.pojo.Permission;
-import com.pxxy.utils.ResultResponse;
 
 import java.util.List;
 
@@ -16,6 +15,6 @@ import java.util.List;
  */
 public interface PermissionService extends IService<Permission> {
 
-    ResultResponse<List<Permission>> getPerm();
+    List<Permission> getPerm();
 
 }

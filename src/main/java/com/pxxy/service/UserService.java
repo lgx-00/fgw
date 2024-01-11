@@ -5,7 +5,6 @@ import com.github.pagehelper.PageInfo;
 import com.pxxy.entity.dto.UserDTO;
 import com.pxxy.entity.pojo.User;
 import com.pxxy.entity.vo.*;
-import com.pxxy.utils.ResultResponse;
 
 import java.util.Map;
 import java.util.Set;
@@ -20,21 +19,21 @@ import java.util.Set;
  */
 public interface UserService extends IService<User> {
 
-    ResultResponse<String> login(LoginVO loginForm);
+    String login(LoginVO loginForm);
 
     Map<Integer, UserDTO> getPerms(Set<Integer> userIdSet);
 
     UserDTO getPerms(User user);
 
-    ResultResponse<?> addUser(AddUserVO addUserVO);
+    boolean addUser(AddUserVO addUserVO);
 
-    ResultResponse<?> deleteUser(Integer userId);
+    boolean deleteUser(Integer userId);
 
-    ResultResponse<?> updateUser(UpdateUserVO updateUserVO);
+    boolean updateUser(UpdateUserVO updateUserVO);
 
-    ResultResponse<PageInfo<QueryUserVO>> getAllUser(Page page);
+    PageInfo<QueryUserVO> getAllUser(Page page);
 
-    ResultResponse<PageInfo<QueryUserVO>> getVagueUser(Page page, String uName);
+    PageInfo<QueryUserVO> getVagueUser(Page page, String uName);
 
-    ResultResponse<?> updateUserPassword(String old, UpdateUserVO updateUserVO);
+    boolean updateUserPassword(String old, UpdateUserVO updateUserVO);
 }

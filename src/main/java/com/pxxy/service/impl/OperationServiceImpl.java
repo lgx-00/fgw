@@ -4,27 +4,27 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.net.Ipv4Util;
 import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.PageInfo;
-import com.pxxy.mapper.OperationMapper;
 import com.pxxy.entity.pojo.Operation;
 import com.pxxy.entity.pojo.User;
+import com.pxxy.entity.vo.OperationVO;
+import com.pxxy.entity.vo.Page;
+import com.pxxy.entity.vo.QueryOperationVO;
+import com.pxxy.mapper.OperationMapper;
 import com.pxxy.service.BaseService;
 import com.pxxy.service.OperationService;
 import com.pxxy.service.UserService;
 import com.pxxy.utils.PageUtil;
-import com.pxxy.utils.ResultResponse;
-import com.pxxy.entity.vo.OperationVO;
-import com.pxxy.entity.vo.Page;
-import com.pxxy.entity.vo.QueryOperationVO;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * Class name: OperationServiceImpl
- *
  * Create time: 2023/7/26 16:19
  *
  * @author xw
@@ -49,14 +49,13 @@ public class OperationServiceImpl extends BaseService<OperationMapper, Operation
     };
 
     @Override
-    public ResultResponse<PageInfo<OperationVO>> all(Page page) {
+    public PageInfo<OperationVO> all(Page page) {
         userMap = userService.list().stream().collect(Collectors.toMap(User::getUId, User::getUName));
-        return ResultResponse.ok(PageUtil.selectPage(page,
-                () -> query().orderByDesc("oper_id").list(), mapOperationToVO));
+        return PageUtil.selectPage(page, () -> query().orderByDesc("oper_id").list(), mapOperationToVO);
     }
 
     @Override
-    public ResultResponse<PageInfo<OperationVO>> vague(Page page, QueryOperationVO vo) {
+    public PageInfo<OperationVO> vague(Page page, QueryOperationVO vo) {
         userMap = userService.list().stream().collect(Collectors.toMap(User::getUId, User::getUName));
         Collection<Integer> userIds = vo.getUName() == null
                 ? userMap.keySet()
@@ -68,7 +67,7 @@ public class OperationServiceImpl extends BaseService<OperationMapper, Operation
             PageInfo<OperationVO> emptyPageInfo = PageInfo.emptyPageInfo();
             emptyPageInfo.setPageNum(page.getPageNum());
             emptyPageInfo.setPageSize(page.getPageSize());
-            return ResultResponse.ok(emptyPageInfo);
+            return emptyPageInfo;
         }
 
         long ipv4;
@@ -79,7 +78,7 @@ public class OperationServiceImpl extends BaseService<OperationMapper, Operation
         }
 
         long finalIpv = ipv4;
-        return ResultResponse.ok(PageUtil.selectPage(page,
+        return PageUtil.selectPage(page,
                 () -> query().in(userIds.size() < userMap.size(), "u_id", userIds)
                         .eq(Objects.nonNull(vo.getOperMethod()), "oper_method", vo.getOperMethod())
                         .between("oper_time", vo.getBeginTime(), vo.getEndTime())
@@ -88,7 +87,7 @@ public class OperationServiceImpl extends BaseService<OperationMapper, Operation
                         .eq(Objects.nonNull(vo.getOperStatus()), "oper_status", vo.getOperStatus())
                         .orderByDesc("oper_id")
                         .list(),
-                mapOperationToVO));
+                mapOperationToVO);
     }
 
 }

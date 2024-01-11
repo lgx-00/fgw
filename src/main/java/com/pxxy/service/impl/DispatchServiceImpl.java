@@ -15,6 +15,7 @@ import com.pxxy.entity.vo.*;
 import com.pxxy.enums.ProjectStatusEnum;
 import com.pxxy.exceptions.DBException;
 import com.pxxy.exceptions.FileException;
+import com.pxxy.exceptions.ForbiddenException;
 import com.pxxy.mapper.DispatchMapper;
 import com.pxxy.mapper.ProjectMapper;
 import com.pxxy.service.DispatchService;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 import static com.pxxy.constant.ResponseMessage.*;
 import static com.pxxy.constant.SystemConstant.*;
 import static com.pxxy.enums.DispatchStatusEnum.*;
+import static com.pxxy.enums.ProjectStatusEnum.UNLOCKED;
 
 /**
  * <p>
@@ -85,32 +87,26 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
 
     @Override
     @Transactional
-    public ResultResponse<PageInfo<QueryDispatchVO>> getAllDispatch(Page page, Integer proId) {
+    public PageInfo<QueryDispatchVO> getAllDispatch(Page page, Integer proId) {
         CheckType check = projectChecker.of(proId).check(CheckType.PERMISSION);
-        if (check != null) {
-            return ResultResponse.fail(check.msg);
-        }
+        if (check != null) throw new ForbiddenException(check.msg);
 
         updateBaseData();
-        return ResultResponse.ok(PageUtil.selectPage(page, () -> query().eq("pro_id", proId)
-                .ne("dis_status", DELETED_STATUS).orderByDesc("dis_id").list(), mapDispatchToVO));
+        return PageUtil.selectPage(page, () -> query().eq("pro_id", proId)
+                .ne("dis_status", DELETED_STATUS).orderByDesc("dis_id").list(), mapDispatchToVO);
     }
 
     @Override
     @Transactional
-    public ResultResponse<QueryDispatchVO> get(Integer disId, Integer proId) {
+    public QueryDispatchVO get(Integer disId, Integer proId) {
         CheckType check = projectChecker.of(proId).check(CheckType.PERMISSION);
-        if (check != null) {
-            return ResultResponse.fail(check.msg);
-        }
+        if (check != null) throw new ForbiddenException(check.msg);
 
         Dispatch dis = getById(disId);
-        if (dis == null || !dis.getProId().equals(proId)) {
-            return ResultResponse.fail(FAIL_MSG);
-        }
+        if (dis == null || !dis.getProId().equals(proId)) throw new ForbiddenException(FAIL_MSG);
 
         updateBaseData();
-        return ResultResponse.ok(mapDispatchToVO.apply(dis));
+        return mapDispatchToVO.apply(dis);
     }
 
     @Override
@@ -134,7 +130,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         } catch (FileException e) {
             return responseFail(e.getMessage());
         } catch (FileNotFoundException e) {
-            log.error("下载附件失败！", e);
+            log.error("下载附件失败", e);
             return responseFail(APPENDIX_NOT_AVAILABLE);
         } catch (UnsupportedEncodingException e) {
             log.error("编码失败", e);
@@ -145,31 +141,27 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
 
     @Override
     @Transactional
-    public ResultResponse<?> add(AddDispatchVO vo) {
+    public boolean add(AddDispatchVO vo) throws ForbiddenException, DBException {
         CheckType check = projectChecker.of(vo)
                 .check(CheckType.PERMISSION, CheckType.ADD_TIME, CheckType.NUMBER);
-        if (check != null) {
-            return ResultResponse.fail(check.msg);
-        }
+        if (check != null) throw new ForbiddenException(check.msg);
 
         Dispatch dis = parsePojo(vo);
         if (baseMapper.insert(dis) == 1 && updateProject(vo, dis)) {
             baseMapper.lockLastDispatch(dis.getDisId(), dis.getProId());
             UserHolder.removeData(USER_DATA$UPLOAD_FILE_NAME);
             UserHolder.removeData(USER_DATA$UPLOAD_ORIGINAL_FILE_NAME);
-            return ResultResponse.ok();
+            return true;
         }
         throw new DBException(ADD_FAILED);
     }
 
     @Override
     @Transactional
-    public ResultResponse<?> update(UpdateDispatchVO vo) {
+    public boolean update(UpdateDispatchVO vo) throws ForbiddenException {
         CheckType check = projectChecker.of(vo).of(vo.getProId(), vo.getDisId())
                 .check(CheckType.PERMISSION, CheckType.NUMBER);
-        if (check != null) {
-            return ResultResponse.fail(check.msg);
-        }
+        if (check != null) throw new ForbiddenException(check.msg);
 
         Dispatch dispatch = parsePojo(vo);
         return update0(dispatch);
@@ -177,55 +169,49 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
 
     @Override
     @Transactional
-    public ResultResponse<?> lock(Integer disId, Integer proId) {
+    public boolean lock(Integer disId, Integer proId) throws ForbiddenException {
         CheckType check = projectChecker.of(proId).check(CheckType.PERMISSION);
-        if (check != null) {
-            return ResultResponse.fail(check.msg);
-        }
+        if (check != null) throw new ForbiddenException(check.msg);
 
         if (update().eq("dis_id", disId).eq("dis_status", NORMAL.val)
                 .set("dis_status", LOCKED.val).update()) {
             projectService.update().eq("pro_id", proId)
-                    .set("pro_status", ProjectStatusEnum.NORMAL.val).update();
-            return ResultResponse.ok();
+                    .set("pro_status", NORMAL.val).update();
+            return true;
         }
-        return ResultResponse.fail(LOCK_FAILED);
+        return false;
     }
 
     @Override
     @Transactional
-    public ResultResponse<?> unlock(Integer disId, Integer proId) {
+    public boolean unlock(Integer disId, Integer proId) throws ForbiddenException {
         CheckType check = projectChecker.of(proId, disId).check(CheckType.PERMISSION, CheckType.UNLOCK_LAST);
-        if (check != null) {
-            return ResultResponse.fail(check.msg);
-        }
+        if (check != null) throw new ForbiddenException(check.msg);
 
         if (update().eq("dis_id", disId).eq("dis_status", LOCKED.val)
                 .set("dis_status", NORMAL.val).update()) {
             projectService.update().eq("pro_id", proId)
-                    .set("pro_status", ProjectStatusEnum.UNLOCKED.val).update();
-            return ResultResponse.ok();
+                    .set("pro_status", UNLOCKED.val).update();
+            return true;
         }
 
-        return ResultResponse.fail(UNLOCK_FAILED);
+        return false;
     }
 
     @Override
     @Transactional
-    public ResultResponse<?> del(Integer disId, Integer proId) {
+    public boolean del(Integer disId, Integer proId) throws ForbiddenException {
         CheckType check = projectChecker.of(proId).check(CheckType.PERMISSION);
-        if (check != null) {
-            return ResultResponse.fail(check.msg);
-        }
+        if (check != null) throw new ForbiddenException(check.msg);
 
         Dispatch dis = query().select("dis_id", "dis_status")
                 .eq("dis_id", disId).eq("pro_id", proId).one();
-        ResultResponse<?> valid = checkValid(dis, false);
-        if (valid != null) return valid;
+        String valid = checkValid(dis, false);
+        if (valid != null) throw new ForbiddenException(valid);
 
         dis.setDisStatus(DELETED.val);
         if (!updateById(dis)) {
-            return ResultResponse.fail(DELETE_FAILED);
+            return false;
         }
         Dispatch lastDispatch = baseMapper.getLastDispatch(disId, proId);
         if (lastDispatch == null) {
@@ -240,25 +226,22 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             lastDispatch.setDisProgress("");
         }
         updateProject(lastDispatch, ProjectStatusEnum.NORMAL.val);
-        return ResultResponse.ok();
+        return true;
     }
 
     @Override
-    public ResultResponse<?> upload(MultipartFile disAppendix, Integer proId, Integer disId) {
+    public boolean upload(MultipartFile disAppendix, Integer proId, Integer disId) throws ForbiddenException {
         CheckType check = projectChecker.of(proId, disId).check(CheckType.PERMISSION);
-        if (check != null) {
-            return ResultResponse.fail(check.msg);
-        }
+        if (check != null) throw new ForbiddenException(check.msg);
 
         Dispatch dis = query().select("dis_appendix", "dis_status")
                 .eq("dis_id", disId).one();
-        if (dis.getDisStatus().equals(LOCKED.val)) {
-            return ResultResponse.fail(CANNOT_UPDATE_LOCKED_DISPATCH);
-        }
+        if (dis.getDisStatus().equals(LOCKED.val))
+            throw new ForbiddenException(CANNOT_UPDATE_LOCKED_DISPATCH);
 
         String fileName = uploadFile(disAppendix);
         if (fileName == null) {
-            return ResultResponse.fail(UPLOAD_FAILED);
+            return false;
         }
 
         if (update().eq("dis_id", disId).set("dis_appendix", fileName)
@@ -270,31 +253,30 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             if (oldAppendix != null) if (!new File(filePath, oldAppendix).delete()) {
                 log.warn("文件 {}/{} 删除失败。", filePath, fileName);
             }
-            return ResultResponse.ok();
+            return true;
         }
 
-        return ResultResponse.fail(UPLOAD_FAILED);
+        return false;
 
     }
 
     @Override
-    public ResultResponse<String> upload(MultipartFile disAppendix) {
+    public String upload(MultipartFile disAppendix) {
         String fileName = uploadFile(disAppendix);
-        if (fileName == null) {
-            return ResultResponse.fail(UPLOAD_FAILED);
-        }
+        if (fileName == null) return null;
         String oldFileName = (String) UserHolder.putData(USER_DATA$UPLOAD_FILE_NAME, fileName);
         UserHolder.putData(USER_DATA$UPLOAD_ORIGINAL_FILE_NAME, disAppendix.getOriginalFilename());
-        if (oldFileName != null) if (!new File(filePath, oldFileName).delete()) {
+        if (oldFileName != null && !new File(filePath, oldFileName).delete()) {
             log.warn("文件 {}/{} 删除失败。", filePath, oldFileName);
         }
+        // TODO will this produce many unnecessary logout handlers?
         UserHolder.addLogoutHandler(user -> {
             String fileToDelete = (String) UserHolder.getData(USER_DATA$UPLOAD_FILE_NAME, user);
             if (fileToDelete != null) if (!new File(filePath, fileToDelete).delete()) {
                 log.warn("文件 {}/{} 删除失败。", filePath, fileToDelete);
             }
         });
-        return ResultResponse.ok(fileName);
+        return fileName;
     }
 
     private enum CheckType {
@@ -307,7 +289,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
                 Integer status = pro.getProStatus();
                 if (!status.equals(ProjectStatusEnum.NORMAL.val)
                         && !status.equals(ProjectStatusEnum.TO_BE_SCHEDULED.val)
-                        && !status.equals(ProjectStatusEnum.UNLOCKED.val)) {
+                        && !status.equals(UNLOCKED.val)) {
                     return false;
                 }
                 UserDTO user = UserHolder.getUser();
@@ -393,8 +375,8 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
             }
         };
 
-        String msg;
-        String[] select;
+        final String msg;
+        final String[] select;
 
         CheckType(String msg, String ... select) {
             this.msg = msg;
@@ -484,14 +466,14 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         }
     }
 
-    private ResultResponse<?> update0(Dispatch dispatch) {
+    private boolean update0(Dispatch dispatch) throws ForbiddenException, DBException {
         Dispatch dis = query().select("dis_appendix", "dis_status")
                 .eq("dis_id", dispatch.getDisId()).one();
-        ResultResponse<?> valid = checkValid(dis, true);
-        if (valid != null) return valid;
+        String valid = checkValid(dis, true);
+        if (valid != null) throw new ForbiddenException(valid);
 
         if (!updateById(dispatch)) {
-            return ResultResponse.fail(UPDATE_FAILED);
+            throw new DBException(UPDATE_FAILED);
         }
         UserHolder.removeData(USER_DATA$UPLOAD_FILE_NAME);
         UserHolder.removeData(USER_DATA$UPLOAD_ORIGINAL_FILE_NAME);
@@ -504,18 +486,18 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         if (newAppendix != null && oldAppendix != null && !new File(filePath, oldAppendix).delete()) {
             log.warn("文件 {}/{} 删除失败。", filePath, oldAppendix);
         }
-        return ResultResponse.ok();
+        return true;
     }
 
-    private ResultResponse<Object> checkValid(Dispatch dis, boolean updating) {
+    private String checkValid(Dispatch dis, boolean updating) {
         if (dis == null) {
-            return ResultResponse.fail(updating ? UPDATE_FAILED : DELETE_FAILED);
+            return updating ? UPDATE_FAILED : DELETE_FAILED;
         }
         if (dis.getDisStatus().equals(LOCKED.val)) {
-            return ResultResponse.fail(updating ? CANNOT_UPDATE_LOCKED_DISPATCH : CANNOT_DELETE_LOCKED_DISPATCH);
+            return updating ? CANNOT_UPDATE_LOCKED_DISPATCH : CANNOT_DELETE_LOCKED_DISPATCH;
         }
         if (dis.getDisStatus().equals(DELETED.val)) {
-            return ResultResponse.fail(updating ? UPDATE_FAILED : DELETE_FAILED);
+            return updating ? UPDATE_FAILED : DELETE_FAILED;
         }
         return null;
     }
@@ -533,7 +515,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         // 添加调度时，更新项目中的冗余字段
         Project project = new Project(vo.getProId(), dis.getDisTotal(), dis.getDisYear(),
                 dis.getDisTotalPercent(), dis.getDisYearPercent(), dis.getDisProgress());
-        project.setProStatus(ProjectStatusEnum.UNLOCKED.val);
+        project.setProStatus(UNLOCKED.val);
         // 下次调度提醒日期
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.MONTH, 1);
@@ -563,7 +545,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
      * 保存文件到本地
      *
      * @param file 待保存的文件
-     * @return 保存的文件的新文件名
+     * @return 保存的文件的新文件名，保存失败则返回 null
      */
     private String uploadFile(MultipartFile file) {
         checkExists(true);
@@ -594,7 +576,7 @@ public class DispatchServiceImpl extends ServiceImpl<DispatchMapper, Dispatch> i
         if (!parent.exists()) {
             if (parent.mkdirs()) log.info("为上传附件创建了文件夹。");
             else {
-                log.error("创建文件夹失败！");
+                log.error("创建文件夹失败");
                 if (strict) throw new FileException(CANNOT_MAKE_DIR);
             }
             if (!strict) throw new FileException(APPENDIX_NOT_AVAILABLE);

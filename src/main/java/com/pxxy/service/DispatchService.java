@@ -29,7 +29,7 @@ public interface DispatchService extends IService<Dispatch> {
      * @param proId 调度所属的项目的编号
      * @return 响应结果
      */
-    ResultResponse<PageInfo<QueryDispatchVO>> getAllDispatch(Page page, Integer proId);
+    PageInfo<QueryDispatchVO> getAllDispatch(Page page, Integer proId);
 
 
     /**
@@ -39,7 +39,7 @@ public interface DispatchService extends IService<Dispatch> {
      * @param proId 调度所属的项目的编号
      * @return 响应结果，成功包含一条调度记录，失败则包含失败信息
      */
-    ResultResponse<QueryDispatchVO> get(Integer disId, Integer proId);
+    QueryDispatchVO get(Integer disId, Integer proId);
 
     /**
      * 下载附件
@@ -56,7 +56,7 @@ public interface DispatchService extends IService<Dispatch> {
      * @param vo 新增的调度数据，包含项目的编号，不包含调度的编号
      * @return 响应结果
      */
-    ResultResponse<?> add(AddDispatchVO vo);
+    boolean add(AddDispatchVO vo);
 
     /**
      * 更新调度
@@ -64,7 +64,7 @@ public interface DispatchService extends IService<Dispatch> {
      * @param vo 新的调度信息，包含调度的编号和项目的编号
      * @return 响应结果
      */
-    ResultResponse<?> update(UpdateDispatchVO vo);
+    boolean update(UpdateDispatchVO vo);
 
     /**
      * 锁定调度
@@ -73,7 +73,7 @@ public interface DispatchService extends IService<Dispatch> {
      * @param proId 调度所属的项目的编号
      * @return 响应结果
      */
-    ResultResponse<?> lock(Integer disId, Integer proId);
+    boolean lock(Integer disId, Integer proId);
 
     /**
      * 解除锁定调度
@@ -82,7 +82,7 @@ public interface DispatchService extends IService<Dispatch> {
      * @param proId 调度所属的项目的编号
      * @return 响应结果
      */
-    ResultResponse<?> unlock(Integer disId, Integer proId);
+    boolean unlock(Integer disId, Integer proId);
 
     /**
      * 删除调度
@@ -91,7 +91,7 @@ public interface DispatchService extends IService<Dispatch> {
      * @param proId 调度所属的项目的编号
      * @return 响应结果
      */
-    ResultResponse<?> del(Integer disId, Integer proId);
+    boolean del(Integer disId, Integer proId);
 
     /**
      * 上传附件
@@ -101,7 +101,7 @@ public interface DispatchService extends IService<Dispatch> {
      * @param disId 上传到的调度的编号
      * @return 响应结果
      */
-    ResultResponse<?> upload(MultipartFile disAppendix, Integer proId, Integer disId);
+    boolean upload(MultipartFile disAppendix, Integer proId, Integer disId);
 
     /**
      * 上传附件
@@ -109,5 +109,5 @@ public interface DispatchService extends IService<Dispatch> {
      * @param disAppendix 附件
      * @return 文件名
      */
-    ResultResponse<String> upload(MultipartFile disAppendix);
+    String upload(MultipartFile disAppendix);
 }

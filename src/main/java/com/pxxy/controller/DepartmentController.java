@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
 
+import static com.pxxy.constant.ResponseMessage.*;
+import static com.pxxy.utils.ResultResponse.fail;
+import static com.pxxy.utils.ResultResponse.ok;
+
 /**
  * <p>
  *  前端控制器
@@ -34,25 +38,25 @@ public class DepartmentController {
     @PostMapping
     @ApiOperation("新增科室")
     public ResultResponse<?> addDepartment(@RequestBody @Validated AddDepartmentVO addDepartmentVO) {
-        return departmentService.addDepartment(addDepartmentVO);
+        return departmentService.addDepartment(addDepartmentVO) ? ok() : fail(ADD_FAILED);
     }
 
     @PutMapping
     @ApiOperation("修改科室")
     public ResultResponse<?> updateDepartment(@RequestBody @Validated UpdateDepartmentVO updateDepartmentVO) {
-        return departmentService.updateDepartment(updateDepartmentVO);
+        return departmentService.updateDepartment(updateDepartmentVO) ? ok() : fail(UPDATE_FAILED);
     }
 
     @GetMapping
     @ApiOperation("查询所有科室")
     public ResultResponse<List<QueryDepartmentVO>> getAllDepartment(){
-        return departmentService.getAllDepartment();
+        return ok(departmentService.getAllDepartment());
     }
 
     @DeleteMapping
     @ApiOperation("删除科室")
     public ResultResponse<?> deleteDepartment(@RequestParam Integer depId) {
-        return departmentService.deleteDepartment(depId);
+        return departmentService.deleteDepartment(depId) ? ok() : fail(DELETE_FAILED);
     }
 
 }

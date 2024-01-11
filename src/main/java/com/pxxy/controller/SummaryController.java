@@ -16,6 +16,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.List;
 
+import static com.pxxy.constant.ResponseMessage.FAIL_MSG;
+import static com.pxxy.utils.ResultResponse.fail;
+import static com.pxxy.utils.ResultResponse.ok;
+
 /**
  * @author XRW
  * @CreateTime: 2023-07-01  13:54
@@ -37,7 +41,7 @@ public class SummaryController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
             Integer infId,
             Integer prcId) {
-        return summaryService.getSummary(beginTime, endTime, prcId, infId);
+        return ok(summaryService.getSummary(beginTime, endTime, prcId, infId));
     }
 
     @GetMapping("/details")
@@ -47,19 +51,19 @@ public class SummaryController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endTime,
             Integer infId,
             Integer prcId) {
-        return summaryService.detailsSummary(beginTime, endTime, prcId, infId);
+        return ok(summaryService.detailsSummary(beginTime, endTime, prcId, infId));
     }
 
     @PostMapping("/exportExcel")
     @ApiOperation("导出excel")
     public ResultResponse<?> exportSummaryExcel(HttpServletResponse response, @RequestBody List<SummaryVO> summaryVOList) {
-        return summaryService.exportSummaryExcel(response, summaryVOList);
+        return summaryService.exportSummaryExcel(response, summaryVOList) ? ok() : fail(FAIL_MSG);
     }
 
     @GetMapping("/dashboard")
     @ApiOperation("获取仪表板的数据")
     public ResultResponse<DashboardVO> dashboard() {
-        return summaryService.dashboard();
+        return ok(summaryService.dashboard());
     }
 
 }

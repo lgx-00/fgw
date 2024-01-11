@@ -1,10 +1,11 @@
 package com.pxxy.entity.vo;
 
-import com.pxxy.utils.Md5Util;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.springframework.validation.*;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 
 import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class UpdateUserVO {
                 bindingResult.addError(new FieldError("updateUserVO", "uPassword", "密码长度不能超过64"));
                 throw new BindException(bindingResult);
             }
-            this.uPassword = uPassword.length() == 0 ? null : uPassword;
+            this.uPassword = uPassword.isEmpty() ? null : uPassword;
         }
     }
 

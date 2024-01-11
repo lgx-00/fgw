@@ -25,39 +25,39 @@ import java.util.List;
  */
 public interface ProjectService extends IService<Project> {
 
-    ResultResponse<PageInfo<QueryProjectVO>> getAllProject(Page page);
+    PageInfo<QueryProjectVO> getAllProject(Page page);
 
-    ResultResponse<PageInfo<QueryProjectVO>> getAllDispatchProject(Page page);
+    PageInfo<QueryProjectVO> getAllDispatchProject(Page page);
 
-    ResultResponse<PageInfo<QueryProjectVO>> getVagueProject(Page page, ProjectDTO projectDTO);
+    PageInfo<QueryProjectVO> getVagueProject(Page page, ProjectDTO projectDTO);
 
-    ResultResponse<?> addProject(AddProjectVO addProjectVO);
+    boolean addProject(AddProjectVO addProjectVO);
 
-    ResultResponse<?> updateProject(UpdateProjectVO updateProjectVO);
+    boolean updateProject(UpdateProjectVO updateProjectVO);
 
-    ResultResponse<?> deleteProject(Integer proId);
+    boolean deleteProject(Integer proId);
 
-    ResultResponse<?> reportProject(List<Integer> proIds, Integer depId);
+    boolean reportProject(List<Integer> proIds, Integer depId);
 
-    ResultResponse<?> reportProject(List<Integer> proIds, List<Integer> depIds);
+    boolean reportProject(List<Integer> proIds, List<Integer> depIds);
 
-    ResultResponse<?> importExcel(MultipartFile file);
+    Object importExcel(MultipartFile file);
 
-    ResultResponse<?> accept(List<Integer> proIds);
+    boolean accept(List<Integer> proIds);
 
-    ResultResponse<?> reject(List<Integer> proIds);
+    boolean reject(List<Integer> proIds);
 
-    ResultResponse<?> markAsComplete(List<Integer> proIds);
+    boolean markAsComplete(List<Integer> proIds);
 
     void updateDispatchStatus();
 
-    ResultResponse<Integer> getDispatchingCount();
+    Integer getDispatchingCount();
 
-    ResultResponse<QueryProjectVO> getProject(Integer proId);
+    QueryProjectVO getProject(Integer proId);
 
     void clearDispatch();
 
-    ResultResponse<PageInfo<QueryProjectVO>> getVagueDispatchProject(Page page, ProjectDTO projectDTO);
+    PageInfo<QueryProjectVO> getVagueDispatchProject(Page page, ProjectDTO projectDTO);
 
     ResponseEntity<InputStreamResource> downloadTemplate();
 }

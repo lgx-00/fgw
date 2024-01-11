@@ -32,6 +32,9 @@ fgw:
   token:
     store: true
     store-path: /mysoft/fgw/tokens
+  statics:
+    first-level-jurisdiction: '乡镇'
+    second-level-jurisdiction: '村社'
 
 #mybatis-plus:
 #  configuration:

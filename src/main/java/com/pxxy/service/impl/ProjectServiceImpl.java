@@ -10,17 +10,18 @@ import com.github.pagehelper.ISelect;
 import com.github.pagehelper.PageInfo;
 import com.pxxy.entity.dto.ProjectDTO;
 import com.pxxy.entity.dto.UserDTO;
+import com.pxxy.entity.pojo.*;
+import com.pxxy.entity.vo.*;
 import com.pxxy.enums.ProjectStageEnum;
 import com.pxxy.enums.ProjectStatusEnum;
 import com.pxxy.enums.YesOrNoEnum;
-import com.pxxy.exceptions.ReportException;
+import com.pxxy.exceptions.ForbiddenException;
+import com.pxxy.exceptions.NotFoundException;
 import com.pxxy.mapper.ProjectMapper;
-import com.pxxy.entity.pojo.*;
 import com.pxxy.service.*;
 import com.pxxy.utils.PageUtil;
 import com.pxxy.utils.ResultResponse;
 import com.pxxy.utils.UserHolder;
-import com.pxxy.entity.vo.*;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
@@ -33,8 +34,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -122,6 +123,10 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         return queryProjectVO;
     };
 
+    private PageInfo<QueryProjectVO> page(Page page, ISelect select) {
+        return PageUtil.selectPage(page, select, mapProjectToVO);
+    }
+
     private void updateBaseData() {
         departments = depService.all().stream().collect(Collectors.toMap(Department::getDepId, d -> d));
         counties = countyService.all().stream().collect(Collectors.toMap(County::getCouId, c -> c));
@@ -166,7 +171,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Override
     @Transactional
-    public ResultResponse<PageInfo<QueryProjectVO>> getAllProject(Page page) {
+    public PageInfo<QueryProjectVO> getAllProject(Page page) {
         // 先拿到用户信息
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
@@ -174,21 +179,18 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         updateBaseData();
 
         // 管理员特殊通道
-        if (uId == 1) return ResultResponse.ok(PageUtil.selectPage(page, () ->
-                this.query().ne("pro_status", DELETED_STATUS).orderByDesc("pro_id").list(), mapProjectToVO));
+        if (uId == 1) return page(page, () -> this.query().ne("pro_status", DELETED_STATUS).orderByDesc("pro_id").list());
 
         // 非管理员通道
         User u = userService.query().eq("u_id", uId).one();
         Integer depId = u.getDepId();
         Integer couId = u.getCouId();
 
-        PageInfo<QueryProjectVO> pageInfo = PageUtil.selectPage(page, () ->
-                baseMapper.getAllProjectByUser(depId, couId, uId), mapProjectToVO);
-        return ResultResponse.ok(pageInfo);
+        return page(page, () -> baseMapper.getAllProjectByUser(depId, couId, uId));
     }
 
     @Override
-    public ResultResponse<PageInfo<QueryProjectVO>> getAllDispatchProject(Page page) {
+    public PageInfo<QueryProjectVO> getAllDispatchProject(Page page) {
         // 先拿到用户信息
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
@@ -196,21 +198,20 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         updateBaseData();
 
         // 管理员特殊通道
-        if (uId == 1) return ResultResponse.ok(PageUtil.selectPage(page, () ->
-                query().in("pro_status", Arrays.asList(1, 3, 4)).orderByDesc("pro_id").list(), mapProjectToVO));
+        if (uId == 1) return page(page, () ->
+                query().in("pro_status", Arrays.asList(1, 3, 4)).orderByDesc("pro_id").list());
 
         // 非管理员通道
         User u = userService.query().eq("u_id", uId).one();
         Integer depId = u.getDepId();
         Integer couId = u.getCouId();
 
-        return ResultResponse.ok(PageUtil.selectPage(page,
-                () -> baseMapper.getAllDispatchProjectByUser(depId, couId, uId), mapProjectToVO));
+        return page(page, () -> baseMapper.getAllDispatchProjectByUser(depId, couId, uId));
     }
 
     @Override
     @Transactional
-    public ResultResponse<PageInfo<QueryProjectVO>> getVagueProject(Page page, ProjectDTO dto) {
+    public PageInfo<QueryProjectVO> getVagueProject(Page page, ProjectDTO dto) {
         //先拿到用户信息
         UserDTO user = UserHolder.getUser();
         Integer uId = user.getUId();
@@ -218,15 +219,13 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         updateBaseData();
 
         // 管理员特殊通道
-        if (uId == 1) return ResultResponse.ok(PageUtil
-                .selectPage(page, getLambda(dto), mapProjectToVO));
+        if (uId == 1) return page(page, getLambda(dto));
 
         // 非管理员通道
         User u = userService.query().eq("u_id", uId).one();
         dto.setCouId(u.getCouId());
         dto.setDepId(u.getDepId());
-        return ResultResponse.ok(PageUtil.selectPage(page, () ->
-                baseMapper.getVagueProjectByUser(dto), mapProjectToVO));
+        return page(page, () -> baseMapper.getVagueProjectByUser(dto));
     }
 
     // 抽取查询方法为一个 Lambda 表达式
@@ -261,72 +260,64 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Override
-    public ResultResponse<?> addProject(AddProjectVO vo) {
+    public boolean addProject(AddProjectVO vo) throws ForbiddenException {
 
-        ResultResponse<?> ret = checkPrcAndInf(vo.getPrcId(), vo.getInfId(), false);
-        if (ret != null) return ret;
+        checkPrcAndInf(vo.getPrcId(), vo.getInfId(), false);
 
         if (checkCountyAndTownMatch(vo.getCouId(), vo.getTownId())) {
-            return ResultResponse.fail(COUNTY_AND_TOWN_NOT_MATCH);
+            throw new ForbiddenException(COUNTY_AND_TOWN_NOT_MATCH);
         }
         Project project = new Project();
         BeanUtil.copyProperties(vo, project);
         project.setProMark(vo.getProMark());
         UserDTO user = UserHolder.getUser();
         project.setUId(user.getUId());
-        save(project);
-        return ResultResponse.ok();
+        return save(project);
     }
 
     @Override
-    public ResultResponse<?> updateProject(UpdateProjectVO vo) {
+    public boolean updateProject(UpdateProjectVO vo) throws ForbiddenException {
 
-        ResultResponse<?> ret = checkPrcAndInf(vo.getPrcId(), vo.getInfId());
-        if (ret != null) return ret;
+        checkPrcAndInf(vo.getPrcId(), vo.getInfId());
 
         if (checkCountyAndTownMatch(vo.getCouId(), vo.getTownId())) {
-            return ResultResponse.fail(COUNTY_AND_TOWN_NOT_MATCH);
+            throw new ForbiddenException(COUNTY_AND_TOWN_NOT_MATCH);
         }
         Project project = query().eq("pro_id", vo.getProId()).one();
         if (project == null) {
-            return ResultResponse.fail(ILLEGAL_OPERATE);
+            throw new ForbiddenException(ILLEGAL_OPERATE);
         }
 
         if (!project.getProStatus().equals(FAILURE_TO_REPORT.val)) {
-            return ResultResponse.fail(ILLEGAL_UPDATING_PROJECT);
+            throw new ForbiddenException(ILLEGAL_UPDATING_PROJECT);
         }
 
         BeanUtil.copyProperties(vo, project);
         project.setProMark(vo.getProMark());
-        updateById(project);
-        return ResultResponse.ok();
+        return updateById(project);
     }
 
-    private ResultResponse<?> checkPrcAndInf(Integer prcId, Integer infId) {
-        return checkPrcAndInf(prcId, infId, true);
+    private void checkPrcAndInf(Integer prcId, Integer infId) {
+        checkPrcAndInf(prcId, infId, true);
     }
 
-    private ResultResponse<?> checkPrcAndInf(Integer prcId, Integer infId, boolean findDeleted) {
+    private void checkPrcAndInf(Integer prcId, Integer infId, boolean findDeleted) throws NotFoundException {
         if (prcId != null && projectCategories != null && projectCategories.get(prcId) == null) {
             updateBaseData("prc", findDeleted);
-            if (projectCategories.get(prcId) == null) return ResultResponse.fail(INVALID_PROJECT_CATEGORY_ID);
+            if (projectCategories.get(prcId) == null) throw new NotFoundException(INVALID_PROJECT_CATEGORY_ID);
         }
         if (infId != null && industryFields != null && industryFields.get(infId) == null) {
             updateBaseData("inf", findDeleted);
-            if (industryFields.get(infId) == null) return ResultResponse.fail(INVALID_INDUSTRY_FIELD_ID);
+            if (industryFields.get(infId) == null) throw new NotFoundException(INVALID_INDUSTRY_FIELD_ID);
         }
-        return null;
     }
 
     @Override
-    public ResultResponse<?> deleteProject(Integer proId) {
+    public boolean deleteProject(Integer proId) throws ForbiddenException {
         if (query().eq("pro_id", proId).eq("pro_status", FAILURE_TO_REPORT.val).one() == null) {
-            return ResultResponse.fail(CANNOT_DELETE_REPORTED_PROJECT);
+            throw new ForbiddenException(CANNOT_DELETE_REPORTED_PROJECT);
         }
-        if (update().eq("pro_id", proId).set("pro_status", DELETED.val).update()) {
-            return ResultResponse.ok();
-        }
-        return ResultResponse.fail(DELETE_FAILED);
+        return update().eq("pro_id", proId).set("pro_status", DELETED.val).update();
     }
 
     private static List<Project> filterNE(List<Project> list, ProjectStatusEnum status) {
@@ -335,36 +326,33 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Override
-    public ResultResponse<?> reportProject(List<Integer> proIds, Integer depId) {
+    @Transactional
+    public boolean reportProject(List<Integer> proIds, Integer depId) throws ForbiddenException {
         List<Project> projects = getProjectsForReport(proIds);
-        if (projects.size() == 0) {
-             return ResultResponse.fail(FAIL_MSG);
-        }
+        if (projects.isEmpty()) return false;
         List<Integer> prcIds = depPrcService.query().eq("dep_id", depId)
                 .list().stream().map(DepPrc::getPrcId).collect(Collectors.toList());
         if (projects.stream().allMatch(p -> prcIds.contains(p.getPrcId()))) {
             projects.forEach(p -> p.setDepId(depId).setProStatus(PENDING_REVIEW.val));
             updateBatchById(projects);
-            return ResultResponse.ok();
+            return true;
         }
-        return ResultResponse.fail(REPORT_FAILED);
+        throw new ForbiddenException(REPORT_FAILED);
     }
 
     @Override
-    public ResultResponse<?> reportProject(List<Integer> proIds, List<Integer> depIds) {
-        if (proIds.size() != depIds.size()) return ResultResponse.fail(FAIL_MSG);
+    @Transactional
+    public boolean reportProject(List<Integer> proIds, List<Integer> depIds) {
+        if (proIds.size() != depIds.size()) return false;
         List<Project> projects = getProjectsForReport(proIds);
-        if (projects.size() == 0) {
-            return ResultResponse.fail(FAIL_MSG);
-        }
+        if (projects.isEmpty()) return false;
 
-        ResultResponse<?> resp = testPerm(proIds, depIds, projects);
-        if (resp != null) return resp;
+        testPerm(proIds, depIds, projects);
         updateBatchById(projects);
-        return ResultResponse.ok();
+        return true;
     }
 
-    private List<Project> getProjectsForReport(List<Integer> proIds) throws ReportException {
+    private List<Project> getProjectsForReport(List<Integer> proIds) throws ForbiddenException {
         List<Project> projects = query().select("pro_id", "prc_id",
                 "pro_name", "pro_status").in("pro_id", proIds).list();
         // 检查上报的科室是否具有管理该类型的项目的权限
@@ -372,13 +360,13 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         int size = illegalList.size();
         if (size > 0) {
             // 说明项目已上报
-            StringBuilder msg = genMessage(illegalList, size).append("已上报，不能再次上报！");
-            throw new ReportException(msg.toString());
+            StringBuilder msg = genMessage(illegalList, size).append("已上报，不能再次上报");
+            throw new ForbiddenException(msg.toString());
         }
         return projects;
     }
 
-    private ResultResponse<?> testPerm(List<Integer> proIds, List<Integer> depIds, List<Project> projects) {
+    private void testPerm(List<Integer> proIds, List<Integer> depIds, List<Project> projects) throws ForbiddenException {
         // 检查上报的科室是否具有管理该类型的项目的权限
         Map<Integer, List<Integer>> depIdMapPrcIds = depIds.stream().distinct()
                 .collect(Collectors.toMap(id -> id, id -> depPrcService.query().eq("dep_id", id)
@@ -390,12 +378,11 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             Project project = projects.get(i);
             if (!prcIds.contains(project.getPrcId())) {
                 // 检查不通过
-                return ResultResponse.fail(REPORT_FAILED);
+                throw new ForbiddenException(REPORT_FAILED);
             }
             project.setDepId(depId);
             project.setProStatus(PENDING_REVIEW.val);
         }
-        return null;
     }
 
     private StringBuilder genMessage(List<Project> projectList, int size) {
@@ -417,7 +404,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Override
     @Transactional
-    public ResultResponse<?> importExcel(MultipartFile file) {
+    public Object importExcel(MultipartFile file) {
 
         int uid = UserHolder.getUser().getUId();
 
@@ -438,8 +425,8 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 if (projectExcelVO.getPrcName()     == null) errorMsgList.add("项目类型名称不能为空；");
                 if (projectExcelVO.getInfName()     == null) errorMsgList.add("行业领域名称不能为空；");
             }
-            if (errorMsgList.size() != 0)
-                return ResultResponse.fail(errorMsgList.stream().distinct().collect(Collectors.toList()).toString());
+            if (!errorMsgList.isEmpty())
+                return (errorMsgList.stream().distinct().collect(Collectors.toList()).toString());
 
             Map<String, Integer> depNameMapId = depService.all().stream().collect(Collectors.toMap(Department::getDepName, Department::getDepId));
             Map<String, Integer> couNameMapId = countyService.all().stream().collect(Collectors.toMap(County::getCouName, County::getCouId));
@@ -529,9 +516,8 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 projectList.add(project);
             }
             // 错误信息
-            if (errorMsgList.size() != 0) {
-                String s = errorMsgList.stream().distinct().collect(Collectors.toList()).toString();
-                return ResultResponse.fail(s);
+            if (!errorMsgList.isEmpty()) {
+                return errorMsgList.stream().distinct().collect(Collectors.toList()).toString();
             }
 
             int total = projectList.size();
@@ -543,7 +529,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 for (int j = i + 1; j < projectList.size(); j++) {
                     String proCode1 = projectList.get(j).getProCode();
                     if (Objects.isNull(proCode1)) continue;
-                    if (proCode.equals(proCode1)) return ResultResponse.fail("项目代码必须保证唯一！");
+                    if (proCode.equals(proCode1)) return "项目代码必须保证唯一";
                 }
             }
             for (int i = 0; i < projectList.size(); i++) {
@@ -552,59 +538,53 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 for (int j = i + 1; j < projectList.size(); j++) {
                     String proCode1 = projectList.get(j).getProInCode();
                     if (Objects.isNull(proCode1)) continue;
-                    if (proCode.equals(proCode1)) return ResultResponse.fail("入统入库代码必须保证唯一！");
+                    if (proCode.equals(proCode1)) return "入统入库代码必须保证唯一";
                 }
             }
 
             saveBatch(projectList);
-            return ResultResponse.ok("成功导入" + total + "条数据！");
+            return total;
 
         } catch (IOException e) {
-            return ResultResponse.fail("导入失败！");
+            return "导入失败";
         } catch (ExcelCommonException e) {
-            return ResultResponse.fail("请选择.xlsx或.xls文件！");
+            return "请选择.xlsx或.xls文件";
         }
     }
 
-    private ResultResponse<?> checkPendingReview(List<Integer> proIds, String oper) {
+    private void checkPendingReview(List<Integer> proIds, String oper) {
         List<Project> projects = query().select("pro_id", "pro_name", "pro_status")
                 .in("pro_id", proIds).list();
         if (projects.size() < proIds.size()) {
-            return ResultResponse.fail(FAIL_MSG);
+            throw new ForbiddenException(FAIL_MSG);
         }
         List<Project> illegalList = filterNE(projects, PENDING_REVIEW);
         int size = illegalList.size();
-        return size > 0 ? ResultResponse.fail(genMessage(illegalList, size)
-                .append(String.format("不是待审核状态，不能执行%s操作！", oper)).toString()) : null;
+        throw new ForbiddenException(genMessage(illegalList, size)
+                .append(String.format("不是待审核状态，不能执行%s操作", oper)).toString());
     }
 
     @Override
     @Transactional
-    public ResultResponse<?> accept(List<Integer> proIds) {
-        ResultResponse<?> sb = checkPendingReview(proIds, "批准");
-        if (sb != null) return sb;
+    public boolean accept(List<Integer> proIds) {
+        checkPendingReview(proIds, "批准");
         // TODO 批准要发送 WebSocket 通知
         updateBaseData("prc", true);
         List<Project> projects = query().in("pro_id", proIds)
                 .eq("pro_status", PENDING_REVIEW.val).list();
         updateNextUpdateTime(projects);
         projects.forEach(p -> p.setProStatus(NORMAL.val));
-        return updateBatchById(projects)
-                ? ResultResponse.ok()
-                : ResultResponse.fail(FAIL_MSG);
+        return updateBatchById(projects);
     }
 
     @Override
-    public ResultResponse<?> reject(List<Integer> proIds) {
-        ResultResponse<?> sb = checkPendingReview(proIds, "驳回");
-        if (sb != null) return sb;
+    public boolean reject(List<Integer> proIds) {
+        checkPendingReview(proIds, "驳回");
         // TODO 驳回要发送 WebSocket 通知
         return update().in("pro_id", proIds)
                 .eq("pro_status", PENDING_REVIEW.val)
                 .set("pro_status", FAILURE_TO_REPORT.val)
-                .set("dep_id", null).update()
-                ? ResultResponse.ok()
-                : ResultResponse.fail(FAIL_MSG);
+                .set("dep_id", null).update();
     }
 
     private void updateNextUpdateTime(List<Project> projects) {
@@ -642,15 +622,13 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             UNLOCKED.val, TO_BE_SCHEDULED.val);
 
     @Override
-    public ResultResponse<?> markAsComplete(List<Integer> proIds) {
+    public boolean markAsComplete(List<Integer> proIds) {
         return update().isNull("pro_dis_complete")
                 .in( "pro_id",     proIds)
                 .in( "pro_status", status)
                 .set("pro_status", COMPLETE.val)
                 .set("pro_dis_complete", new Date())
-                .set("pro_next_update",  null).update()
-                ? ResultResponse.ok()
-                : ResultResponse.fail(FAIL_MSG);
+                .set("pro_next_update",  null).update();
     }
 
     private static final List<Integer> status1 = Arrays.asList(NORMAL.val, UNLOCKED.val);
@@ -663,25 +641,23 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Override
     @Transactional
-    public ResultResponse<Integer> getDispatchingCount() {
+    public Integer getDispatchingCount() {
         User user = userService.getById(UserHolder.getUser().getUId());
         ProjectDTO projectDTO = new ProjectDTO();
         projectDTO.setUId(user.getUId());
         projectDTO.setDepId(user.getDepId());
         projectDTO.setCouId(user.getCouId());
         projectDTO.setProStatus(TO_BE_SCHEDULED);
-        return ResultResponse.ok(baseMapper.getDispatchingCount(projectDTO));
+        return baseMapper.getDispatchingCount(projectDTO);
     }
 
     @Override
     @Transactional
-    public ResultResponse<QueryProjectVO> getProject(Integer proId) {
+    public QueryProjectVO getProject(Integer proId) {
         Project project = getById(proId);
-        if (project == null) {
-            return ResultResponse.fail(FAIL_MSG);
-        }
+        if (project == null) return null;
         updateBaseData();
-        return ResultResponse.ok(mapProjectToVO.apply(project));
+        return mapProjectToVO.apply(project);
     }
 
     @Override
@@ -690,15 +666,14 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Override
-    public ResultResponse<PageInfo<QueryProjectVO>> getVagueDispatchProject(Page page, ProjectDTO projectDTO) {
+    public PageInfo<QueryProjectVO> getVagueDispatchProject(Page page, ProjectDTO projectDTO) throws ForbiddenException {
         int status = Optional.ofNullable(projectDTO.getProStatus()).orElse(1);
         if (status != 3 && status != 4 && status != 1) {
-            return ResultResponse.fail(ILLEGAL_PROJECT_STATUS);
+            throw new ForbiddenException(ILLEGAL_PROJECT_STATUS);
         }
         projectDTO.setUId(UserHolder.getUser().getUId());
         updateBaseData();
-        return ResultResponse.ok(PageUtil.selectPage(page, () ->
-                baseMapper.getVagueDispatchProjectByUser(projectDTO), mapProjectToVO));
+        return page(page, () -> baseMapper.getVagueDispatchProjectByUser(projectDTO));
     }
 
     @Override
@@ -712,7 +687,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 h.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
                 h.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(file.length()));
                 h.add(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            }).body(new InputStreamResource(new FileInputStream(file)));
+            }).body(new InputStreamResource(Files.newInputStream(file.toPath())));
         } catch (IOException e) {
             log.error("获取导入模板文件失败。", e);
             byte[] bytes = JSONUtil.toJsonStr(ResultResponse.fail(LOAD_TEMPLATE_FAILED)).getBytes();

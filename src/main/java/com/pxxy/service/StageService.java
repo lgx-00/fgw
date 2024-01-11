@@ -2,7 +2,6 @@ package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.pxxy.entity.pojo.Stage;
-import com.pxxy.utils.ResultResponse;
 import com.pxxy.entity.vo.AddStageVO;
 import com.pxxy.entity.vo.QueryStageVO;
 import com.pxxy.entity.vo.UpdateStageVO;
@@ -19,11 +18,11 @@ import java.util.List;
  */
 public interface StageService extends IService<Stage> {
 
-    ResultResponse<?> addStage(AddStageVO addStageVO);
+    boolean addStage(AddStageVO addStageVO);
 
-    ResultResponse<?> updateStage(UpdateStageVO updateStageVO);
+    boolean updateStage(UpdateStageVO updateStageVO);
 
-    ResultResponse<List<QueryStageVO>> getAllStage();
+    List<QueryStageVO> getAllStage();
 
-    ResultResponse<?> deleteStage(Integer stageId);
+    boolean deleteStage(Integer stageId);
 }

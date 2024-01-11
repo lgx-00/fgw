@@ -1,13 +1,13 @@
 package com.pxxy.service.impl;
 
 import com.pxxy.advice.annotations.Cached;
-import com.pxxy.mapper.IndustryFieldMapper;
 import com.pxxy.entity.pojo.IndustryField;
-import com.pxxy.service.BaseService;
-import com.pxxy.service.IndustryFieldService;
-import com.pxxy.utils.ResultResponse;
 import com.pxxy.entity.vo.AddIndustryFieldVO;
 import com.pxxy.entity.vo.UpdateIndustryFieldVO;
+import com.pxxy.exceptions.ForbiddenException;
+import com.pxxy.mapper.IndustryFieldMapper;
+import com.pxxy.service.BaseService;
+import com.pxxy.service.IndustryFieldService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,40 +27,36 @@ import static com.pxxy.constant.ResponseMessage.ILLEGAL_OPERATE;
 public class IndustryFieldServiceImpl extends BaseService<IndustryFieldMapper, IndustryField> implements IndustryFieldService {
 
     @Override
-    public ResultResponse<?> addIndustryField(AddIndustryFieldVO addIndustryFieldVO) {
+    public boolean addIndustryField(AddIndustryFieldVO addIndustryFieldVO) {
         IndustryField industryField = new IndustryField()
                 .setInfName(addIndustryFieldVO.getInfName())
                 .setInfRemark(addIndustryFieldVO.getInfRemark());
-        baseMapper.insert(industryField);
-        return ResultResponse.ok(industryField);
+        return save(industryField);
     }
 
     @Override
-    public ResultResponse<?> updateIndustryField(UpdateIndustryFieldVO updateIndustryFieldVO) {
+    public boolean updateIndustryField(UpdateIndustryFieldVO updateIndustryFieldVO) throws ForbiddenException {
         IndustryField industryField = query().eq("inf_id", updateIndustryFieldVO.getInfId()).one();
         if (industryField == null) {
-            return ResultResponse.fail(ILLEGAL_OPERATE);
+            throw new ForbiddenException(ILLEGAL_OPERATE);
         }
         industryField.setInfName(updateIndustryFieldVO.getInfName())
                 .setInfRemark(updateIndustryFieldVO.getInfRemark());
-        baseMapper.updateById(industryField);
-        return ResultResponse.ok(industryField);
+        return updateById(industryField);
     }
 
     @Override
-    public ResultResponse<List<IndustryField>> getAll() {
-        List<IndustryField> industryFields = query().orderByDesc("inf_id").list();
-        return ResultResponse.ok(industryFields);
+    public List<IndustryField> getAll() {
+        return query().orderByDesc("inf_id").list();
     }
 
     @Override
-    public ResultResponse<?> deleteIndustryField(Integer infId) {
+    public boolean deleteIndustryField(Integer infId) throws ForbiddenException {
         IndustryField industryField = query().eq("inf_id", infId).one();
         if (industryField != null) {
-            removeById(infId);
-            return ResultResponse.ok();
+            return removeById(infId);
         }
-        return ResultResponse.fail(ILLEGAL_OPERATE);
+        throw new ForbiddenException(ILLEGAL_OPERATE);
     }
 
     @Override

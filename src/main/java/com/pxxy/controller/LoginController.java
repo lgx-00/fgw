@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 
 import static com.pxxy.constant.ResponseMessage.FAIL_MSG;
+import static com.pxxy.constant.ResponseMessage.OK_MSG;
 
 /**
  * @author hesen
@@ -34,7 +35,10 @@ public class LoginController {
     @PostMapping("/in")
     @ApiOperation("用户登录")
     public ResultResponse<String> login(@RequestBody @Validated LoginVO loginVO) {
-        return userService.login(loginVO);
+        String result = userService.login(loginVO);
+        return result.startsWith("token:")
+                ? ResultResponse.ok(OK_MSG, result.substring(6))
+                : ResultResponse.fail(result);
     }
 
     @ResponseBody

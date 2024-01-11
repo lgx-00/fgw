@@ -18,13 +18,13 @@ import java.util.List;
  */
 public interface IndustryFieldService extends IService<IndustryField> {
 
-    ResultResponse<?> addIndustryField(AddIndustryFieldVO addIndustryFieldVO);
+    boolean addIndustryField(AddIndustryFieldVO addIndustryFieldVO);
 
-    ResultResponse<?> updateIndustryField(UpdateIndustryFieldVO updateIndustryFieldVO);
+    boolean updateIndustryField(UpdateIndustryFieldVO updateIndustryFieldVO);
 
-    ResultResponse<List<IndustryField>> getAll();
+    List<IndustryField> getAll();
 
-    ResultResponse<?> deleteIndustryField(Integer infId);
+    boolean deleteIndustryField(Integer infId);
 
     List<IndustryField> all();
 

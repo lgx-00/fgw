@@ -15,7 +15,7 @@ import javax.annotation.Resource;
 
 /**
  * 操作记录控制器
- *
+ * <p></p>
  * Create time: 2023/7/26 16:00
  *
  * @author xw
@@ -33,7 +33,7 @@ public class OperationController {
     @GetMapping("/all")
     @ApiOperation("分页查询所有操作记录")
     public ResultResponse<PageInfo<OperationVO>> all(@ModelAttribute @Validated Page page) {
-        return operService.all(page);
+        return ResultResponse.ok(operService.all(page));
     }
 
     @GetMapping("/vague")
@@ -42,7 +42,7 @@ public class OperationController {
             @ModelAttribute @Validated Page page,
             @ModelAttribute @Validated QueryOperationVO queryOperationVO
     ) {
-        return operService.vague(page, queryOperationVO);
+        return ResultResponse.ok(operService.vague(page, queryOperationVO));
     }
 
 }

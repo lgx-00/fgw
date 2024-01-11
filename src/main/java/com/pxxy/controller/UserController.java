@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
+import static com.pxxy.constant.ResponseMessage.*;
+import static com.pxxy.utils.ResultResponse.fail;
+import static com.pxxy.utils.ResultResponse.ok;
+
 /**
  * <p>
  *  前端控制器
@@ -42,13 +46,13 @@ public class UserController {
     @ApiOperation("新增用户")
     public ResultResponse<?> addUser(@RequestBody @Validated AddUserVO addUserVO) {
         //实现新增功能
-        return userService.addUser(addUserVO);
+        return userService.addUser(addUserVO) ? ok() : fail(ADD_FAILED);
     }
 
     @DeleteMapping
     @ApiOperation("删除用户")
     public ResultResponse<?> deleteUser(@RequestParam Integer userId) {
-        return userService.deleteUser(userId);
+        return userService.deleteUser(userId) ? ok() : fail(DELETE_FAILED);
     }
 
     @PutMapping("/passwd")
@@ -56,25 +60,25 @@ public class UserController {
     public ResultResponse<?> updatePassword(@RequestBody @Validated UpdatePasswordVO vo) throws BindException {
         UpdateUserVO updateUserVO = new UpdateUserVO();
         updateUserVO.setUPassword(vo.getPasswd());
-        return userService.updateUserPassword(vo.getOld(), updateUserVO);
+        return userService.updateUserPassword(vo.getOld(), updateUserVO) ? ok() : fail(FAIL_MSG);
     }
 
     @PutMapping
     @ApiOperation("修改用户")
     public ResultResponse<?> modifyUser(@RequestBody @Validated UpdateUserVO updateUserVO) {
-        return userService.updateUser(updateUserVO);
+        return userService.updateUser(updateUserVO) ? ok() : fail(UPDATE_FAILED);
     }
 
     @GetMapping("/all")
     @ApiOperation("分页查询所有用户")
     public ResultResponse<PageInfo<QueryUserVO>> getAllUser(@ModelAttribute @Validated Page page) {
-        return userService.getAllUser(page);
+        return ok(userService.getAllUser(page));
     }
 
     @GetMapping("/vague")
     @ApiOperation("模糊查询用户")
     public ResultResponse<PageInfo<QueryUserVO>> getVagueUser(@ModelAttribute @Validated Page page, @RequestParam String uName) {
-        return userService.getVagueUser(page, uName);
+        return ok(userService.getVagueUser(page, uName));
     }
 }
 

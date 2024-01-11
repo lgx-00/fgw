@@ -9,6 +9,7 @@ import com.pxxy.entity.dto.PermissionDTO;
 import com.pxxy.entity.dto.UserDTO;
 import com.pxxy.entity.pojo.*;
 import com.pxxy.entity.vo.*;
+import com.pxxy.exceptions.ForbiddenException;
 import com.pxxy.exceptions.UserPermissionException;
 import com.pxxy.mapper.UserMapper;
 import com.pxxy.service.*;
@@ -94,7 +95,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     static Map<String, Integer> mistakeTimes = new ConcurrentHashMap<>();
 
     @Override
-    public ResultResponse<String> login(LoginVO loginVO) {
+    @Transactional
+    public String login(LoginVO loginVO) {
 
         // 根据用户名查询用户
         String uName = loginVO.getUName();
@@ -102,7 +104,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = query().eq("u_name", uName).ne("u_status", DELETED_STATUS).one();
 
         if (user == null) {
-            return ResultResponse.fail("用户名或密码错误！");
+            return "用户名或密码错误";
         }
 
         // 判断用户是否处于禁用时间中
@@ -116,7 +118,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 user.setUStatus(DEFAULT_STATUS);
                 updateById(user);
             } else {
-                return ResultResponse.fail(String.format("当前用户已被禁用，请%d分钟后再试", USER_DEFAULT_DISABLE_TIME));
+                return String.format("当前用户已被禁用，请%d分钟后再试", USER_DEFAULT_DISABLE_TIME);
             }
         }
 
@@ -127,7 +129,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         switch (user.getUStatus()) {
             // 是否被禁用
             case USER_DISABLED_STATUS:
-                return ResultResponse.fail("用户已被禁用，请联系管理员解除!");
+                return "用户已被禁用，请联系管理员解除!";
             // 状态正常
             case DEFAULT_STATUS:
                 if (!password.equals(user.getUPassword())) {
@@ -146,7 +148,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         // 错误次数置零
                         mistakeTimes.put(USER_MISTAKE_TIMES_KEY + user.getUId(), USER_MISTAKE_DEFAULT_TIMES);
                     }
-                    return ResultResponse.fail("用户名或密码错误！");
+                    return "用户名或密码错误";
                 }
 
                 // 检查是否过年了
@@ -163,9 +165,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 // 登录成功，更新用户登录时间
                 user.setULoginTime(now);
                 updateById(user);
-                return ResultResponse.ok(xToken.token);
+                return "token:" + xToken.token;
             default:
-                return ResultResponse.fail("用户状态异常！");
+                return "用户状态异常";
         }
     }
 
@@ -238,7 +240,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         long roleCount = roleService.query().in("r_id", roleIds).ne("r_status", DELETED_STATUS).count();
 
         if (roleCount == 0) {
-            throw new UserPermissionException("用户所属的角色已被删除，请联系管理员！");
+            throw new UserPermissionException("用户所属的角色已被删除，请联系管理员");
         }
 
         List<RolePermission> rolePermissions = rolePermissionService.query().in("r_id", roleIds).list();
@@ -269,7 +271,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public ResultResponse<?> addUser(AddUserVO addUserVO) {
+    public boolean addUser(AddUserVO addUserVO) throws ForbiddenException {
         User user = new User();
         // 对象属性拷贝
         BeanUtil.copyProperties(addUserVO, user);
@@ -281,17 +283,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             save(user);
         } catch (DuplicateKeyException e) {
             if (Objects.requireNonNull(e.getMessage()).contains("user.user_u_name__uindex")) {
-                return ResultResponse.fail("用户名已被占用！");
+                throw new ForbiddenException("用户名已被占用");
             } else {
-                log.error("用户新增失败！", e);
-                return ResultResponse.fail("操作失败，未知原因！");
+                log.error("用户新增失败", e);
+                throw new ForbiddenException("操作失败，未知原因");
             }
         } catch (DataIntegrityViolationException e) {
             if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {
-                return ResultResponse.fail("非法操作！");
+                throw new ForbiddenException("非法操作");
             } else {
-                log.error("用户新增失败！", e);
-                return ResultResponse.fail("操作失败，未知原因！");
+                log.error("用户新增失败", e);
+                throw new ForbiddenException("操作失败，未知原因");
             }
         }
 
@@ -305,17 +307,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }).collect(Collectors.toList());
 
         if (!userRoleService.saveBatch(userRoleList)) {
-            return ResultResponse.fail("新增用户失败！");
+            throw new ForbiddenException("新增用户失败");
         }
-        return ResultResponse.ok();
+        return true;
 
     }
 
     @Override
-    public ResultResponse<?> deleteUser(Integer userId) {
+    public boolean deleteUser(Integer userId) throws ForbiddenException {
 
         if (userId == 1) {
-            return ResultResponse.fail(CANNOT_DELETE_ADMINISTRATOR);
+            throw new ForbiddenException(CANNOT_DELETE_ADMINISTRATOR);
         }
 
         User user = query().eq("u_id", userId).one();
@@ -325,25 +327,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 强制下线删除的用户
         TokenUtil.invalidate(new UserDTO(userId));
 
-        return ResultResponse.ok();
+        return true;
     }
 
     @Override
     @Transactional
-    public ResultResponse<?> updateUser(UpdateUserVO updateUserVO) {
+    public boolean updateUser(UpdateUserVO updateUserVO) throws ForbiddenException {
 
         Integer uid = updateUserVO.getUId();
         Integer currentUserId = UserHolder.getUser().getUId();
 
         // 修改用户的角色信息
-        if (Objects.nonNull(updateUserVO.getRoleList()) && updateUserVO.getRoleList().size() > 0) {
+        if (Objects.nonNull(updateUserVO.getRoleList()) && !updateUserVO.getRoleList().isEmpty()) {
 
             if (currentUserId.equals(uid) && !currentUserId.equals(1)) {
-                return ResultResponse.fail(CANNOT_UPDATE_SELF_USER_ROLE_DATA);
+                throw new ForbiddenException(CANNOT_UPDATE_SELF_USER_ROLE_DATA);
             }
 
             if (uid.equals(1)) {
-                return ResultResponse.fail(CANNOT_UPDATE_ADMINISTRATOR_ROLE_DATA);
+                throw new ForbiddenException(CANNOT_UPDATE_ADMINISTRATOR_ROLE_DATA);
             }
 
             userRoleService.remove(new LambdaQueryWrapper<UserRole>().eq(UserRole::getUId, uid));
@@ -367,32 +369,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 强制下线修改的用户
         TokenUtil.invalidate(new UserDTO(uid));
 
-        return ResultResponse.ok();
+        return true;
     }
 
     @Override
-    public ResultResponse<PageInfo<QueryUserVO>> getAllUser(Page page) {
+    public PageInfo<QueryUserVO> getAllUser(Page page) {
         //  根据类型分页查询
-        PageInfo<QueryUserVO> pageInfo = PageUtil.selectPage(page,
+        return PageUtil.selectPage(page,
                 () -> query().ne("u_status",DELETED_STATUS).orderByDesc("u_id").list(), mapUserToVO);
-        return ResultResponse.ok(pageInfo);
     }
 
     @Override
-    public ResultResponse<PageInfo<QueryUserVO>> getVagueUser(Page page, String uName) {
+    public PageInfo<QueryUserVO> getVagueUser(Page page, String uName) {
         //  根据类型分页查询
-        PageInfo<QueryUserVO> pageInfo = PageUtil.selectPage(page,
+        return PageUtil.selectPage(page,
                 () -> query().like("u_name", uName)
                         .ne("u_status", DELETED_STATUS).orderByDesc("u_id").list(), mapUserToVO);
-        return ResultResponse.ok(pageInfo);
     }
 
     @Override
-    public ResultResponse<?> updateUserPassword(String old, UpdateUserVO updateUserVO) {
+    @Transactional
+    public boolean updateUserPassword(String old, UpdateUserVO updateUserVO) throws ForbiddenException {
         Integer uId = UserHolder.getUser().getUId();
         Long count = query().eq("u_id", uId).eq("u_password", Md5Util.code(old)).count();
         if (count < 1) {
-            return ResultResponse.fail(INVALID_PASSWORD);
+            throw new ForbiddenException(INVALID_PASSWORD);
         }
         updateUserVO.setUId(uId);
         return updateUser(updateUserVO);

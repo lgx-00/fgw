@@ -2,7 +2,6 @@ package com.pxxy.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.pxxy.entity.pojo.County;
-import com.pxxy.utils.ResultResponse;
 import com.pxxy.entity.vo.AddCountyVO;
 import com.pxxy.entity.vo.QueryCountyVO;
 import com.pxxy.entity.vo.UpdateCountyVO;
@@ -19,15 +18,15 @@ import java.util.List;
  */
 public interface CountyService extends IService<County> {
 
-    ResultResponse<?> addCounty(AddCountyVO addCountyVO);
+    boolean addCounty(AddCountyVO addCountyVO);
 
-    ResultResponse<?> updateCounty(UpdateCountyVO updateCountyVO);
+    boolean updateCounty(UpdateCountyVO updateCountyVO);
 
-    ResultResponse<List<QueryCountyVO>> getAllCounties();
+    List<QueryCountyVO> getAllCounties();
 
-    ResultResponse<?> deleteCounty(Integer couId);
+    boolean deleteCounty(Integer couId);
 
-    ResultResponse<QueryCountyVO> getCounty(Integer couId);
+    QueryCountyVO getCounty(Integer couId);
 
     List<County> all();
 }

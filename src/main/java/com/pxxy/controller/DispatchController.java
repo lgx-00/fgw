@@ -19,7 +19,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 
-import static com.pxxy.constant.ResponseMessage.FAIL_MSG;
+import static com.pxxy.constant.ResponseMessage.*;
+import static com.pxxy.utils.ResultResponse.fail;
+import static com.pxxy.utils.ResultResponse.ok;
 
 /**
  * <p>
@@ -46,7 +48,7 @@ public class DispatchController {
             @Validated Page page,
             @PathVariable @ApiParam(value = "项目编号") Integer proId
     ) {
-        return dispatchService.getAllDispatch(page, proId);
+        return ok(dispatchService.getAllDispatch(page, proId));
     }
 
     @GetMapping("/{proId}")
@@ -55,7 +57,7 @@ public class DispatchController {
             @PathVariable @ApiParam(value = "项目编号") Integer proId,
             @RequestParam @ApiParam(value = "调度编号") Integer disId
     ) {
-        return dispatchService.get(disId, proId);
+        return ok(dispatchService.get(disId, proId));
     }
 
     @ApiOperation("下载附件")
@@ -70,22 +72,22 @@ public class DispatchController {
     @PostMapping
     @ApiOperation(value = "新增调度")
     public ResultResponse<?> add(@RequestBody @Validated AddDispatchVO vo) {
-        return dispatchService.add(vo);
+        return dispatchService.add(vo) ? ok() : fail(ADD_FAILED);
     }
 
     @PostMapping("upload")
     @ApiOperation(value = "直接上传附件")
     public ResultResponse<String> upload(@RequestPart MultipartFile disAppendix) {
         if (disAppendix == null || disAppendix.isEmpty()) {
-            return ResultResponse.fail(FAIL_MSG);
+            return fail(FAIL_MSG);
         }
-        return dispatchService.upload(disAppendix);
+        return ok(dispatchService.upload(disAppendix));
     }
 
     @PutMapping
     @ApiOperation(value = "修改调度")
     public ResultResponse<?> update(@RequestBody @Validated UpdateDispatchVO vo) {
-        return dispatchService.update(vo);
+        return dispatchService.update(vo) ? ok() : fail(UPDATE_FAILED);
     }
 
     @PutMapping("/{proId}/{disId}")
@@ -96,9 +98,9 @@ public class DispatchController {
             @RequestPart MultipartFile disAppendix
     ) {
         if (disAppendix == null || disAppendix.isEmpty()) {
-            return ResultResponse.fail(FAIL_MSG);
+            return fail(FAIL_MSG);
         }
-        return dispatchService.upload(disAppendix, proId, disId);
+        return dispatchService.upload(disAppendix, proId, disId) ? ok() : fail(FAIL_MSG);
     }
 
     @PutMapping("/{proId}/lock")
@@ -107,7 +109,7 @@ public class DispatchController {
             @PathVariable @ApiParam(value = "项目编号") Integer proId,
             @RequestParam @ApiParam(value = "调度编号") Integer disId
     ) {
-        return dispatchService.lock(disId, proId);
+        return dispatchService.lock(disId, proId) ? ok() : fail(LOCK_FAILED);
     }
 
     @PutMapping("/{proId}/unlock")
@@ -116,7 +118,7 @@ public class DispatchController {
             @PathVariable @ApiParam(value = "项目编号") Integer proId,
             @RequestParam @ApiParam(value = "调度编号") Integer disId
     ) {
-        return dispatchService.unlock(disId, proId);
+        return dispatchService.unlock(disId, proId) ? ok() : fail(UNLOCK_FAILED);
     }
 
     @DeleteMapping("/{proId}")
@@ -125,7 +127,7 @@ public class DispatchController {
             @PathVariable @ApiParam(value = "项目编号") Integer proId,
             @RequestParam @ApiParam(value = "调度编号") Integer disId
     ) {
-        return dispatchService.del(disId, proId);
+        return dispatchService.del(disId, proId) ? ok() : fail(DELETE_FAILED);
     }
 
 }

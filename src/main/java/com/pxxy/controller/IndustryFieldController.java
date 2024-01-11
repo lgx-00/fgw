@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
 
+import static com.pxxy.constant.ResponseMessage.*;
+import static com.pxxy.utils.ResultResponse.fail;
+import static com.pxxy.utils.ResultResponse.ok;
+
 /**
  * <p>
  *  前端控制器
@@ -35,25 +39,25 @@ public class IndustryFieldController {
     @PostMapping
     @ApiOperation("新增行业")
     public ResultResponse<?> addIndustryField(@RequestBody @Validated AddIndustryFieldVO addIndustryFieldVO) {
-        return IndustryFieldService.addIndustryField(addIndustryFieldVO);
+        return IndustryFieldService.addIndustryField(addIndustryFieldVO) ? ok() : fail(ADD_FAILED);
     }
 
     @PutMapping
     @ApiOperation("修改行业")
     public ResultResponse<?> updateIndustryField(@RequestBody @Validated UpdateIndustryFieldVO updateIndustryFieldVO) {
-        return IndustryFieldService.updateIndustryField(updateIndustryFieldVO);
+        return IndustryFieldService.updateIndustryField(updateIndustryFieldVO) ? ok() : fail(UPDATE_FAILED);
     }
 
     @GetMapping
     @ApiOperation("查询所有行业")
     public ResultResponse<List<IndustryField>> selectIndustryField(){
-        return IndustryFieldService.getAll();
+        return ok(IndustryFieldService.getAll());
     }
 
     @DeleteMapping
     @ApiOperation("删除行业")
     public ResultResponse<?> deleteIndustryField(@RequestParam Integer infId) {
-        return IndustryFieldService.deleteIndustryField(infId);
+        return IndustryFieldService.deleteIndustryField(infId) ? ok() : fail(DELETE_FAILED);
     }
 
 }

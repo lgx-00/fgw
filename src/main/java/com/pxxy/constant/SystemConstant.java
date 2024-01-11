@@ -34,4 +34,9 @@ public class SystemConstant {
     public static final String USER_DATA$UPLOAD_ORIGINAL_FILE_NAME = "upload-file-original-name";
     public static final String USER_DATA$LOGOUT_HANDLERS = "remove-handlers";
 
+
+    public static final String FIRST_LEVEL_JURISDICTION = "乡镇";
+
+    public static final String SECOND_LEVEL_JURISDICTION = "村社";
+
 }

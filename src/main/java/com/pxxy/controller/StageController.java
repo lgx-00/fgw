@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
 
+import static com.pxxy.constant.ResponseMessage.*;
+import static com.pxxy.utils.ResultResponse.fail;
+import static com.pxxy.utils.ResultResponse.ok;
+
 /**
  * <p>
  *  前端控制器
@@ -35,25 +39,25 @@ public class StageController {
     @PostMapping
     @ApiOperation("新增阶段")
     public ResultResponse<?> addStage(@RequestBody @Validated AddStageVO addStageVO) {
-        return stageService.addStage(addStageVO);
+        return stageService.addStage(addStageVO) ? ok() : fail(ADD_FAILED);
     }
 
     @PutMapping
     @ApiOperation("修改阶段")
     public ResultResponse<?> updateStage(@RequestBody @Validated UpdateStageVO updateStageVO) {
-        return stageService.updateStage(updateStageVO);
+        return stageService.updateStage(updateStageVO) ? ok() : fail(UPDATE_FAILED);
     }
 
     @GetMapping
     @ApiOperation("查询所有阶段")
-    public ResultResponse<List<QueryStageVO>> getAllStage(){
-        return stageService.getAllStage();
+    public ResultResponse<List<QueryStageVO>> getAllStage() {
+        return ok(stageService.getAllStage());
     }
 
     @DeleteMapping
     @ApiOperation("删除阶段")
     public ResultResponse<?> deleteStage(@RequestParam Integer stageId) {
-        return stageService.deleteStage(stageId);
+        return stageService.deleteStage(stageId) ? ok() : fail(DELETE_FAILED);
     }
 
 }

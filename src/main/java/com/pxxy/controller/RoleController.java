@@ -18,6 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
 
+import static com.pxxy.constant.ResponseMessage.*;
+import static com.pxxy.utils.ResultResponse.fail;
+import static com.pxxy.utils.ResultResponse.ok;
+
 /**
  * <p>
  *  前端控制器
@@ -42,37 +46,37 @@ public class RoleController {
     @GetMapping("/all")
     @ApiOperation("分页查询所有角色")
     public ResultResponse<PageInfo<QueryRoleVO>> getAllRole(@ModelAttribute @Validated Page page) {
-        return roleService.getAllRole(page);
+        return ok(roleService.getAllRole(page));
     }
 
     @GetMapping("/vague")
     @ApiOperation("模糊查询角色名")
     public ResultResponse<PageInfo<QueryRoleVO>> getVagueRole(@ModelAttribute @Validated Page page, @RequestParam String rName) {
-        return roleService.getVagueRole(page, rName);
+        return ok(roleService.getVagueRole(page, rName));
     }
 
     @GetMapping("/perm")
     @ApiOperation("查询所有权限")
     public ResultResponse<List<Permission>> getPerm() {
-        return permService.getPerm();
+        return ok(permService.getPerm());
     }
 
     @PostMapping
     @ApiOperation("新增角色")
     public ResultResponse<?> addRole(@RequestBody @Validated AddRoleVO addRoleVO) {
-        return roleService.addRole(addRoleVO);
+        return roleService.addRole(addRoleVO) ? ok() : fail(ADD_FAILED);
     }
 
     @DeleteMapping
     @ApiOperation("删除角色")
     public ResultResponse<?> deleteRole(@RequestParam Integer roleId) {
-        return roleService.deleteRole(roleId);
+        return roleService.deleteRole(roleId) ? ok() : fail(DELETE_FAILED);
     }
 
     @PutMapping
     @ApiOperation("修改角色")
     public ResultResponse<?> updateRole(@RequestBody @Validated UpdateRoleVO updateRoleVO) {
-        return roleService.updateRole(updateRoleVO);
+        return roleService.updateRole(updateRoleVO) ? ok() : fail(UPDATE_FAILED);
     }
 
 

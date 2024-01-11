@@ -3,7 +3,6 @@ package com.pxxy.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.pagehelper.PageInfo;
 import com.pxxy.entity.pojo.Operation;
-import com.pxxy.utils.ResultResponse;
 import com.pxxy.entity.vo.OperationVO;
 import com.pxxy.entity.vo.Page;
 import com.pxxy.entity.vo.QueryOperationVO;
@@ -24,7 +23,7 @@ public interface OperationService extends IService<Operation> {
      * @param page 分页详情
      * @return 一页操作记录
      */
-    ResultResponse<PageInfo<OperationVO>> all(Page page);
+    PageInfo<OperationVO> all(Page page);
 
     /**
      * 分页模糊查询操作记录
@@ -33,6 +32,6 @@ public interface OperationService extends IService<Operation> {
      * @param queryOperationVO 模糊查询的条件
      * @return 一页操作记录
      */
-    ResultResponse<PageInfo<OperationVO>> vague(Page page, QueryOperationVO queryOperationVO);
+    PageInfo<OperationVO> vague(Page page, QueryOperationVO queryOperationVO);
 
 }
