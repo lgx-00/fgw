@@ -40,7 +40,7 @@ public class SummaryServiceImpl implements SummaryService {
     private UserService userService;
 
     @Resource
-    private TownService townService;
+    private CountyService countyService;
 
     @Resource
     private DispatchService dispatchService;
@@ -59,7 +59,7 @@ public class SummaryServiceImpl implements SummaryService {
 
     private static Map<Integer, String> infMap;
     private static Map<Integer, String> prcMap;
-    private static Map<Integer, String> townMap;
+    private static Map<Integer, String> couMap;
 
     @Override
     @Transactional
@@ -79,14 +79,14 @@ public class SummaryServiceImpl implements SummaryService {
             SummaryVO summaryVO = new SummaryVO();
             summaryVO.setTownName("湘东区");
             summaryVO.setProjectNum(projects.size());
-            int projectWorkNum = summaryVOList.stream().mapToInt(SummaryVO::getProjectWorkNum).sum();
+            int projectWorkNum = summaryVOList.stream().map(SummaryVO::getProjectWorkNum).filter(Objects::nonNull).mapToInt(x -> x).sum();
             summaryVO.setProjectWorkNum(projectWorkNum);
             String ratio = calculatePercentage(projectWorkNum, projects.size());
             summaryVO.setRatio(ratio);
-            summaryVO.setProAllPlan(summaryVOList.stream().mapToInt(SummaryVO::getProAllPlan).sum());
-            int proPlanYear = summaryVOList.stream().mapToInt(SummaryVO::getProPlanYear).sum();
+            summaryVO.setProAllPlan(summaryVOList.stream().map(SummaryVO::getProAllPlan).filter(Objects::nonNull).mapToInt(x -> x).sum());
+            int proPlanYear = summaryVOList.stream().map(SummaryVO::getProPlanYear).filter(Objects::nonNull).mapToInt(x -> x).sum();
             summaryVO.setProPlanYear(proPlanYear);
-            int proPlanMonths = summaryVOList.stream().mapToInt(SummaryVO::getProPlanMonths).sum();
+            int proPlanMonths = summaryVOList.stream().map(SummaryVO::getProPlanMonths).filter(Objects::nonNull).mapToInt(x -> x).sum();
             summaryVO.setProPlanMonths(proPlanMonths);
             if (proPlanMonths == 0) {
                 summaryVO.setProCompletionPercent("0%");
@@ -129,13 +129,13 @@ public class SummaryServiceImpl implements SummaryService {
             SummaryDetailsVO summaryDetailsVO = new SummaryDetailsVO()
                     .setProName("全区")
                     .setProjectNum(projects.size())
-                    .setProAllPlan(listList.stream().mapToInt(SummaryDetailsVO::getProAllPlan).sum())
-                    .setProPlanYear(listList.stream().mapToInt(SummaryDetailsVO::getProYear).sum())
-                    .setProPlanMonths(listList.stream().mapToInt(SummaryDetailsVO::getProPlanMonths).sum())
-                    .setProPlanMonth(listList.stream().mapToInt(SummaryDetailsVO::getProPlanMonth).sum())
-                    .setProYear(listList.stream().mapToInt(SummaryDetailsVO::getProYear).sum());
-            if (listList.stream().mapToInt(SummaryDetailsVO::getProYear).sum() != 0) {
-                summaryDetailsVO.setProPlanCompletionPercent(calculatePercentage(listList.stream().mapToInt(SummaryDetailsVO::getProYear).sum(), listList.stream().mapToInt(SummaryDetailsVO::getProYear).sum()));
+                    .setProAllPlan(listList.stream().map(SummaryDetailsVO::getProAllPlan).filter(Objects::nonNull).mapToInt(x -> x).sum())
+                    .setProPlanYear(listList.stream().map(SummaryDetailsVO::getProYear).filter(Objects::nonNull).mapToInt(x -> x).sum())
+                    .setProPlanMonths(listList.stream().map(SummaryDetailsVO::getProPlanMonths).filter(Objects::nonNull).mapToInt(x -> x).sum())
+                    .setProPlanMonth(listList.stream().map(SummaryDetailsVO::getProPlanMonth).filter(Objects::nonNull).mapToInt(x -> x).sum())
+                    .setProYear(listList.stream().map(SummaryDetailsVO::getProYear).filter(Objects::nonNull).mapToInt(x -> x).sum());
+            if (listList.stream().map(SummaryDetailsVO::getProYear).filter(Objects::nonNull).mapToInt(x -> x).sum() != 0) {
+                summaryDetailsVO.setProPlanCompletionPercent(calculatePercentage(listList.stream().map(SummaryDetailsVO::getProYear).filter(Objects::nonNull).mapToInt(x -> x).sum(), listList.stream().map(SummaryDetailsVO::getProYear).filter(Objects::nonNull).mapToInt(x -> x).sum()));
             } else {
                 summaryDetailsVO.setProPlanCompletionPercent("0%");
             }
@@ -186,12 +186,12 @@ public class SummaryServiceImpl implements SummaryService {
 
     private List<SummaryVO> groupSummary(List<Project> projects) {
         //对同一辖区的项目进行分组
-        Map<Integer, List<Project>> listMap = projects.stream().collect(Collectors.groupingBy(Project::getCouId));
-        townMap = townService.all().stream().collect(Collectors.toMap(Town::getTownId, Town::getTownName));
-        return listMap.keySet().stream().map(key -> {
+        Map<Integer, List<Project>> couIdMapProjects = projects.stream().collect(Collectors.groupingBy(Project::getCouId));
+        couMap = countyService.all().stream().collect(Collectors.toMap(County::getCouId, County::getCouName));
+        return couIdMapProjects.keySet().stream().map(couId -> {
             SummaryVO summaryVO = new SummaryVO();
-            summaryVO.setTownName(townMap.get(key));
-            List<Project> projectsList = listMap.get(key);  //组内对象集合
+            summaryVO.setTownName(couMap.get(couId));
+            List<Project> projectsList = couIdMapProjects.get(couId);  //组内对象集合
             summaryVO.setProjectNum(projectsList.size()); // 项目个数
             AtomicInteger count = new AtomicInteger(0); // 初始化计数器为0
             projectsList.forEach(project -> {
@@ -207,13 +207,13 @@ public class SummaryServiceImpl implements SummaryService {
             String ratio = calculatePercentage(count.get(), projectsList.size());
             summaryVO.setRatio(ratio);
 
-            int proAllPlan = projectsList.stream().mapToInt(Project::getProDisTotal).sum();  //每个辖区所有项目总投资
+            int proAllPlan = projectsList.stream().map(Project::getProDisTotal).filter(Objects::nonNull).mapToInt(x -> x).sum();  //每个辖区所有项目总投资
             summaryVO.setProAllPlan(proAllPlan);
 
-            int proPlanYear = projectsList.stream().mapToInt(Project::getProPlanYear).sum();  //年计划完成投资
+            int proPlanYear = projectsList.stream().map(Project::getProPlanYear).filter(Objects::nonNull).mapToInt(x -> x).sum();  //年计划完成投资
             summaryVO.setProPlanYear(proPlanYear);
 
-            int proPlanMonths = projectsList.stream().mapToInt(Project::getProDisYear).sum();  //今年完成投资
+            int proPlanMonths = projectsList.stream().map(Project::getProDisYear).filter(Objects::nonNull).mapToInt(x -> x).sum();  //今年完成投资
             summaryVO.setProPlanMonths(proPlanMonths);
             if (proPlanMonths == 0) {
                 summaryVO.setProCompletionPercent("0%");
@@ -230,8 +230,8 @@ public class SummaryServiceImpl implements SummaryService {
                 .collect(Collectors.toMap(IndustryField::getInfId, IndustryField::getInfName));
         prcMap = prcService.all().stream()
                 .collect(Collectors.toMap(ProjectCategory::getPrcId, ProjectCategory::getPrcName));
-        townMap = townService.all().stream()
-                .collect(Collectors.toMap(Town::getTownId, Town::getTownName));
+        couMap = countyService.all().stream()
+                .collect(Collectors.toMap(County::getCouId, County::getCouName));
     }
 
     private List<SummaryDetailsVO> groupSummaryDetails(List<Project> projects, List<Dispatch> dispatchList) {
@@ -277,17 +277,17 @@ public class SummaryServiceImpl implements SummaryService {
             }
             //对辖区下面的项目进行统计
             SummaryDetailsVO summaryDetailsVO = new SummaryDetailsVO()
-                    .setProName(townMap.get(e.getKey()))
+                    .setProName(couMap.get(e.getKey()))
                     .setProjectNum(projectList.size())
-                    .setProAllPlan(vos.stream().mapToInt(SummaryDetailsVO::getProAllPlan).sum())
-                    .setProPlanYear(vos.stream().mapToInt(SummaryDetailsVO::getProYear).sum())
-                    .setProPlanMonths(vos.stream().mapToInt(SummaryDetailsVO::getProPlanMonths).sum())
-                    .setProPlanMonth(vos.stream().mapToInt(SummaryDetailsVO::getProPlanMonth).sum())
-                    .setProYear(vos.stream().mapToInt(SummaryDetailsVO::getProYear).sum());
-            if (vos.stream().mapToInt(SummaryDetailsVO::getProYear).sum() != 0) {
+                    .setProAllPlan(vos.stream().map(SummaryDetailsVO::getProAllPlan).filter(Objects::nonNull).mapToInt(x -> x).sum())
+                    .setProPlanYear(vos.stream().map(SummaryDetailsVO::getProYear).filter(Objects::nonNull).mapToInt(x -> x).sum())
+                    .setProPlanMonths(vos.stream().map(SummaryDetailsVO::getProPlanMonths).filter(Objects::nonNull).mapToInt(x -> x).sum())
+                    .setProPlanMonth(vos.stream().map(SummaryDetailsVO::getProPlanMonth).filter(Objects::nonNull).mapToInt(x -> x).sum())
+                    .setProYear(vos.stream().map(SummaryDetailsVO::getProYear).filter(Objects::nonNull).mapToInt(x -> x).sum());
+            if (vos.stream().map(SummaryDetailsVO::getProYear).filter(Objects::nonNull).mapToInt(x -> x).sum() != 0) {
                 summaryDetailsVO.setProPlanCompletionPercent(calculatePercentage(
-                        vos.stream().mapToInt(SummaryDetailsVO::getProYear).sum(),
-                        vos.stream().mapToInt(SummaryDetailsVO::getProYear).sum()));
+                        vos.stream().map(SummaryDetailsVO::getProYear).filter(Objects::nonNull).mapToInt(x -> x).sum(),
+                        vos.stream().map(SummaryDetailsVO::getProYear).filter(Objects::nonNull).mapToInt(x -> x).sum()));
             } else {
                 summaryDetailsVO.setProPlanCompletionPercent("0%");
             }
